@@ -79,13 +79,6 @@ export function SellerDashboard({
   const revenueChange = 0.15; // 15% increase
   const profitChange = 0.08; // 8% increase
   
-  // Handle refresh
-  const handleRefresh = async () => {
-    if (onRefresh) {
-      await onRefresh();
-    }
-  };
-  
   // Get recent activity (last 3 listings)
   const recentListings = [...listings]
     .sort((a, b) => new Date(b.established).getTime() - new Date(a.established).getTime())
@@ -114,21 +107,8 @@ export function SellerDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Seller Dashboard</h2>
-          <p className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </p>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Refreshing...' : 'Refresh Data'}
-        </Button>
+      <div className="flex flex-col">
+        <h2 className="text-2xl font-bold tracking-tight">Seller Dashboard</h2>
       </div>
       
       <VerificationAlert 
