@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, List, LayoutGrid, Eye, Star, Folder, PieChart, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { PageHeader } from '@/components/page-header';
 
 const DealStageButton = ({ icon: Icon, label, isActive, onClick, children }: { icon: React.ElementType, label: string, isActive: boolean, onClick: () => void, children?: React.ReactNode }) => (
     <Button
@@ -49,7 +50,10 @@ export default function MyDealsPage() {
 
     return (
         <div className="space-y-8">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground/90">My deals</h1>
+            <PageHeader 
+                title="My Deals"
+                description="Track and manage all your business opportunities in one place."
+            />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
                 <div className="col-span-1">
                     <nav className="space-y-1">

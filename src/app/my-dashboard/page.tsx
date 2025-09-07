@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { StatCard, VerificationAlert, DashboardSkeleton } from '@/components/dashboard';
 import { mockData } from '@/lib/data';
-import { Eye, FileSignature, MessageSquare } from 'lucide-react';
+import { Eye, Clock, CheckCircle2, AlertCircle, FileSignature, MessageSquare } from 'lucide-react';
+import { PageHeader } from '@/components/page-header';
 
 interface DashboardData {
   viewedListings: number;
@@ -64,11 +65,11 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="space-y-6 p-2 md:p-4">
-      <div className="space-y-1 px-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome, {buyer.fullName.split(' ')[0]}</h1>
-        <p className="text-muted-foreground">Here's an overview of your activity.</p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader 
+        title={`Welcome, ${buyer.fullName.split(' ')[0]}`}
+        description="Here's an overview of your activity."
+      />
 
       {data.needsVerification && <div className="px-2"><VerificationAlert /></div>}
 

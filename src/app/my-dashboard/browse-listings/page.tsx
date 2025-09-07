@@ -9,6 +9,7 @@ import { listings } from '@/lib/data';
 import { ListingCard } from '@/components/listing-card';
 import { DashboardCollections } from '@/components/dashboard-collections';
 import { ListingFilters } from '@/components/listing-filters';
+import { PageHeader } from '@/components/page-header';
 import type { Listing } from '@/lib/types';
 
 export default function BrowseListingsPage() {
@@ -37,10 +38,10 @@ export default function BrowseListingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Browse Listings</h1>
-        <p className="text-muted-foreground">Discover and evaluate potential business opportunities.</p>
-      </div>
+      <PageHeader 
+        title="Browse Listings"
+        description="Discover and evaluate potential business opportunities."
+      />
       
       <div className="space-y-6 pb-6 border-b border-border/50">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

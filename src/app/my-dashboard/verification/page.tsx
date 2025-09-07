@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Upload, Info, FileText, CheckCircle, MessageSquare, Briefcase } from "lucide-react"
+import { PageHeader } from '@/components/page-header';
 
 function FileUploadInput({ id, label, description }: { id: string, label: string, description: string }) {
     return (
@@ -34,11 +34,10 @@ const BenefitItem = ({ icon: Icon, text }: { icon: React.ElementType, text: stri
 export default function VerificationPage() {
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Become a Verified Buyer</h1>
-                <p className="text-muted-foreground">Verifying your identity helps us keep the marketplace safe for everyone.</p>
-            </div>
-
+            <PageHeader 
+                title="Become a Verified Buyer"
+                description="Verifying your identity helps us keep the marketplace safe for everyone."
+            />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
