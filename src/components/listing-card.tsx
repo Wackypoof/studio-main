@@ -21,7 +21,7 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   return (
     <Link href={`/listings/${listing.id}`} className="block h-full group">
-      <Card className="flex flex-col overflow-hidden h-full transform transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
+      <Card className="flex flex-col overflow-hidden h-full border border-border/50 transition-all hover:border-primary/20 hover:shadow-md">
         <CardHeader className="p-4 relative flex flex-row justify-between items-start">
           <div>
             <Badge variant="secondary">{listing.vertical}</Badge>
@@ -37,7 +37,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           )}
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-1">
-          <h3 className="font-semibold text-lg leading-tight text-foreground/90 group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg leading-tight text-foreground/90 group-hover:text-primary transition-colors duration-200">
             {listing.headline}
           </h3>
           <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{listing.teaser}</p>
