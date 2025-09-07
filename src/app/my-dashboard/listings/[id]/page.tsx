@@ -32,7 +32,8 @@ import { useState, useEffect } from 'react';
 import { RevenueChart } from '@/components/charts/RevenueChart';
 import { ProfitRevenueChart } from '@/components/charts/ProfitRevenueChart';
 import { TrafficChart } from '@/components/charts/TrafficChart';
-import { TrafficSourcesChart } from '@/components/charts/TrafficSourcesChart';
+import { TrafficSourcesChart } from "@/components/charts/TrafficSourcesChart";
+import { PriceDisplay } from "./price-display";
 
 interface PageProps {
   params: { id: string };
@@ -44,7 +45,12 @@ export default function ListingDetailsPage({ params }: PageProps) {
 
   useEffect(() => {
     Promise.resolve(params).then(resolvedParams => {
-      const listingData = exampleListings.find(l => l.id === resolvedParams.id);
+      const listingId = resolvedParams.id.startsWith('listing-') 
+        ? resolvedParams.id 
+        : `listing-${resolvedParams.id}`;
+      
+      const listingData = exampleListings.find(l => l.id === listingId);
+      
       if (!listingData) {
         notFound();
       }
@@ -171,21 +177,11 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   <span>{listing.location_area}</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <DollarSign className="h-3.5 w-3.5" />
-                  {formatCurrency(listing.asking_price)}
-                </Badge>
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <BarChartIcon className="h-3.5 w-3.5" />
-                  {listing.revenue_t12m > 0 ? `${formatCurrency(listing.revenue_t12m)}/year` : 'Revenue not disclosed'}
-                </Badge>
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  {profitMargin}% Margin
-                </Badge>
-              </div>
-            </div>
+              <PriceDisplay 
+                price={listing.asking_price} 
+                revenue={listing.revenue_t12m} 
+                profitMargin={profitMargin} 
+              />            </div>
           </CardHeader>
           
           <CardContent className="p-6">
@@ -251,6 +247,44 @@ export default function ListingDetailsPage({ params }: PageProps) {
                             <p className="text-sm text-muted-foreground">
                               {listing.market}
                             </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-semibold mb-3">Acquisition Details</h3>
+                        <div className="p-4 border rounded-lg space-y-4">
+                          <div>
+                            <h4 className="font-medium mb-2">Selling Reason</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { value: 'starting_new_venture', label: 'Starting a new venture' },
+                                { value: 'lack_of_time', label: 'Lack of time' },
+                                { value: 'financing', label: 'Financing' },
+                                { value: 'bootstrapped', label: 'Bootstrapped' }
+                              ].map(reason => (
+                                <div 
+                                  key={reason.value}
+                                  className={`px-3 py-1 rounded-full text-sm ${
+                                    listing.sellingReason === reason.value 
+                                      ? 'bg-primary text-primary-foreground' 
+                                      : 'bg-muted'
+                                  }`}
+                                >
+                                  {reason.label}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="pt-4 border-t">
+                            <h4 className="font-medium mb-2">Assets Included</h4>
+                            <p className="text-muted-foreground text-sm">{listing.assets_summary}</p>
+                          </div>
+                          
+                          <div className="pt-4 border-t">
+                            <h4 className="font-medium mb-2">Licenses & Certifications</h4>
+                            <p className="text-muted-foreground text-sm">{listing.licences_summary}</p>
                           </div>
                         </div>
                       </div>

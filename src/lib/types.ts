@@ -14,8 +14,13 @@ export type Listing = {
   assets_summary: string;
   licences_summary: string;
   staff_count: number;
+  teamSize: number;
+  established: string; // ISO date string
+  hoursPerWeek: number;
+  market: string;
   lease_summary: string;
   verified: boolean;
+  sellingReason?: 'starting_new_venture' | 'lack_of_time' | 'financing' | 'bootstrapped';
 };
 
 export type User = {
