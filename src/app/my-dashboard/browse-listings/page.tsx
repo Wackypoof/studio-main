@@ -24,18 +24,8 @@ export default function BrowseListingsPage() {
     setSelectedVertical(industryLabel);
   };
   
-  // Define the industry mapping for filtering
-  const industryMap: Record<string, string> = {
-    'Clinic': 'Healthcare',
-    'F&B': 'Food & Beverage',
-    'Retail': 'Retail',
-    'Services': 'Service',
-    'Fitness': 'Mobile App',
-    'Beauty': 'E-commerce',
-    'E-commerce': 'E-commerce',
-    'Manufacturing': 'Manufacturing',
-    'Legal': 'Service'
-  };
+  // Industry mapping is no longer needed as we're using direct matches
+  // with the verticals in the listings data
 
   const filteredListings = exampleListings.filter((listing: Listing) => {
     // Search term filter
@@ -54,12 +44,8 @@ export default function BrowseListingsPage() {
     const listingProfitMargin = (listing.profit_t12m / listing.revenue_t12m) * 100;
     const matchesProfitMargin = listingProfitMargin >= profitMarginRange[0] && listingProfitMargin <= profitMarginRange[1];
     
-    // Vertical filter - map the selected vertical to the listing's vertical
-    let matchesVertical = true;
-    if (selectedVertical !== 'all') {
-      const mappedVertical = industryMap[selectedVertical];
-      matchesVertical = mappedVertical ? listing.vertical === mappedVertical : false;
-    }
+    // Vertical filter - direct match with listing's vertical
+    const matchesVertical = selectedVertical === 'all' || listing.vertical === selectedVertical;
     
     // Location filter
     const matchesLocation = selectedLocation === 'all' ? true : listing.location_area === selectedLocation;

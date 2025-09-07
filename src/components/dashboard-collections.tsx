@@ -3,16 +3,22 @@
 import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  Stethoscope, 
-  Utensils, 
-  ShoppingBag, 
-  Home, 
-  Dumbbell, 
-  Scissors, 
+  Search,
   ShoppingCart,
-  Factory,
-  Landmark,
-  Search
+  Layers,
+  FileText,
+  Smartphone,
+  Briefcase,
+  Utensils,
+  Home,
+  HeartPulse,
+  Building2,
+  GraduationCap,
+  Truck,
+  Hotel,
+  Leaf,
+  Banknote,
+  Factory
 } from 'lucide-react';
 
 interface Industry {
@@ -22,15 +28,21 @@ interface Industry {
 
 const industries: Industry[] = [
   { label: 'All', icon: <Search className="h-6 w-6" /> },
-  { label: 'Clinic', icon: <Stethoscope className="h-6 w-6" /> },
-  { label: 'F&B', icon: <Utensils className="h-6 w-6" /> },
-  { label: 'Retail', icon: <ShoppingBag className="h-6 w-6" /> },
-  { label: 'Services', icon: <Home className="h-6 w-6" /> },
-  { label: 'Fitness', icon: <Dumbbell className="h-6 w-6" /> },
-  { label: 'Beauty', icon: <Scissors className="h-6 w-6" /> },
   { label: 'E-commerce', icon: <ShoppingCart className="h-6 w-6" /> },
+  { label: 'SaaS', icon: <Layers className="h-6 w-6" /> },
+  { label: 'Content', icon: <FileText className="h-6 w-6" /> },
+  { label: 'Mobile App', icon: <Smartphone className="h-6 w-6" /> },
+  { label: 'Service', icon: <Briefcase className="h-6 w-6" /> },
+  { label: 'F&B', icon: <Utensils className="h-6 w-6" /> },
+  { label: 'Real Estate', icon: <Home className="h-6 w-6" /> },
+  { label: 'Healthcare', icon: <HeartPulse className="h-6 w-6" /> },
+  { label: 'Construction', icon: <Building2 className="h-6 w-6" /> },
+  { label: 'Education', icon: <GraduationCap className="h-6 w-6" /> },
+  { label: 'Logistics', icon: <Truck className="h-6 w-6" /> },
+  { label: 'Hospitality', icon: <Hotel className="h-6 w-6" /> },
+  { label: 'Sustainability', icon: <Leaf className="h-6 w-6" /> },
+  { label: 'Finance', icon: <Banknote className="h-6 w-6" /> },
   { label: 'Manufacturing', icon: <Factory className="h-6 w-6" /> },
-  { label: 'Legal', icon: <Landmark className="h-6 w-6" /> },
 ];
 
 interface DashboardCollectionsProps {
