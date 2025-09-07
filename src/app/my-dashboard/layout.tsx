@@ -126,12 +126,12 @@ export default function DashboardLayout({
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="w-full overflow-hidden">
-            <header className="flex items-center justify-end p-4">
+        <SidebarInset className="w-full overflow-hidden pl-6 pr-4">
+            <header className="flex items-center justify-end p-4 pr-0">
                 <SidebarTrigger className="md:hidden" />
             </header>
-            <main className="w-full max-w-none p-0 overflow-x-auto">
-                <div className="min-w-max w-full">
+            <main className="w-full max-w-none overflow-x-auto">
+                <div className="w-full pr-2">
                     {children}
                 </div>
             </main>
