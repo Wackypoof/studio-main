@@ -67,8 +67,8 @@ export default function DashboardLayout({
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" className="h-10 w-10 p-2 md:hidden">
-                <Link href="/">
+              <Button asChild variant="ghost" className="h-10 w-10 p-2">
+                <Link href="/my-dashboard">
                   <Briefcase className="h-6 w-6 text-primary" />
                 </Link>
               </Button>
@@ -103,9 +103,11 @@ export default function DashboardLayout({
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarMenu>
+                <SidebarMenuItem>
                     <SidebarMenuButton tooltip="Log out" asChild>
-                        <Link href="/">
+                        <Link href="/log-in">
                             <LogOut/>
                             <span>Log out</span>
                         </Link>
@@ -124,11 +126,11 @@ export default function DashboardLayout({
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
-            <header className="p-4 md:p-8 flex items-center justify-end">
+        <SidebarInset className="w-full">
+            <header className="flex items-center justify-end p-4">
                 <SidebarTrigger className="md:hidden" />
             </header>
-            <main className="p-4 pt-0 md:p-8 md:pt-0">
+            <main className="w-full">
                 {children}
             </main>
         </SidebarInset>

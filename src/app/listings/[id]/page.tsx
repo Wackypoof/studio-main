@@ -8,7 +8,6 @@ import { DollarSign, Users, FileText, Building, Scale, ShieldCheck, MapPin, Tren
 import { NdaForm } from '@/components/nda-form';
 import { Header } from '@/components/Header'
 import { SiteContainer } from '@/components/site-container';
-import { ListingAnalyzer } from '@/components/listing-analyzer';
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const listing = listings.find((l) => l.id === params.id);
@@ -76,8 +75,6 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                   )}
                 </div>
               </div>
-              
-              <ListingAnalyzer listing={listing} />
 
               <div className="space-y-8">
                 <Card>
