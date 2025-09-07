@@ -1,96 +1,33 @@
-"use client";
+'use client';
 
+import { useState, useCallback, use } from 'react';
 import { notFound } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  DollarSign, 
-  BarChart as BarChartIcon, 
-  TrendingUp, 
-  ShieldCheck, 
-  Users, 
-  Calendar, 
-  Clock, 
-  Globe, 
-  Building2, 
-  TrendingUp as Growth,
-  PieChart as PieChartIcon,
-  FileText,
-  MessageSquare,
-  Share2
-} from 'lucide-react';
+import { exampleListings } from '@/lib/example-listings';
+import { formatCurrency, formatDate } from '@/lib/utils/format';
+import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
+import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { exampleListings } from '@/lib/example-listings';
-import type { Listing } from '@/lib/types';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
 import { RevenueChart } from '@/components/charts/RevenueChart';
 import { ProfitRevenueChart } from '@/components/charts/ProfitRevenueChart';
 import { TrafficChart } from '@/components/charts/TrafficChart';
 import { TrafficSourcesChart } from "@/components/charts/TrafficSourcesChart";
 import { PriceDisplay } from "./price-display";
 
-interface PageProps {
-  params: { id: string };
-}
-
-export default function ListingDetailsPage({ params }: PageProps) {
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-
-  useEffect(() => {
-    Promise.resolve(params).then(resolvedParams => {
-      const listingId = resolvedParams.id.startsWith('listing-') 
-        ? resolvedParams.id 
-        : `listing-${resolvedParams.id}`;
-      
-      const listingData = exampleListings.find(l => l.id === listingId);
-      
-      if (!listingData) {
-        notFound();
-      }
-      setListing(listingData);
-    });
-  }, [params]);
-
-  if (!listing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1_000_000) {
-      return `$${(amount / 1_000_000).toFixed(1)}m`;
-    }
-    if (amount >= 1_000) {
-      return `$${(amount / 1_000).toFixed(0)}k`;
-    }
-    return `$${amount}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-  };
-
-  // Calculate profit margin with zero check
+// Calculate metrics
+function calculateMetrics(listing: any) {
   const profitMargin = listing.revenue_t12m > 0 
     ? Math.round((listing.profit_t12m / listing.revenue_t12m) * 100)
     : 0;
-    
-  // Calculate multiple with zero check
+
   const multiple = listing.profit_t12m > 0 
     ? (listing.asking_price / listing.profit_t12m).toFixed(1)
-    : "N/A";  
-  // Chart data
+    : 'N/A';
+
   const revenueData = [
     { year: '2021', revenue: listing.revenue_t12m * 0.6 },
     { year: '2022', revenue: listing.revenue_t12m * 0.8 },
@@ -112,7 +49,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
     { 
       year: '2023', 
       revenue: listing.revenue_t12m,
-      profit: listing.revenue_t12m * (profitMargin/100)
+      profit: listing.profit_t12m
     },
     { 
       year: '2024', 
@@ -120,6 +57,41 @@ export default function ListingDetailsPage({ params }: PageProps) {
       profit: (listing.revenue_t12m * 1.2 * profitMargin/100) * 1.05
     }
   ];
+
+  return { profitMargin, multiple, revenueData, profitRevenueData };
+}
+
+// We need to use a client component wrapper to handle the params properly
+function ListingDetailsContent({ id }: { id: string }) {
+  const [activeTab, setActiveTab] = useState('overview');
+  const listingId = id.startsWith('listing-') 
+    ? id 
+    : `listing-${id}`;
+  
+  const listing = exampleListings.find(l => l.id === listingId);
+  
+  if (!listing) {
+    notFound();
+  }
+  
+  const { profitMargin, multiple, revenueData, profitRevenueData } = calculateMetrics(listing);
+  const isLoading = false; // No loading state needed in server components
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Listing not found</p>
+      </div>
+    );
+  }
 
   const trafficData = [
     { month: 'Jan', visitors: 12500 },
@@ -129,6 +101,11 @@ export default function ListingDetailsPage({ params }: PageProps) {
     { month: 'May', visitors: 17800 },
     { month: 'Jun', visitors: 19500 }
   ];
+  
+  // Memoize the tab change handler
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
 
   const trafficSources = [
     { name: 'Organic', value: 45 },
@@ -139,7 +116,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   ];
   
   return (
-    <div className="w-full min-w-0">
+    <div className="container mx-auto px-4 py-8">
       <div className="w-full p-6 space-y-6 min-w-0 max-w-full">
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">
@@ -187,7 +164,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
           <CardContent className="p-6">
             <Tabs 
               value={activeTab} 
-              onValueChange={setActiveTab}
+              onValueChange={handleTabChange} 
               className="w-full min-h-[600px] flex flex-col"
               defaultValue="overview"
             >
@@ -209,112 +186,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
                         </p>
                       </div>
                       
-                      <div>
-                        <h3 className="font-semibold mb-3">Key Highlights</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="p-4 border rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Users className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Team</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {listing.teamSize} full-time employees
-                            </p>
-                          </div>
-                          <div className="p-4 border rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Calendar className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Established</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(listing.established).getFullYear()}
-                            </p>
-                          </div>
-                          <div className="p-4 border rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Clock className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Hours/Week</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {listing.hoursPerWeek} hours to manage
-                            </p>
-                          </div>
-                          <div className="p-4 border rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Globe className="h-4 w-4 text-primary" />
-                              <span className="font-medium">Market</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {listing.market}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      <KeyHighlights listing={listing} />
                       
-                      <div>
-                        <h3 className="font-semibold mb-3">Acquisition Details</h3>
-                        <div className="p-4 border rounded-lg space-y-4">
-                          <div>
-                            <h4 className="font-medium mb-2">Selling Reason</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {[
-                                { value: 'starting_new_venture', label: 'Starting a new venture' },
-                                { value: 'lack_of_time', label: 'Lack of time' },
-                                { value: 'financing', label: 'Financing' },
-                                { value: 'bootstrapped', label: 'Bootstrapped' }
-                              ].map(reason => (
-                                <div 
-                                  key={reason.value}
-                                  className={`px-3 py-1 rounded-full text-sm ${
-                                    listing.sellingReason === reason.value 
-                                      ? 'bg-primary text-primary-foreground' 
-                                      : 'bg-muted'
-                                  }`}
-                                >
-                                  {reason.label}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="pt-4 border-t">
-                            <h4 className="font-medium mb-2">Assets Included</h4>
-                            <p className="text-muted-foreground text-sm">{listing.assets_summary}</p>
-                          </div>
-                          
-                          <div className="pt-4 border-t">
-                            <h4 className="font-medium mb-2">Licenses & Certifications</h4>
-                            <p className="text-muted-foreground text-sm">{listing.licences_summary}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h3 className="font-semibold mb-3">Growth Metrics</h3>
-                        <div className="space-y-4">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Monthly Recurring Revenue</span>
-                              <span className="font-medium text-green-600">+12% MoM</span>
-                            </div>
-                            <Progress value={72} className="h-2" />
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Customer Growth</span>
-                              <span className="font-medium text-green-600">+8% MoM</span>
-                            </div>
-                            <Progress value={65} className="h-2" />
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Profit Margin</span>
-                              <span className="font-medium">{profitMargin}%</span>
-                            </div>
-                            <Progress value={profitMargin} className="h-2" />
-                          </div>
-                        </div>
-                      </div>
+                      <AcquisitionDetails listing={listing} />
                     </div>
                     
                     <div className="space-y-6">
@@ -529,4 +403,16 @@ export default function ListingDetailsPage({ params }: PageProps) {
       </div>
     </div>
   );
+}
+
+// Define the type for the params
+interface PageParams {
+  id: string;
+}
+
+export default function ListingDetailsPage({ params }: { params: PageParams }) {
+  // Use the use hook to properly handle the params promise
+  const resolvedParams = use<PageParams>(params as any);
+  
+  return <ListingDetailsContent id={resolvedParams.id} />;
 }
