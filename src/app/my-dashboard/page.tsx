@@ -1,16 +1,18 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockData } from '@/lib/data';
 import { 
   Eye, Clock, CheckCircle2, AlertCircle, FileSignature, 
-  MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search 
+  MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search, Plus 
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { useRole } from '@/contexts/RoleContext';
+import { SellerDashboard } from '@/components/seller/SellerDashboard';
+import { useRouter } from 'next/navigation';
 
 interface DashboardData {
   stats: {
@@ -32,8 +34,23 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
+  const router = useRouter();
   const { isBuyer } = useRole();
-  const user = isBuyer ? mockData.testUsers.buyer : mockData.testUsers.seller;
+  
+  // In a real app, this would come from auth context
+  const user = useMemo(() => {
+    if (isBuyer) return mockData.testUsers.buyer;
+    // Default to seller1 for demo purposes
+    return mockData.testUsers.seller1;
+  }, [isBuyer]);
+  
+  const handleViewListing = (id: string) => {
+    router.push(`/listings/${id}`);
+  };
+  
+  const handleCreateNewListing = () => {
+    router.push('/my-dashboard/listings/new');
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -155,18 +172,21 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-2">
-              <div className="h-4 w-24 bg-muted rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-muted rounded"></div>
-              <div className="h-3 w-32 bg-muted rounded mt-2"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div className="h-10 bg-muted/50 rounded w-1/3"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-2">
+                <div className="h-4 w-24 bg-muted rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-32 bg-muted rounded mt-2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -184,13 +204,33 @@ export default function DashboardPage() {
     );
   }
 
+  // If user is a seller, render the SellerDashboard
+  if (!isBuyer) {
+    const sellerListings = mockData.listings.filter(listing => 
+      listing.userId === user.id
+    );
+    
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Seller Dashboard"
+          description={`Welcome back, ${user.fullName.split(' ')[0]}! Track your listings and buyer interest.`}
+        />
+        <SellerDashboard 
+          listings={sellerListings}
+          onViewListing={handleViewListing}
+          onCreateNewListing={handleCreateNewListing}
+        />
+      </div>
+    );
+  }
+
+  // Default to buyer dashboard
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isBuyer ? 'Buyer Dashboard' : 'Seller Dashboard'}
-        description={`Welcome back, ${user.fullName.split(' ')[0]}! ${isBuyer 
-          ? 'Here are your saved listings and recent activity.'
-          : 'Track your listings and buyer interest.'}`}
+        title="Buyer Dashboard"
+        description={`Welcome back, ${user.fullName.split(' ')[0]}! Here are your saved listings and recent activity.`}
       />
 
       {data.needsVerification && (

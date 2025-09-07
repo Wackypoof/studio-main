@@ -3,6 +3,7 @@ import type { Listing, User, Seller } from './types';
 export const listings: Listing[] = [
   {
     id: '1',
+    userId: 'user_seller_01',
     status: 'live',
     vertical: 'Clinic',
     location_area: 'Central',
@@ -26,6 +27,7 @@ export const listings: Listing[] = [
   },
   {
     id: '2',
+    userId: 'user_seller_02',
     status: 'live',
     vertical: 'Tuition',
     location_area: 'East',
@@ -49,6 +51,7 @@ export const listings: Listing[] = [
   },
   {
     id: '3',
+    userId: 'user_seller_03',
     status: 'live',
     vertical: 'Retail',
     location_area: 'West',
@@ -72,6 +75,7 @@ export const listings: Listing[] = [
   },
   {
     id: '4',
+    userId: 'user_seller_04',
     status: 'live',
     vertical: 'F&B',
     location_area: 'North',
@@ -95,6 +99,7 @@ export const listings: Listing[] = [
   },
     {
     id: '5',
+    userId: 'user_seller_02',
     status: 'live',
     vertical: 'Manufacturing',
     location_area: 'Islandwide',
@@ -118,6 +123,7 @@ export const listings: Listing[] = [
   },
   {
     id: '6',
+    userId: 'user_seller_03',
     status: 'under_offer',
     vertical: 'Legal',
     location_area: 'Central',
@@ -141,7 +147,7 @@ export const listings: Listing[] = [
   },
 ];
 
-const testUsers: { buyer: User; seller: User } = {
+const testUsers: { buyer: User; seller1: User; seller2: User; seller3: User } = {
   buyer: {
     id: 'user_buyer_01',
     fullName: 'John Doe',
@@ -149,11 +155,25 @@ const testUsers: { buyer: User; seller: User } = {
     avatarUrl: 'https://picsum.photos/seed/buyer/100',
     isVerifiedBuyer: false,
   },
-  seller: {
+  seller1: {
     id: 'user_seller_01',
-    fullName: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    avatarUrl: 'https://picsum.photos/seed/seller/100',
+    fullName: 'Sarah Johnson',
+    email: 'sarah@example.com',
+    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+    isVerifiedBuyer: false,
+  },
+  seller2: {
+    id: 'user_seller_02',
+    fullName: 'Michael Chen',
+    email: 'michael@example.com',
+    avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+    isVerifiedBuyer: false,
+  },
+  seller3: {
+    id: 'user_seller_03',
+    fullName: 'Priya Patel',
+    email: 'priya@example.com',
+    avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
     isVerifiedBuyer: false,
   },
 };

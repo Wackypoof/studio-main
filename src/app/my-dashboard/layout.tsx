@@ -45,10 +45,14 @@ export default function DashboardLayout({
   const pathname = usePathname();
   
   const { role, isBuyer } = useRole();
-  const user = useMemo(() => isBuyer ? mockData.testUsers.buyer : mockData.testUsers.seller, [isBuyer]);
+  const user = useMemo(() => {
+    if (isBuyer) return mockData.testUsers.buyer;
+    // For demo purposes, default to seller1 - in a real app, this would come from auth context
+    return mockData.testUsers.seller1;
+  }, [isBuyer]);
   
   const userInitials = useMemo(() => {
-    return user.fullName.split(' ').map((n) => n[0]).join('');
+    return user.fullName.split(' ').map((n: string) => n[0]).join('');
   }, [user.fullName]);
 
   const buyerMenuItems = [
