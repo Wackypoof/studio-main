@@ -63,9 +63,9 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex h-screen w-full overflow-hidden">
         <Sidebar>
-          <SidebarHeader>
+          <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" className="h-10 w-10 p-2">
                 <Link href="/my-dashboard">
@@ -126,12 +126,14 @@ export default function DashboardLayout({
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="w-full">
+        <SidebarInset className="w-full overflow-hidden">
             <header className="flex items-center justify-end p-4">
                 <SidebarTrigger className="md:hidden" />
             </header>
-            <main className="w-full p-4 md:p-6 lg:p-8">
-                {children}
+            <main className="w-full max-w-none p-0 overflow-x-auto">
+                <div className="min-w-max w-full">
+                    {children}
+                </div>
             </main>
         </SidebarInset>
       </div>

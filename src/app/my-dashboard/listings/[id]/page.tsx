@@ -77,8 +77,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
   const multiple = (listing.asking_price / listing.profit_t12m).toFixed(1);
   
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="w-full min-w-0">
+      <div className="w-full p-6 space-y-6 min-w-0 max-w-full">
+      <div className="flex items-center justify-between min-w-0">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" asChild>
             <Link href="/my-dashboard/browse-listings">
@@ -100,7 +101,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
       </div>
 
       {/* Main Business Card */}
-      <Card className="border border-border/50">
+      <Card className="border border-border/50 w-full">
         <CardHeader className="p-6 pb-4 border-b">
           <div className="flex justify-between items-start">
             <div>
@@ -367,12 +368,12 @@ export default function ListingDetailsPage({ params }: PageProps) {
                               <span className="text-muted-foreground">{source.name}</span>
                               <span className="font-medium">{source.value}%</span>
                             </div>
-                            <div className="w-full bg-muted rounded-full h-2">
+                            <Card className="w-full max-w-full min-w-0">
                               <div 
                                 className={`h-full rounded-full ${source.color}`} 
                                 style={{ width: `${source.value}%` }}
                               ></div>
-                            </div>
+                            </Card>
                           </div>
                         ))}
                       </div>
@@ -425,6 +426,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
           </div>
         </CardFooter>
       </Card>
+      </div>
     </div>
   );
 }
