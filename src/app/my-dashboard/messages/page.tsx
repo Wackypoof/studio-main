@@ -148,9 +148,10 @@ export default function MessagesPage() {
     }
   };
   
-  const getUnreadCount = () => {
+  // Calculate unread count with useMemo to ensure consistency between server and client
+  const unreadCount = useMemo(() => {
     return conversations.filter(conv => conv.status === 'unread').length;
-  };
+  }, [conversations]);
   
   return (
     <div className="flex flex-col h-[calc(100vh-200px)]">
@@ -188,9 +189,9 @@ export default function MessagesPage() {
                   <TabsTrigger value="unread">
                     <div className="flex items-center">
                       <span>Unread</span>
-                      {getUnreadCount() > 0 && (
+                      {unreadCount > 0 && (
                         <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center">
-                          {getUnreadCount()}
+                          {unreadCount}
                         </Badge>
                       )}
                     </div>

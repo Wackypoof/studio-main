@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Search, Filter, User, Mail, Phone, MessageSquare, Calendar, MapPin, Briefcase, 
+  Search, Filter, Mail, Phone, MessageSquare, Calendar, MapPin, Briefcase, 
   ChevronDown, ChevronUp, MoreVertical, Mail as MailIcon, Phone as PhoneIcon, 
-  MessageSquare as MessageIcon, FileText, Check, X, Clock, Star, UserPlus, Download
+  MessageSquare as MessageIcon, FileText, Check, X, Clock, Star, UserPlus, Download,
+  Users, TrendingUp, User as UserIcon
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -21,6 +22,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { mockData } from '@/lib/data';
+import type { User } from '@/lib/types';
+
 import { PageHeader } from '@/components/page-header';
 
 // Mock data for leads
@@ -68,7 +71,7 @@ const statusConfig = {
 
 const sourceConfig = {
   website: { label: 'Website', icon: <Briefcase className="h-3 w-3" /> },
-  referral: { label: 'Referral', icon: <User className="h-3 w-3" /> },
+  referral: { label: 'Referral', icon: <UserIcon className="h-3 w-3" /> },
   social_media: { label: 'Social Media', icon: <MessageSquare className="h-3 w-3" /> },
   email: { label: 'Email', icon: <Mail className="h-3 w-3" /> },
   phone: { label: 'Phone', icon: <Phone className="h-3 w-3" /> },
@@ -84,11 +87,48 @@ export default function LeadsPage() {
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   
   // Generate mock leads
-  const allLeads = useMemo(() => generateLeads(15), []);
-  
+  const leads = Array.from({ length: 15 }, (_, index) => {
+    const firstNames = ['Alex', 'Jamie', 'Taylor', 'Jordan', 'Casey', 'Riley', 'Quinn', 'Avery'];
+    const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Miller', 'Davis', 'Garcia'];
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    const name = `${firstName} ${lastName}`;
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`;
+    
+    return {
+      id: `lead_${index + 1}`,
+      name,
+      email,
+      phone: `+65 ${80000000 + Math.floor(Math.random() * 20000000)}`,
+      company: `Company ${String.fromCharCode(65 + index)}`,
+      position: ['CEO', 'Founder', 'Director', 'Manager', 'Investor'][Math.floor(Math.random() * 5)],
+      status: ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiation', 'closed_won', 'closed_lost'][Math.floor(Math.random() * 7)],
+      source: ['website', 'referral', 'social_media', 'email', 'phone'][Math.floor(Math.random() * 5)],
+      interest: ['Dental Clinic', 'Tuition Center', 'Fashion Boutique', 'Cafe', 'Manufacturing'][Math.floor(Math.random() * 5)],
+      lastContact: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString()
+    };
+  });
+
+  // Define a type for our lead
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  position: string;
+  status: string;
+  source: string;
+  interest: string;
+  lastContact: string;
+}
+
+// Lead details for the first lead
+const leadDetails = (leads[0] || {}) as Partial<Lead>;
+
   // Filter and sort leads
   const filteredLeads = useMemo(() => {
-    return allLeads
+    return leads
       .filter(lead => {
         const matchesSearch = 
           lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -109,7 +149,7 @@ export default function LeadsPage() {
         // Add more sort options as needed
         return 0;
       });
-  }, [allLeads, searchTerm, activeTab, listingId, sortConfig]);
+  }, [leads, searchTerm, activeTab, listingId, sortConfig]);
   
   const toggleSelectAll = () => {
     if (selectedLeads.length === filteredLeads.length) {
@@ -135,9 +175,24 @@ export default function LeadsPage() {
   };
   
   const getStatusCount = (status: string) => {
-    return allLeads.filter(lead => lead.status === status).length;
+    const newLeadsCount = leads.filter(lead => lead.status === 'new').length;
+    return newLeadsCount;
   };
   
+  // Status counts for stats
+  const statusCounts = leads.reduce((acc, lead) => {
+    acc[lead.status] = (acc[lead.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const user: User = {
+    id: '1',
+    fullName: 'John Doe',
+    email: 'john@example.com',
+    avatarUrl: '',
+    isVerifiedBuyer: true
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -169,7 +224,7 @@ export default function LeadsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{allLeads.length}</div>
+            <div className="text-2xl font-bold">{leads.length}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+12.5%</span> from last month
             </p>
@@ -183,7 +238,7 @@ export default function LeadsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(allLeads.length * 0.3)}
+              {getStatusCount('new')}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+8.2%</span> from last month
@@ -198,7 +253,7 @@ export default function LeadsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(allLeads.length * 0.6)}
+              {statusCounts['contacted']}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+5.7%</span> from last month
@@ -213,7 +268,7 @@ export default function LeadsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.floor(Math.random() * 20) + 5}%
+              {((statusCounts['closed_won'] || 0) / (leads.length || 1) * 100).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+2.1%</span> from last month
@@ -231,16 +286,16 @@ export default function LeadsPage() {
           >
             <TabsList className="grid w-full grid-cols-4 sm:flex">
               <TabsTrigger value="all" className="text-xs sm:text-sm">
-                All <span className="ml-1 text-muted-foreground">({allLeads.length})</span>
+                All <span className="ml-1 text-muted-foreground">({leads.length})</span>
               </TabsTrigger>
               <TabsTrigger value="new" className="text-xs sm:text-sm">
                 New <span className="ml-1 text-muted-foreground">({getStatusCount('new')})</span>
               </TabsTrigger>
               <TabsTrigger value="contacted" className="text-xs sm:text-sm">
-                Contacted <span className="ml-1 text-muted-foreground">({getStatusCount('contacted')})</span>
+                Contacted <span className="ml-1 text-muted-foreground">({statusCounts['contacted']})</span>
               </TabsTrigger>
               <TabsTrigger value="qualified" className="text-xs sm:text-sm">
-                Qualified <span className="ml-1 text-muted-foreground">({getStatusCount('qualified')})</span>
+                Qualified <span className="ml-1 text-muted-foreground">({statusCounts['qualified']})</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -478,12 +533,12 @@ export default function LeadsPage() {
           <CardContent>
             <div className="space-y-4">
               {Object.entries(
-                allLeads.reduce((acc, lead) => {
+                leads.reduce((acc, lead) => {
                   acc[lead.source] = (acc[lead.source] || 0) + 1;
                   return acc;
                 }, {} as Record<string, number>)
               ).map(([source, count]) => {
-                const percentage = Math.round((count / allLeads.length) * 100);
+                const percentage = Math.round((count / leads.length) * 100);
                 const sourceInfo = sourceConfig[source as keyof typeof sourceConfig] || { label: source };
                 
                 return (
@@ -495,9 +550,9 @@ export default function LeadsPage() {
                       </div>
                       <span className="text-sm text-muted-foreground">{percentage}%</span>
                     </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
-                        className="h-full bg-primary" 
+                        className="bg-blue-500 h-2 rounded-full" 
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

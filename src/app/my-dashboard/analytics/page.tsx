@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BarChart2, LineChart, PieChart, Eye, Download, Calendar, Filter, 
-  ArrowUp, ArrowDown, Users, DollarSign, BarChart3, TrendingUp, Activity
+  ArrowUp, ArrowDown, Users, DollarSign, BarChart3, TrendingUp, Activity, Clock
 } from 'lucide-react';
 import { mockData } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';

@@ -1,6 +1,11 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Disable Turbopack by not including it in the config
+  compiler: {
+    // Enable SWC compilation
+    styledComponents: true,
+  },
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
