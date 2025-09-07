@@ -57,10 +57,10 @@ export default function DashboardLayout({
 
   const buyerMenuItems = [
     { href: '/my-dashboard', label: 'Dashboard', icon: Home },
+    { href: '/my-dashboard/browse-listings', label: 'Browse Listings', icon: Search },
     { href: '/my-dashboard/saved-listings', label: 'Saved Listings', icon: FileText },
     { href: '/my-dashboard/ndas', label: 'NDAs', icon: FileSignature },
     { href: '/my-dashboard/offers', label: 'My Offers', icon: Handshake },
-    { href: '/my-dashboard/browse', label: 'Browse Listings', icon: Search },
   ];
 
   const sellerMenuItems = [

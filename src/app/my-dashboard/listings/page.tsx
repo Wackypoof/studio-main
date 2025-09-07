@@ -23,6 +23,7 @@ import { Listing, ListingStatus } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { PageHeader } from '@/components/page-header';
 import { useRole } from '@/contexts/RoleContext';
+import { ListingCard } from '@/components/listing-card';
 
 export default function ListingsPage() {
   const router = useRouter();
@@ -164,79 +165,37 @@ export default function ListingsPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredListings.map((listing) => (
-                <Card key={listing.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="relative">
-                    <div className="aspect-video bg-muted/50 flex items-center justify-center">
-                      <BriefcaseBusiness className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      {getStatusBadge(listing.status as ListingStatus)}
-                    </div>
+                <div key={listing.id} className="relative group">
+                  <ListingCard listing={listing} />
+                  <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-8 w-8 bg-background/80 backdrop-blur-sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditListing(listing.id)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewAnalytics(listing.id)}>
+                          <BarChart2 className="mr-2 h-4 w-4" />
+                          <span>View Analytics</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewLeads(listing.id)}>
+                          <Users className="mr-2 h-4 w-4" />
+                          <span>View Leads</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium line-clamp-1">{listing.headline}</h3>
-                        <p className="text-sm text-muted-foreground mt-1 flex items-center">
-                          <MapPin className="h-3.5 w-3.5 mr-1" />
-                          {listing.location_area}
-                        </p>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEditListing(listing.id)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewAnalytics(listing.id)}>
-                            <BarChart2 className="mr-2 h-4 w-4" />
-                            <span>View Analytics</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewLeads(listing.id)}>
-                            <Users className="mr-2 h-4 w-4" />
-                            <span>View Leads</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    
-                    <div className="mt-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Asking Price</span>
-                        <span className="font-medium">{formatCurrency(listing.asking_price)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Annual Revenue</span>
-                        <span>{formatCurrency(listing.revenue_t12m)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Profit (12m)</span>
-                        <span>{formatCurrency(listing.profit_t12m)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 flex justify-between items-center">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        <span>Listed {new Date(listing.established).toLocaleDateString()}</span>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/listings/${listing.id}`)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
