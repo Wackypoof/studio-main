@@ -36,15 +36,14 @@ export default function BrowseListingsPage() {
 
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-6">
+      <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Browse Listings</h1>
-        <p className="text-muted-foreground mt-2">Discover and evaluate potential business opportunities.</p>
+        <p className="text-muted-foreground">Discover and evaluate potential business opportunities.</p>
       </div>
       
-      <Card className="p-6">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-6 pb-6 border-b border-border/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -98,7 +97,6 @@ export default function BrowseListingsPage() {
             </div>
           </div>
         </div>
-      </Card>
     </div>
   );
 }
