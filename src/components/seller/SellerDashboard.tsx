@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,28 @@ export function SellerDashboard({
   isLoading = false,
   lastUpdated = new Date() 
 }: SellerDashboardProps) {
+  const [isVerified, setIsVerified] = useState(false); // Will be set based on user's verification status 
+
+  // In a real app, this would come from your auth context or API
+  useEffect(() => {
+    // Simulate checking verification status
+    // Replace with actual API call
+    const checkVerification = async () => {
+      try {
+        // const response = await fetch('/api/verification/status');
+        // const data = await response.json();
+        // setIsVerified(data.isVerified);
+        
+        // For demo purposes, we'll set a mock value
+        setIsVerified(false);
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+      }
+    };
+
+    checkVerification();
+  }, []);
+
   // Calculate dashboard metrics
   const totalListings = listings.length;
   const activeListings = listings.filter(listing => listing.status === 'live').length;
@@ -109,8 +132,17 @@ export function SellerDashboard({
       </div>
       
       <VerificationAlert 
-        variant="destructive"
-        className="mb-6"
+        className="mb-6" 
+        status={isVerified ? 'verified' : 'unverified'}
+        onAction={() => {
+          if (!isVerified) {
+            // Navigate to verification page
+            window.location.href = '/my-dashboard/verification';
+          } else {
+            // If already verified, allow creating a new listing
+            onCreateNewListing();
+          }
+        }}
       />
       
       {/* Stats Grid */}

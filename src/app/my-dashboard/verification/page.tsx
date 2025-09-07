@@ -1,3 +1,8 @@
+'use client';
+
+import { useEffect, useState, useContext } from 'react';
+import { useRouter } from 'next/navigation';
+import { useRole } from '@/contexts/RoleContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -32,29 +37,90 @@ const BenefitItem = ({ icon: Icon, text }: { icon: React.ElementType, text: stri
 
 
 export default function VerificationPage() {
+    const router = useRouter();
+    const { role } = useRole();
+    const [userRole, setUserRole] = useState<'buyer' | 'seller'>(role || 'buyer');
+
+    // Update role when context changes
+    useEffect(() => {
+        setUserRole(role || 'buyer');
+    }, [role]);
+
+    const pageConfig = {
+        buyer: {
+            title: 'Become a Verified Buyer',
+            description: 'Verifying your identity helps us keep the marketplace safe for everyone.',
+            sections: [
+                {
+                    title: '1. Identity Document',
+                    description: 'Please upload a clear, color copy of your government-issued ID (e.g., Passport, NRIC, Driver\'s License). This helps us confirm you are who you say you are.',
+                    id: 'identity-document',
+                    label: 'Government-issued ID',
+                    fileDescription: 'Accepted formats: JPG, PNG, PDF. Max size: 5MB.'
+                }
+            ]
+        },
+        seller: {
+            title: 'Become a Verified Seller',
+            description: 'Complete seller verification to list your business and access all seller features.',
+            sections: [
+                {
+                    title: '1. Business Owner Identity',
+                    description: 'Upload a clear, color copy of your government-issued ID to verify your identity as the business owner.',
+                    id: 'owner-identity',
+                    label: 'Government-issued ID',
+                    fileDescription: 'Front and back of your ID. Accepted formats: JPG, PNG, PDF. Max size: 5MB.'
+                },
+                {
+                    title: '2. Business Registration',
+                    description: 'Upload your business registration or incorporation documents to verify your business.',
+                    id: 'business-registration',
+                    label: 'Business Registration Document',
+                    fileDescription: 'ACRA BizFile, Certificate of Incorporation, or equivalent. Max size: 10MB.'
+                },
+                {
+                    title: '3. Proof of Business Address',
+                    description: 'Upload a recent utility bill or bank statement showing your business address.',
+                    id: 'business-address',
+                    label: 'Proof of Business Address',
+                    fileDescription: 'Must be dated within the last 3 months. Max size: 5MB.'
+                },
+                {
+                    title: '4. Bank Account Verification',
+                    description: 'For payouts, provide a voided check or bank letter showing your business bank account details.',
+                    id: 'bank-verification',
+                    label: 'Bank Account Verification',
+                    fileDescription: 'Must show account holder name matching business name. Max size: 5MB.'
+                }
+            ]
+        }
+    };
+
     return (
         <div className="space-y-8">
             <PageHeader 
-                title="Become a Verified Buyer"
-                description="Verifying your identity helps us keep the marketplace safe for everyone."
+                title={pageConfig[userRole].title}
+                description={pageConfig[userRole].description}
             />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>1. Identity Document</CardTitle>
-                            <CardDescription>
-                                Please upload a clear, color copy of your government-issued ID (e.g., Passport, NRIC, Driver's License). This helps us confirm you are who you say you are.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <FileUploadInput 
-                                id="identity-document"
-                                label="Government-issued ID"
-                                description="Accepted formats: JPG, PNG, PDF. Max size: 5MB."
-                            />
-                        </CardContent>
-                    </Card>
+                    {pageConfig[userRole].sections.map((section, index) => (
+                        <Card key={section.id} className={index > 0 ? 'mt-6' : ''}>
+                            <CardHeader>
+                                <CardTitle>{section.title}</CardTitle>
+                                <CardDescription>
+                                    {section.description}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <FileUploadInput 
+                                    id={section.id}
+                                    label={section.label}
+                                    description={section.fileDescription}
+                                />
+                            </CardContent>
+                        </Card>
+                    ))}
 
                     <Card>
                         <CardHeader>
