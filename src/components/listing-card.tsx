@@ -20,7 +20,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   };
 
   return (
-    <Link href={`/listings/${listing.id}`} className="block h-full group">
+    <Link href={`/my-dashboard/listings/${listing.id}`} className="block h-full group">
       <Card className="flex flex-col overflow-hidden h-full border border-border/50 transition-all hover:border-primary/20 hover:shadow-md">
         <CardHeader className="p-4 relative flex flex-row justify-between items-start">
           <div>
