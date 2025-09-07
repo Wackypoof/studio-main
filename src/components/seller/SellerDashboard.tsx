@@ -107,10 +107,6 @@ export function SellerDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col">
-        <h2 className="text-2xl font-bold tracking-tight">Seller Dashboard</h2>
-      </div>
-      
       <VerificationAlert 
         className="mb-6" 
         status={isVerified ? 'verified' : 'unverified'}
