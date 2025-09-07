@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, Search, Filter, FileText, CheckCircle, Clock, AlertCircle, X, MoreVertical, 
-  Pencil, Eye, BarChart2, Trash2, Share2, Copy, Tag, DollarSign, Calendar, MapPin, Users 
+  Pencil, Eye, BarChart2, Trash2, Share2, Copy, Tag, DollarSign, Calendar, MapPin, Users, BriefcaseBusiness
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -52,16 +52,19 @@ export default function ListingsPage() {
 
   const getStatusBadge = (status: ListingStatus) => {
     const statusConfig = {
-      draft: { label: 'Draft', variant: 'outline', icon: <FileText className="h-3 w-3" /> },
-      pending: { label: 'Pending Review', variant: 'secondary', icon: <Clock className="h-3 w-3" /> },
-      live: { label: 'Live', variant: 'default', icon: <CheckCircle className="h-3 w-3" /> },
-      paused: { label: 'Paused', variant: 'outline', icon: <AlertCircle className="h-3 w-3" /> },
-      under_offer: { label: 'Under Offer', variant: 'secondary', icon: <Tag className="h-3 w-3" /> },
-      closed: { label: 'Closed', variant: 'outline', icon: <X className="h-3 w-3" /> },
+      draft: { label: 'Draft', variant: 'outline' as const, icon: <FileText className="h-3 w-3" /> },
+      pending: { label: 'Pending Review', variant: 'secondary' as const, icon: <Clock className="h-3 w-3" /> },
+      live: { label: 'Live', variant: 'default' as const, icon: <CheckCircle className="h-3 w-3" /> },
+      paused: { label: 'Paused', variant: 'outline' as const, icon: <AlertCircle className="h-3 w-3" /> },
+      under_offer: { label: 'Under Offer', variant: 'secondary' as const, icon: <Tag className="h-3 w-3" /> },
+      closed: { label: 'Closed', variant: 'outline' as const, icon: <X className="h-3 w-3" /> },
     }[status];
 
     return (
-      <Badge variant={statusConfig.variant as any} className="gap-1 text-xs">
+      <Badge 
+        variant={statusConfig.variant} 
+        className="gap-1 text-xs"
+      >
         {statusConfig.icon}
         {statusConfig.label}
       </Badge>
@@ -164,7 +167,7 @@ export default function ListingsPage() {
                 <Card key={listing.id} className="overflow-hidden hover:shadow-md transition-shadow">
                   <div className="relative">
                     <div className="aspect-video bg-muted/50 flex items-center justify-center">
-                      <Briefcase className="h-12 w-12 text-muted-foreground" />
+                      <BriefcaseBusiness className="h-12 w-12 text-muted-foreground" />
                     </div>
                     <div className="absolute top-2 right-2">
                       {getStatusBadge(listing.status as ListingStatus)}

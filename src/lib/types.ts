@@ -1,7 +1,9 @@
+export type ListingStatus = 'draft' | 'pending' | 'live' | 'paused' | 'under_offer' | 'closed';
+
 export type Listing = {
   id: string;
   userId: string; // ID of the user who owns this listing
-  status: 'draft' | 'pending' | 'live' | 'paused' | 'under_offer' | 'closed';
+  status: ListingStatus;
   vertical: string;
   location_area: string;
   headline: string;
