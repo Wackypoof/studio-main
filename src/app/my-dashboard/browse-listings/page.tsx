@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { listings } from '@/lib/data';
+import { exampleListings } from '@/lib/example-listings';
 import { ListingCard } from '@/components/listing-card';
 import { DashboardCollections } from '@/components/dashboard-collections';
 import { AdvancedFilters } from '@/components/advanced-filters';
@@ -24,7 +24,7 @@ export default function BrowseListingsPage() {
     setSelectedVertical(industryLabel);
   };
   
-  const filteredListings = listings.filter(listing => {
+  const filteredListings = exampleListings.filter((listing: Listing) => {
     const matchesSearch = searchTerm.trim() === '' ? true : 
       listing.headline.toLowerCase().includes(searchTerm.toLowerCase()) || 
       listing.teaser.toLowerCase().includes(searchTerm.toLowerCase()) ||
