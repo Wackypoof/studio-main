@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { mockData } from '@/lib/data';
-import type { User } from '@/lib/types';
+import type { User as UserType } from '@/lib/types';
 
 import { PageHeader } from '@/components/page-header';
 
@@ -185,7 +185,7 @@ const leadDetails = (leads[0] || {}) as Partial<Lead>;
     return acc;
   }, {} as Record<string, number>);
 
-  const user: User = {
+  const user: UserType = {
     id: '1',
     fullName: 'John Doe',
     email: 'john@example.com',
@@ -412,7 +412,7 @@ const leadDetails = (leads[0] || {}) as Partial<Lead>;
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <User className="mr-2 h-4 w-4" />
+                            <UserIcon className="mr-2 h-4 w-4" />
                             <span>View Profile</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem>
