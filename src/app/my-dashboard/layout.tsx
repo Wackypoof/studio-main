@@ -130,7 +130,7 @@ export default function DashboardLayout({
             <header className="flex items-center justify-end p-4">
                 <SidebarTrigger className="md:hidden" />
             </header>
-            <main className="w-full">
+            <main className="w-full p-4 md:p-6 lg:p-8">
                 {children}
             </main>
         </SidebarInset>

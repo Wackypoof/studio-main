@@ -2,9 +2,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Search } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { listings } from '@/lib/data';
 import { ListingCard } from '@/components/listing-card';
-import { Collections } from '@/components/collections';
+import { DashboardCollections } from '@/components/dashboard-collections';
 import { ListingFilters } from '@/components/listing-filters';
 import type { Listing } from '@/lib/types';
 
@@ -14,8 +17,8 @@ export default function BrowseListingsPage() {
   const [selectedVertical, setSelectedVertical] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
 
-  const handleIndustryToggle = (industryLabel: string) => {
-    setSelectedVertical(prev => prev === industryLabel ? 'all' : industryLabel);
+  const handleIndustrySelect = (industryLabel: string) => {
+    setSelectedVertical(industryLabel);
   };
   
   const filteredListings = listings.filter(listing => {
@@ -33,41 +36,69 @@ export default function BrowseListingsPage() {
 
 
   return (
-    <div className="w-full">
-      <Collections
-        selectedIndustries={[selectedVertical]}
-        onIndustryToggle={handleIndustryToggle}
-      />
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Browse Listings</h1>
+        <p className="text-muted-foreground mt-2">Discover and evaluate potential business opportunities.</p>
+      </div>
       
-      <div className="w-full py-8 px-4 md:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start max-w-7xl mx-auto w-full">
-          <aside className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-24">
-              <ListingFilters 
-                priceRange={priceRange}
-                onPriceRangeChange={setPriceRange}
-                selectedVertical={selectedVertical}
-                onVerticalChange={setSelectedVertical}
-                selectedLocation={selectedLocation}
-                onLocationChange={setSelectedLocation}
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search listings..."
+                className="pl-10 w-full"
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
               />
             </div>
-          </aside>
-          <div className="lg:col-span-3">
-            {filteredListings.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredListings.map((listing) => (
-                  <ListingCard key={listing.id} listing={listing} />
-                ))}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {filteredListings.length} {filteredListings.length === 1 ? 'result' : 'results'}
+              </span>
+            </div>
+          </div>
+          
+          <DashboardCollections
+            selectedIndustry={selectedVertical}
+            onSelect={handleIndustrySelect}
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <aside className="lg:col-span-1">
+              <div className="sticky top-24 space-y-4">
+                <h3 className="font-medium">Filters</h3>
+                <ListingFilters 
+                  priceRange={priceRange}
+                  onPriceRangeChange={setPriceRange}
+                  selectedVertical={selectedVertical}
+                  onVerticalChange={setSelectedVertical}
+                  selectedLocation={selectedLocation}
+                  onLocationChange={setSelectedLocation}
+                />
               </div>
-            ) : (
-              <div className="text-center py-16 text-muted-foreground">
-                <p>No listings found for your criteria.</p>
-              </div>
-            )}
+            </aside>
+            
+            <div className="lg:col-span-3">
+              {filteredListings.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredListings.map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 text-muted-foreground">
+                  <p>No listings found for your criteria.</p>
+                  <p className="text-sm mt-2">Try adjusting your filters or search term.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
