@@ -3,6 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatCard } from '@/components/dashboard/stat-card';
+import { VerificationAlert } from '@/components/dashboard/verification-alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Briefcase, 
   TrendingUp, 
@@ -14,25 +18,50 @@ import {
   Search,
   BarChart2,
   FileText,
-  AlertCircle
+  AlertCircle,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { Listing } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 
 interface SellerDashboardProps {
   listings: Listing[];
   onViewListing: (id: string) => void;
   onCreateNewListing: () => void;
+  onRefresh?: () => Promise<void>;
+  isLoading?: boolean;
+  lastUpdated?: Date;
 }
 
-export function SellerDashboard({ listings, onViewListing, onCreateNewListing }: SellerDashboardProps) {
+export function SellerDashboard({ 
+  listings, 
+  onViewListing, 
+  onCreateNewListing, 
+  onRefresh,
+  isLoading = false,
+  lastUpdated = new Date() 
+}: SellerDashboardProps) {
   // Calculate dashboard metrics
   const totalListings = listings.length;
   const activeListings = listings.filter(listing => listing.status === 'live').length;
   const totalAskingPrice = listings.reduce((sum, listing) => sum + listing.asking_price, 0);
   const totalRevenue = listings.reduce((sum, listing) => sum + listing.revenue_t12m, 0);
   const totalProfit = listings.reduce((sum, listing) => sum + listing.profit_t12m, 0);
+  
+  // Calculate changes from previous period (mock data)
+  const prevPeriodListings = Math.max(0, totalListings - 2);
+  const listingsChange = totalListings - prevPeriodListings;
+  const revenueChange = 0.15; // 15% increase
+  const profitChange = 0.08; // 8% increase
+  
+  // Handle refresh
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      await onRefresh();
+    }
+  };
   
   // Get recent activity (last 3 listings)
   const recentListings = [...listings]
@@ -44,61 +73,175 @@ export function SellerDashboard({ listings, onViewListing, onCreateNewListing }:
     ? (listings.reduce((sum, listing) => sum + (listing.profit_t12m / listing.revenue_t12m), 0) / listings.length) * 100 
     : 0;
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-9 w-24" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-36" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Seller Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Refreshing...' : 'Refresh Data'}
+        </Button>
+      </div>
+      
+      <VerificationAlert 
+        variant="destructive"
+        className="mb-6"
+      />
+      
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeListings} / {totalListings}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalListings === 0 ? 'No listings yet' : `${Math.round((activeListings / totalListings) * 100)}% active`}
-            </p>
-          </CardContent>
-        </Card>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  title="Total Listings"
+                  value={totalListings.toString()}
+                  description={`${activeListings} active, ${totalListings - activeListings} draft`}
+                  icon={
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Briefcase className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Total number of listings you've created</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                  trend={{
+                    value: `${Math.abs(listingsChange)} ${listingsChange >= 0 ? 'more' : 'less'} than last month`,
+                    type: listingsChange >= 0 ? 'up' : 'down'
+                  }}
+                  onClick={() => onViewListing('list')}
+                  clickable
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Click to view all listings</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Asking Price</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalAskingPrice)}</div>
-            <p className="text-xs text-muted-foreground">
-              {listings.length} {listings.length === 1 ? 'listing' : 'listings'}
-            </p>
-          </CardContent>
-        </Card>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  title="Total Asking Price"
+                  value={formatCurrency(totalAskingPrice)}
+                  description={`Average: ${formatCurrency(totalListings > 0 ? totalAskingPrice / totalListings : 0)}`}
+                  icon={
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DollarSign className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Sum of asking prices for all your listings</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                  onClick={() => onViewListing('pricing')}
+                  clickable
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Click to view pricing analytics</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Annual Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              {averageProfitMargin.toFixed(1)}% avg. profit margin
-            </p>
-          </CardContent>
-        </Card>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  title="12m Revenue"
+                  value={formatCurrency(totalRevenue)}
+                  description={`${averageProfitMargin.toFixed(1)}% average profit margin`}
+                  icon={
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Total revenue from all your businesses in the last 12 months</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                  trend={{
+                    value: `${(revenueChange * 100).toFixed(0)}% from last period`,
+                    type: revenueChange >= 0 ? 'up' : 'down'
+                  }}
+                  onClick={() => onViewListing('revenue')}
+                  clickable
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Click to view detailed revenue reports</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Buyer Inquiries</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">
-              8 unread messages
-            </p>
-          </CardContent>
-        </Card>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <StatCard
+                  title="12m Profit"
+                  value={formatCurrency(totalProfit)}
+                  description={`${activeListings} active listings`}
+                  icon={
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DollarSign className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Net profit after expenses for all your businesses</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                  trend={{
+                    value: `${(profitChange * 100).toFixed(0)}% from last period`,
+                    type: profitChange >= 0 ? 'up' : 'down'
+                  }}
+                  onClick={() => onViewListing('profit')}
+                  clickable
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Click to view profit analysis</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Action Buttons */}
