@@ -154,11 +154,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                   <span>{listing.location_area}</span>
                 </div>
               </div>
-              <PriceDisplay 
-                price={listing.asking_price} 
-                revenue={listing.revenue_t12m} 
-                profitMargin={profitMargin} 
-              />            </div>
+              <PriceDisplay price={listing.asking_price} />            </div>
           </CardHeader>
           
           <CardContent className="p-6">

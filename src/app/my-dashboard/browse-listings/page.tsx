@@ -13,28 +13,69 @@ import type { Listing } from '@/lib/types';
 
 export default function BrowseListingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
   const [selectedVertical, setSelectedVertical] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 5000000]);
-  const [profitMarginRange, setProfitMarginRange] = useState<[number, number]>([0, 50]);
+  const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 1000000]);
+  const [profitMarginRange, setProfitMarginRange] = useState<[number, number]>([0, 100]);
 
   const handleIndustrySelect = (industryLabel: string) => {
     setSelectedVertical(industryLabel);
   };
   
+  // Define the industry mapping for filtering
+  const industryMap: Record<string, string> = {
+    'Clinic': 'Healthcare',
+    'F&B': 'Food & Beverage',
+    'Retail': 'Retail',
+    'Services': 'Service',
+    'Fitness': 'Mobile App',
+    'Beauty': 'E-commerce',
+    'E-commerce': 'E-commerce',
+    'Manufacturing': 'Manufacturing',
+    'Legal': 'Service'
+  };
+
   const filteredListings = exampleListings.filter((listing: Listing) => {
+    // Search term filter
     const matchesSearch = searchTerm.trim() === '' ? true : 
       listing.headline.toLowerCase().includes(searchTerm.toLowerCase()) || 
       listing.teaser.toLowerCase().includes(searchTerm.toLowerCase()) ||
       listing.vertical.toLowerCase().includes(searchTerm.toLowerCase());
     
+    // Price range filter
     const matchesPrice = listing.asking_price >= priceRange[0] && listing.asking_price <= priceRange[1];
-    const matchesVertical = selectedVertical === 'all' ? true : listing.vertical === selectedVertical;
+    
+    // Revenue range filter
+    const matchesRevenue = listing.revenue_t12m >= revenueRange[0] && listing.revenue_t12m <= revenueRange[1];
+    
+    // Profit margin filter
+    const listingProfitMargin = (listing.profit_t12m / listing.revenue_t12m) * 100;
+    const matchesProfitMargin = listingProfitMargin >= profitMarginRange[0] && listingProfitMargin <= profitMarginRange[1];
+    
+    // Vertical filter - map the selected vertical to the listing's vertical
+    let matchesVertical = true;
+    if (selectedVertical !== 'all') {
+      const mappedVertical = industryMap[selectedVertical];
+      matchesVertical = mappedVertical ? listing.vertical === mappedVertical : false;
+    }
+    
+    // Location filter
     const matchesLocation = selectedLocation === 'all' ? true : listing.location_area === selectedLocation;
+    
+    // Status filter
+    const matchesStatus = selectedStatus === 'all' ? true : listing.status === selectedStatus;
 
-    return matchesSearch && matchesPrice && matchesVertical && matchesLocation;
+    return (
+      matchesSearch &&
+      matchesPrice &&
+      matchesRevenue &&
+      matchesProfitMargin &&
+      matchesVertical &&
+      matchesLocation &&
+      matchesStatus
+    );
   });
 
 
