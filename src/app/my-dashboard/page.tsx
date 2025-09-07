@@ -64,15 +64,15 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
+    <div className="space-y-6 p-2 md:p-4">
+      <div className="space-y-1 px-2">
         <h1 className="text-3xl font-bold tracking-tight">Welcome, {buyer.fullName.split(' ')[0]}</h1>
         <p className="text-muted-foreground">Here's an overview of your activity.</p>
       </div>
 
-      {data.needsVerification && <VerificationAlert />}
+      {data.needsVerification && <div className="px-2"><VerificationAlert /></div>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-2">
         <StatCard 
           title="Viewed Listings"
           value={data.viewedListings}

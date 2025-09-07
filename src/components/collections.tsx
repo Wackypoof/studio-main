@@ -47,20 +47,32 @@ const industries: Industry[] = [
 
 function IndustryCard({ industry, isSelected, onToggle }: { industry: Industry, isSelected: boolean, onToggle: (label: string) => void }) {
   return (
-    <Card
-      onClick={() => onToggle(industry.label)}
-      className={`w-[220px] h-[120px] flex-shrink-0 cursor-pointer transition-all duration-200 group hover:shadow-lg hover:border-accent
-        ${isSelected ? 'bg-primary/10 border-primary' : 'bg-card border-border'}`}
-    >
-      <CardContent className="flex flex-col items-center justify-center h-full text-center p-4 gap-2">
-        <div className={`transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-foreground/80 group-hover:text-primary'}`}>
-            {industry.icon}
-        </div>
-        <p className={`text-sm font-medium transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-foreground/90 group-hover:text-primary'}`}>
-          {industry.label}
-        </p>
-      </CardContent>
-    </Card>
+    <div className="relative w-[220px] h-[120px] flex-shrink-0 cursor-pointer group">
+      {/* Shadow element */}
+      <div 
+        className={`absolute -inset-1 rounded-lg transition-all duration-300 
+          ${isSelected ? 'bg-primary/20' : 'bg-foreground/5'} 
+          group-hover:bg-foreground/10 group-hover:scale-105`}
+        aria-hidden="true"
+      />
+      
+      {/* Card content */}
+      <Card
+        onClick={() => onToggle(industry.label)}
+        className={`relative w-full h-full flex flex-col transition-all duration-300
+          ${isSelected ? 'bg-primary/10 border-primary' : 'bg-card border-border'}
+          group-hover:border-accent`}
+      >
+        <CardContent className="flex flex-col items-center justify-center h-full text-center p-4 gap-2">
+          <div className={`transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-foreground/80 group-hover:text-primary'}`}>
+              {industry.icon}
+          </div>
+          <p className={`text-sm font-medium transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-foreground/90 group-hover:text-primary'}`}>
+            {industry.label}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -73,32 +85,34 @@ export function Collections({ selectedIndustries, onIndustryToggle }: Collection
   return (
     <section className="w-full py-8 md:py-12 bg-muted/20 border-t border-b">
       <SiteContainer>
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 px-4">
           <h2 className="text-2xl font-bold tracking-tight">Browse by Industry</h2>
         </div>
-        <Carousel
-          opts={{
-            align: 'start',
-            dragFree: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-4">
-            {industries.map((industry) => (
-              <CarouselItem key={industry.label} className="pl-4 basis-auto">
+        <div className="relative w-full px-4">
+          <Carousel
+            opts={{
+              align: 'start',
+              dragFree: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {industries.map((industry) => (
+                <CarouselItem key={industry.label} className="px-3 basis-auto">
                 <IndustryCard 
                   industry={industry} 
                   isSelected={selectedIndustries.includes(industry.label)}
                   onToggle={onIndustryToggle}
                 />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className='hidden md:block'>
-            <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2" />
-            <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2" />
-          </div>
-        </Carousel>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <div className='hidden md:block'>
+              <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2" />
+              <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2" />
+            </div>
+          </Carousel>
+        </div>
       </SiteContainer>
     </section>
   );
