@@ -1,4 +1,6 @@
 
+'use client';
+
 import dynamic from 'next/dynamic';
 import { Suspense, useMemo } from 'react';
 import { listings } from '@/lib/data';
@@ -18,23 +20,8 @@ import {
   Calendar 
 } from 'lucide-react';
 import { SiteContainer } from '@/components/site-container';
-
-// Dynamically import heavy components
-const NdaForm = dynamic<{}>(
-  () => import('@/components/nda-form').then((mod) => mod.NdaForm),
-  { 
-    ssr: false,
-    loading: () => <div className="h-[400px] flex items-center justify-center">Loading NDA form...</div>
-  }
-);
-
-const Header = dynamic<{}>(
-  () => import('@/components/Header'),
-  {
-    ssr: true,
-    loading: () => <div className="h-16 bg-background border-b" />
-  }
-);
+import { NdaFormClient } from '@/components/nda/nda-form-client';
+import { Header } from '@/components/Header';
 
 // Types for the component props
 interface MetricCardProps {
@@ -242,7 +229,7 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
             </div>
 
             <aside className="space-y-6 lg:sticky lg:top-24 h-fit">
-              <NdaForm />
+              <NdaFormClient />
             </aside>
           </div>
         </SiteContainer>
