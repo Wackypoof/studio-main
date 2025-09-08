@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockData } from '@/lib/data';
@@ -13,6 +13,8 @@ import { PageHeader } from '@/components/page-header';
 import { useRole } from '@/contexts/role-context';
 import { SellerDashboard } from '@/components/seller/SellerDashboard';
 import { useRouter } from 'next/navigation';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
+import { handleError } from '@/lib/error-handler';
 
 interface DashboardData {
   stats: {
@@ -161,7 +163,9 @@ export default function DashboardPage() {
           });
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to load dashboard data'));
+        const error = err instanceof Error ? err : new Error('Failed to load dashboard data');
+        setError(error);
+        handleError(error, { componentStack: 'DashboardPage' });
       } finally {
         setIsLoading(false);
       }
@@ -191,17 +195,30 @@ export default function DashboardPage() {
     );
   }
 
+  // Error boundary fallback component
+  interface ErrorFallbackProps {
+    error: Error | null;
+    reset: () => void;
+  }
+  
+  const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, reset }) => (
+    <div className="flex flex-col items-center justify-center h-64 rounded-lg border border-dashed">
+      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+      <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
+      <p className="text-muted-foreground mb-4">
+        {error?.message || 'Failed to load dashboard data'}
+      </p>
+      <Button onClick={reset}>Try Again</Button>
+    </div>
+  );
+  
+  // Error boundary fallback element
+  const errorFallbackElement = (
+    <ErrorFallback error={error} reset={() => window.location.reload()} />
+  );
+
   if (error || !data) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 rounded-lg border border-dashed">
-        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
-        <p className="text-muted-foreground mb-4">
-          {error?.message || 'Failed to load dashboard data'}
-        </p>
-        <Button onClick={() => window.location.reload()}>Try Again</Button>
-      </div>
-    );
+    return <ErrorFallback error={error} reset={() => window.location.reload()} />;
   }
 
   // If user is a seller, render the SellerDashboard
@@ -211,121 +228,125 @@ export default function DashboardPage() {
     );
     
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Seller Dashboard"
-          description={`Welcome back, ${user.fullName.split(' ')[0]}! Track your listings and buyer interest.`}
-        />
-        <SellerDashboard 
-          listings={sellerListings}
-          onViewListing={handleViewListing}
-          onCreateNewListing={handleCreateNewListing}
-        />
-      </div>
+      <ErrorBoundary fallback={errorFallbackElement}>
+        <div className="space-y-6">
+          <PageHeader
+            title="Seller Dashboard"
+            description={`Welcome back, ${user.fullName.split(' ')[0]}! Track your listings and buyer interest.`}
+          />
+          <SellerDashboard 
+            listings={sellerListings}
+            onViewListing={handleViewListing}
+            onCreateNewListing={handleCreateNewListing}
+          />
+        </div>
+      </ErrorBoundary>
     );
   }
 
   // Default to buyer dashboard
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Buyer Dashboard"
-        description={`Welcome back, ${user.fullName.split(' ')[0]}! Here are your saved listings and recent activity.`}
-      />
+    <ErrorBoundary fallback={errorFallbackElement}>
+      <div className="space-y-6">
+        <PageHeader
+          title="Buyer Dashboard"
+          description={`Welcome back, ${user.fullName.split(' ')[0]}! Here are your saved listings and recent activity.`}
+        />
 
-      {data.needsVerification && (
-        <Card className="border-yellow-200 bg-yellow-50">
-          <CardHeader className="py-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-yellow-600" />
-              <h3 className="font-medium text-yellow-800">Verification Required</h3>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-yellow-700 mb-3">
-              Complete your profile verification to access all features and increase trust with {isBuyer ? 'sellers' : 'buyers'}.
-            </p>
-            <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-              Start Verification
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {data.stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <h3 className="text-sm font-medium text-muted-foreground">{stat.label}</h3>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+        {data.needsVerification && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader className="py-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <h3 className="font-medium text-yellow-800">Verification Required</h3>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
+            <CardContent className="pt-0">
+              <p className="text-sm text-yellow-700 mb-3">
+                Complete your profile verification to access all features and increase trust with {isBuyer ? 'sellers' : 'buyers'}.
+              </p>
+              <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                Start Verification
+              </Button>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        )}
 
-      {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.recentActivity?.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="rounded-full bg-muted p-2">
-                    <activity.icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{activity.title}</h4>
-                      <span className="text-xs text-muted-foreground">{activity.date}</span>
+        {/* Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {data.stats.map((stat, index) => (
+            <Card key={index}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">{stat.label}</h3>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground">{stat.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data.recentActivity?.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="rounded-full bg-muted p-2">
+                      <activity.icon className="h-4 w-4" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{activity.type}</p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{activity.title}</h4>
+                        <span className="text-xs text-muted-foreground">{activity.date}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{activity.type}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            <Button variant="outline" className="justify-start">
-              <MessageSquare className="mr-2 h-4 w-4" />
-              View Messages
-            </Button>
-            <Button variant="outline" className="justify-start">
-              <FileText className="mr-2 h-4 w-4" />
-              {isBuyer ? 'Saved Listings' : 'My Listings'}
-            </Button>
-            <Button variant="outline" className="justify-start">
-              <BarChart className="mr-2 h-4 w-4" />
-              View Analytics
-            </Button>
-            {isBuyer ? (
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3">
               <Button variant="outline" className="justify-start">
-                <Search className="mr-2 h-4 w-4" />
-                Browse Listings
+                <MessageSquare className="mr-2 h-4 w-4" />
+                View Messages
               </Button>
-            ) : (
               <Button variant="outline" className="justify-start">
-                <Briefcase className="mr-2 h-4 w-4" />
-                Create New Listing
+                <FileText className="mr-2 h-4 w-4" />
+                {isBuyer ? 'Saved Listings' : 'My Listings'}
               </Button>
-            )}
-          </CardContent>
-        </Card>
+              <Button variant="outline" className="justify-start">
+                <BarChart className="mr-2 h-4 w-4" />
+                View Analytics
+              </Button>
+              {isBuyer ? (
+                <Button variant="outline" className="justify-start">
+                  <Search className="mr-2 h-4 w-4" />
+                  Browse Listings
+                </Button>
+              ) : (
+                <Button variant="outline" className="justify-start">
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Create New Listing
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

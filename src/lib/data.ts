@@ -98,6 +98,8 @@ export const listings: Listing[] = [
     market: 'Specialty Coffee & Cafe',
     lease_summary: '2 years remaining on a shophouse lease with no major rent increases planned.',
     verified: true,
+    createdAt: '2024-01-10T11:20:00Z',
+    updatedAt: '2024-09-02T10:15:00Z',
   },
     {
     id: '5',
@@ -106,6 +108,8 @@ export const listings: Listing[] = [
     vertical: 'Manufacturing',
     location_area: 'Islandwide',
     headline: 'Precision Engineering Firm with MNC Contracts',
+    createdAt: '2024-01-05T09:10:00Z',
+    updatedAt: '2024-08-30T15:30:00Z',
     teaser: 'ISO-certified firm specializing in high-tolerance components for the aerospace and medical industries. Long-term contracts with major MNCs.',
     revenue_t12m: 3500000,
     profit_t12m: 800000,
@@ -129,6 +133,8 @@ export const listings: Listing[] = [
     vertical: 'Legal',
     location_area: 'Central',
     headline: 'Boutique Law Firm Specializing in Corporate Law',
+    createdAt: '2023-12-10T10:20:00Z',
+    updatedAt: '2024-09-03T11:25:00Z',
     teaser: 'Well-respected boutique firm with a stable of SME clients. Focus on M&A, and corporate advisory. Currently under offer.',
     revenue_t12m: 950000,
     profit_t12m: 550000,
@@ -144,6 +150,7 @@ export const listings: Listing[] = [
     market: 'Legal Services',
     lease_summary: 'Prestigious office address in the CBD. Lease expires in 18 months.',
     verified: true,
+    sellingReason: 'starting_new_venture',
   },
 ];
 

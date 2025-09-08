@@ -1,21 +1,21 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VerificationAlert } from '../verification-alert';
 
-// Mock next/link
-jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => {
-    return <a href={href}>{children}</a>;
-  };
-});
-
 describe('VerificationAlert', () => {
+  const mockOnClick = jest.fn();
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders with default props', () => {
     render(<VerificationAlert />);
     
-    expect(screen.getByText('Action Required: Verify Your Account')).toBeInTheDocument();
-    expect(screen.getByText('Start Verification')).toBeInTheDocument();
+    expect(screen.getByText('Verification Required')).toBeInTheDocument();
+    expect(screen.getByText('Complete your profile verification to access all features and increase trust with buyers.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /start verification/i })).toBeInTheDocument();
   });
 
   it('applies custom className', () => {
@@ -26,10 +26,12 @@ describe('VerificationAlert', () => {
     expect(container.firstChild).toHaveClass('custom-class');
   });
 
-  it('has correct verification link', () => {
-    render(<VerificationAlert />);
+  it('calls onAction when the button is clicked', () => {
+    render(<VerificationAlert onAction={mockOnClick} />);
     
-    const link = screen.getByRole('link', { name: /start verification/i });
-    expect(link).toHaveAttribute('href', '/my-dashboard/verification');
+    const button = screen.getByRole('button', { name: /start verification/i });
+    fireEvent.click(button);
+    
+    expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 });

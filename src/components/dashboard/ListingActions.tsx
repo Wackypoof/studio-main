@@ -3,7 +3,7 @@ import { Plus, RefreshCw } from "lucide-react";
 
 interface ListingActionsProps {
   onCreateNewListing: () => void;
-  onRefresh?: () => void;
+  onRefresh?: (() => void) | null;
   isRefreshing?: boolean;
   className?: string;
 }

@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { Listing } from '@/lib/types';
-import { ListingStats } from '@/components/dashboard/ListingStats';
-import { ListingTable } from '@/components/dashboard/ListingTable';
-import { ListingActions } from '@/components/dashboard/ListingActions';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight } from 'lucide-react';
-import Link from 'next/link';
+import { ListingStats } from '@/components/dashboard/ListingStats';
+import { DashboardHeader } from './components/DashboardHeader';
+import { RecentListings } from './components/RecentListings';
 
 interface SellerDashboardProps {
   listings: Listing[];
@@ -47,29 +46,16 @@ export function SellerDashboard({
     }
   };
 
-  // Get the 3 most recently updated listings
-  const recentListings = [...listings]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
-
   return (
     <div className="space-y-6">
-      {/* Dashboard Header */}
-      <div className="flex flex-col justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your listings and performance
-          </p>
-        </div>
-        <ListingActions 
-          onCreateNewListing={onCreateNewListing}
-          onRefresh={onRefresh ? handleRefresh : undefined}
-          isRefreshing={isRefreshing}
-        />
-      </div>
+      <DashboardHeader
+        title="Dashboard"
+        description="Overview of your listings and performance"
+        onRefresh={onRefresh ? handleRefresh : undefined}
+        isRefreshing={isRefreshing}
+        onCreateNewListing={onCreateNewListing}
+      />
 
-      {/* Stats Grid */}
       <ListingStats 
         listings={listings} 
         isLoading={isLoading} 
@@ -78,26 +64,21 @@ export function SellerDashboard({
         isRefreshing={isRefreshing}
       />
 
-      {/* Recent Listings */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recent Listings</h2>
-          {listings.length > 0 && (
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/listings">
-                View all
-                <ArrowUpRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-          )}
-        </div>
-
-        <ListingTable 
-          listings={recentListings}
-          onViewListing={onViewListing}
-          isLoading={isLoading}
-        />
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Recent Listings</h2>
+        <Button onClick={onCreateNewListing} size="sm">
+          <Plus className="mr-2 h-4 w-4" />
+          New Listing
+        </Button>
       </div>
+
+      <RecentListings
+        listings={listings}
+        onViewListing={onViewListing}
+        isLoading={isLoading}
+        showViewAll={true}
+        maxListings={3}
+      />
     </div>
   );
 }
