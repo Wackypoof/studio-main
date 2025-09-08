@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PageHeader } from '@/components/page-header';
 
 type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn';
 
@@ -99,10 +100,10 @@ export default function OffersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">My Offers</h1>
-        <p className="text-muted-foreground">Track and manage your business purchase offers</p>
-      </div>
+      <PageHeader 
+        title="My Offers"
+        description="Track and manage your business purchase offers"
+      />
       
       <Card>
         <CardHeader className="border-b">

@@ -97,7 +97,7 @@ export default function VerificationPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <PageHeader 
                 title={pageConfig[userRole].title}
                 description={pageConfig[userRole].description}

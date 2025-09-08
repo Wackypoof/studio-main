@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ListingCard } from '@/components/listing-card';
 import { mockData } from '@/lib/data';
+import { PageHeader } from '@/components/page-header';
 
 export default function SavedListingsPage() {
   // In a real app, this would come from the API based on the authenticated user's saved listings
@@ -15,10 +16,10 @@ export default function SavedListingsPage() {
   
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Saved Listings</h1>
-        <p className="text-muted-foreground">Your saved business listings</p>
-      </div>
+      <PageHeader 
+        title="Saved Listings"
+        description="Your saved business listings"
+      />
       
       <Card>
         <CardHeader className="border-b">

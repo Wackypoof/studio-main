@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { PageHeader } from '@/components/page-header';
 
 type NDAStatus = 'signed' | 'pending' | 'expired' | 'declined';
 
@@ -69,10 +70,10 @@ export default function NDAsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">NDA Management</h1>
-        <p className="text-muted-foreground">View and manage your non-disclosure agreements</p>
-      </div>
+      <PageHeader 
+        title="NDA Management"
+        description="View and manage your non-disclosure agreements"
+      />
       
       <Card>
         <CardHeader className="border-b">
