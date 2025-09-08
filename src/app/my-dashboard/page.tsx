@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { mockData } from '@/lib/data';
 import { 
   Eye, Clock, CheckCircle2, AlertCircle, FileSignature, 
@@ -37,7 +38,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
   const router = useRouter();
-  const { isBuyer } = useRole();
+  const { isBuyer, role } = useRole();
   
   // In a real app, this would come from auth context
   const user = useMemo(() => {
@@ -55,12 +56,17 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    // Reset loading state when role changes
+    setIsLoading(true);
+    setError(null);
+    
     const fetchData = async () => {
       try {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        if (isBuyer) {
+        // Only update state if the role hasn't changed during the fetch
+        if ((isBuyer && role === 'buyer') || (!isBuyer && role === 'seller')) {
           setData({
             stats: [
               {
@@ -223,6 +229,27 @@ export default function DashboardPage() {
 
   // If user is a seller, render the SellerDashboard
   if (!isBuyer) {
+    if (isLoading) {
+      return (
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-1/3" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader className="pb-2">
+                  <div className="h-4 w-24 bg-muted rounded"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-16 bg-muted rounded"></div>
+                  <div className="h-3 w-32 bg-muted rounded mt-2"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     const sellerListings = mockData.listings.filter(listing => 
       listing.userId === user.id
     );
@@ -241,6 +268,28 @@ export default function DashboardPage() {
           />
         </div>
       </ErrorBoundary>
+    );
+  }
+
+  // Show loading state for buyer dashboard
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-10 bg-muted/50 rounded w-1/3"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-2">
+                <div className="h-4 w-24 bg-muted rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-32 bg-muted rounded mt-2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     );
   }
 

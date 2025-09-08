@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { TrendingUp, Users, Clock, DollarSign } from "lucide-react";
+import { Briefcase, Eye, Users, Clock } from "lucide-react";
 
 interface StatCardProps {
   title: string;
@@ -41,7 +41,7 @@ export function StatCard({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <div className="rounded-full bg-primary/10 p-2 text-primary">
+        <div className="text-muted-foreground">
           {icon}
         </div>
       </CardHeader>
@@ -100,32 +100,27 @@ export function ListingStats({
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        title="Total Listings"
-        value={totalListings}
-        icon={<span className="text-2xl">📋</span>}
-        isLoading={isLoading}
-      />
-      <StatCard
         title="Active Listings"
         value={activeListings}
-        icon={<span className="text-2xl">📊</span>}
+        icon={<Briefcase className="h-4 w-4" />}
         isLoading={isLoading}
       />
       <StatCard
-        title="Total Value"
-        value={new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(totalValue)}
-        icon={<DollarSign className="h-4 w-4" />}
+        title="Total Views"
+        value={listings.reduce((sum, l) => sum + (l.views || 0), 0)}
+        icon={<Eye className="h-4 w-4" />}
         isLoading={isLoading}
       />
       <StatCard
-        title="Avg. Profit Margin"
-        value={`${averageProfitMargin.toFixed(1)}%`}
-        icon={<TrendingUp className="h-4 w-4" />}
+        title="Buyer Leads"
+        value={listings.reduce((sum, l) => sum + (l.leads || 0), 0)}
+        icon={<Users className="h-4 w-4" />}
+        isLoading={isLoading}
+      />
+      <StatCard
+        title="Avg. Response Time"
+        value="2.5h"
+        icon={<Clock className="h-4 w-4" />}
         isLoading={isLoading}
       />
     </div>
