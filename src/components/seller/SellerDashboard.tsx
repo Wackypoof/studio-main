@@ -64,14 +64,6 @@ export function SellerDashboard({
         isRefreshing={isRefreshing}
       />
 
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Recent Listings</h2>
-        <Button onClick={onCreateNewListing} size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          New Listing
-        </Button>
-      </div>
-
       <RecentListings
         listings={listings}
         onViewListing={onViewListing}

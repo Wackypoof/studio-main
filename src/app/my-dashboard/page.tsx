@@ -256,17 +256,11 @@ export default function DashboardPage() {
     
     return (
       <ErrorBoundary fallback={errorFallbackElement}>
-        <div className="space-y-6">
-          <PageHeader
-            title="Seller Dashboard"
-            description={`Welcome back, ${user.fullName.split(' ')[0]}! Track your listings and buyer interest.`}
-          />
-          <SellerDashboard 
-            listings={sellerListings}
-            onViewListing={handleViewListing}
-            onCreateNewListing={handleCreateNewListing}
-          />
-        </div>
+        <SellerDashboard 
+          listings={sellerListings}
+          onViewListing={handleViewListing}
+          onCreateNewListing={handleCreateNewListing}
+        />
       </ErrorBoundary>
     );
   }
