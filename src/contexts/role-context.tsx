@@ -1,12 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 
 type Role = 'buyer' | 'seller';
 
 interface RoleContextType {
   role: Role;
-  toggleRole: () => void;
+  toggleRole: () => Promise<void>;
   isBuyer: boolean;
   isSeller: boolean;
 }
@@ -15,10 +16,15 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>('buyer');
+  const router = useRouter();
 
-  const toggleRole = () => {
-    setRole(prevRole => (prevRole === 'buyer' ? 'seller' : 'buyer'));
-  };
+  const toggleRole = useCallback(async () => {
+    const newRole = role === 'buyer' ? 'seller' : 'buyer';
+    setRole(newRole);
+    
+    // Always navigate to the dashboard - the content will update based on the role
+    router.push('/my-dashboard');
+  }, [role, router]);
 
   const value = {
     role,

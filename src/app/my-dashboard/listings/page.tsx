@@ -22,7 +22,7 @@ import { mockData } from '@/lib/data';
 import { Listing, ListingStatus } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { PageHeader } from '@/components/page-header';
-import { useRole } from '@/contexts/RoleContext';
+import { useRole } from '@/contexts/role-context';
 import { ListingCard } from '@/components/listing-card';
 
 export default function ListingsPage() {

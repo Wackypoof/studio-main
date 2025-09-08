@@ -10,7 +10,7 @@ import {
   MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search, Plus 
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
-import { useRole } from '@/contexts/RoleContext';
+import { useRole } from '@/contexts/role-context';
 import { SellerDashboard } from '@/components/seller/SellerDashboard';
 import { useRouter } from 'next/navigation';
 

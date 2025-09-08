@@ -34,8 +34,8 @@ import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { mockData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
-import { useRole } from '@/contexts/RoleContext';
-import { RoleToggle } from '@/components/RoleToggle';
+import { useRole } from '@/contexts/role-context';
+import { RoleToggle } from '@/components/role-toggle';
 
 export default function DashboardLayout({
   children,

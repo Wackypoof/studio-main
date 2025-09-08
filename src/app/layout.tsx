@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { RoleProvider } from '@/contexts/RoleContext';
+import { RoleProvider } from '@/contexts/role-context';
 
 // Optimize font loading with next/font
 const inter = Inter({
