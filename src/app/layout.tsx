@@ -10,6 +10,9 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+  fallback: ['system-ui', 'sans-serif'],
+  preload: true,
+  adjustFontFallback: true,
 });
 
 // Define the WebVitals component to avoid import issues

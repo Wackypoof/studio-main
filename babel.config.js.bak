@@ -1,0 +1,17 @@
+// This file is only used by Jest for testing
+// Next.js uses SWC for everything else
+
+module.exports = {
+  presets: [
+    [
+      'next/babel',
+      {
+        'preset-react': {
+          runtime: 'automatic',
+        },
+      },
+    ],
+  ],
+  // Only apply Babel to test files
+  only: ['**/*.test.js', '**/*.test.jsx', '**/*.test.ts', '**/*.test.tsx'],
+};
