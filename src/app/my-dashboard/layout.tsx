@@ -68,10 +68,10 @@ export default function DashboardLayout({
     { href: '/my-dashboard/listings', label: 'My Listings', icon: Briefcase },
     { href: '/my-dashboard/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/my-dashboard/leads', label: 'Buyer Leads', icon: Users },
-    { href: '/my-dashboard/messages', label: 'Messages', icon: MessageSquare },
   ];
 
   const commonMenuItems = [
+    { href: '/my-dashboard/messages', label: 'Messages', icon: MessageSquare },
     { href: '/my-dashboard/verification', label: 'Verification', icon: ShieldCheck },
   ];
 
