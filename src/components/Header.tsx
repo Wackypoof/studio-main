@@ -33,20 +33,22 @@ export function Header() {
                   <span className="font-semibold tracking-tight">SuccessionAsia</span>
                 </div>
                 <nav className="px-6 pb-6 flex flex-col space-y-3 text-foreground/80">
-                  <Link href="/browse">Browse</Link>
-                  <Link href="/sell">Sell</Link>
-                  <Link href="/about">About</Link>
-                  <Link href="/log-in">Log in</Link>
-                  <Link href="/sign-up" className="font-medium text-primary">Sign up</Link>
+                  <Link href="/buyers">For Buyers</Link>
+                  <Link href="/sellers">For Sellers</Link>
+                  <Link href="/pricing">Pricing</Link>
+                  <div className="pt-4 mt-4 border-t border-border">
+                    <Link href="/log-in">Log in</Link>
+                    <Link href="/sign-up" className="ml-4 font-medium text-primary">Sign up</Link>
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>
           </div>
 
           <nav className="hidden md:flex items-center justify-center gap-6 text-sm h-10 leading-none absolute left-1/2 -translate-x-1/2">
-            <Link href="/browse" className="text-foreground hover:text-foreground/80">Browse</Link>
-            <Link href="/sell" className="text-foreground/70 hover:text-foreground">Sell</Link>
-            <Link href="/about" className="text-foreground/70 hover:text-foreground">About</Link>
+            <Link href="/buyers" className="text-foreground hover:text-foreground/80 transition-colors">For Buyers</Link>
+            <Link href="/sellers" className="text-foreground/70 hover:text-foreground transition-colors">For Sellers</Link>
+            <Link href="/pricing" className="text-foreground/70 hover:text-foreground transition-colors">Pricing</Link>
           </nav>
 
           <div className="hidden md:flex items-center justify-end gap-2 ml-auto">
