@@ -17,6 +17,7 @@ export type Listing = {
   assets_summary: string;
   licences_summary: string;
   teamSize: number;
+  staff_count: number; // Number of staff members
   established: string; // ISO date string
   hoursPerWeek: number;
   market: string;

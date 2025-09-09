@@ -3,6 +3,7 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useMemo } from 'react';
+import * as React from 'react';
 import { listings } from '@/lib/data';
 import type { Listing } from '@/lib/types';
 import { notFound } from 'next/navigation';
@@ -33,6 +34,7 @@ interface MetricCardProps {
 
 interface ListingDetailPageProps {
   params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }
 
 // Memoized Metric Card Component
@@ -71,6 +73,7 @@ const formatMultiple = (multiple: number): string => {
 };
 
 export default function ListingDetailPage({ params }: ListingDetailPageProps) {
+  // In Next.js 13+, params is already unwrapped in page components
   const listing = listings.find((l) => l.id === params.id);
 
   if (!listing) {
