@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, Search, BarChart3, Users, User, Zap, ChevronRight, Shield, BadgeCheck, TrendingUp, Briefcase } from 'lucide-react';
 import { SiteContainer } from '@/components/site-container';
-import { Header } from '@/components/Header';
 import { FeaturedListings } from '@/components/featured-listings';
 import { AnimatedStats } from '@/components/animated-stats';
 import { ProcessFlow } from '@/components/process-flow';
@@ -53,8 +52,6 @@ const FeatureCard = ({ icon, title, description, delay = 0 }: FeatureCardProps) 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-      
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50">
         {/* Decorative elements */}

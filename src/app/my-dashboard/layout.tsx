@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import {
   Sidebar,
   SidebarProvider,
@@ -30,12 +31,13 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { mockData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
+import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardLayout({
   children,
@@ -45,6 +47,9 @@ export default function DashboardLayout({
   const pathname = usePathname();
   
   const { role, isBuyer } = useRole();
+  const { signOut } = useAuth();
+  const router = useRouter();
+  
   const user = useMemo(() => {
     if (isBuyer) return mockData.testUsers.buyer;
     // For demo purposes, default to seller1 - in a real app, this would come from auth context
@@ -81,85 +86,92 @@ export default function DashboardLayout({
   ];
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden">
-        <Sidebar>
-          <SidebarHeader className="p-4">
-            <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" className="h-10 w-10 p-2">
-                <Link href="/my-dashboard">
-                  <Briefcase className="h-6 w-6 text-primary" />
-                </Link>
-              </Button>
-              <h2 className="text-lg font-semibold tracking-tight">SuccessionAsia</h2>
-            </div>
-          </SidebarHeader>
-          <SidebarContent className="p-2">
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === item.href}
-                    tooltip={item.label}
-                  >
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
+    <ProtectedRoute>
+      <SidebarProvider>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar className="border-r">
+            <SidebarHeader className="p-4">
+              <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" className="h-10 w-10 p-2">
+                  <Link href="/my-dashboard">
+                    <Briefcase className="h-6 w-6 text-primary" />
+                  </Link>
+                </Button>
+                <h2 className="text-lg font-semibold tracking-tight">SuccessionAsia</h2>
+              </div>
+            </SidebarHeader>
+            <SidebarContent className="p-2">
+              <SidebarMenu>
+                {menuItems.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.href}
+                      tooltip={item.label}
+                    >
+                      <Link href={item.href}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+
+              <RoleToggle />
+            </SidebarContent>
+            <SidebarFooter className="p-2">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton tooltip="Settings" asChild>
+                    <Link href="/my-dashboard/settings">
+                      <Settings/>
+                      <span>Settings</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-
-            <RoleToggle />
-          </SidebarContent>
-          <SidebarFooter className="p-2">
-            <SidebarMenu>
+              </SidebarMenu>
+              <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton tooltip="Settings" asChild>
-                        <Link href="/my-dashboard/settings">
-                            <Settings/>
-                            <span>Settings</span>
-                        </Link>
-                    </SidebarMenuButton>
+                  <SidebarMenuButton 
+                    tooltip="Log out" 
+                    onClick={async () => {
+                      await signOut();
+                      router.push('/login');
+                    }}
+                    className="w-full text-left"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log out</span>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
-            </SidebarMenu>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton tooltip="Log out" asChild>
-                        <Link href="/log-in">
-                            <LogOut/>
-                            <span>Log out</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-            <div className="flex items-center gap-3 p-2 rounded-md bg-muted/60">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={user.avatarUrl} alt={user.fullName} />
-                <AvatarFallback>{userInitials}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">{user.fullName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {isBuyer ? 'Buyer' : 'Seller'} • {user.email}
-                </span>
+              </SidebarMenu>
+              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/60">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={user.avatarUrl} alt={user.fullName} />
+                  <AvatarFallback>{userInitials}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold">{user.fullName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isBuyer ? 'Buyer' : 'Seller'} • {user.email}
+                  </span>
+                </div>
               </div>
-            </div>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="w-full overflow-hidden px-4">
+            </SidebarFooter>
+          </Sidebar>
+          <SidebarInset className="w-full overflow-hidden px-4">
             <header className="flex items-center justify-end py-4">
-                <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger className="md:hidden" />
             </header>
             <main className="w-full max-w-[calc(100vw-200px)] overflow-x-auto">
-                <div className="w-full">
-                    {children}
-                </div>
+              <div className="w-full">
+                {children}
+              </div>
             </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </ProtectedRoute>
   );
 }

@@ -4,6 +4,7 @@ import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { RoleProvider } from '@/contexts/role-context';
+import { AuthProvider } from '@/context/AuthContext';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -82,15 +83,14 @@ export default function RootLayout({
         <AxiomWebVitals />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <RoleProvider>
-          {children}
-          {/* Analytics Components */}
-          <WebVitals />
-          <RouteChangeHandler />
-        </RoleProvider>
-        <Toaster />
-        
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <AuthProvider>
+          <RoleProvider>
+            <main>{children}</main>
+            <Toaster />
+          </RoleProvider>
+        </AuthProvider>
+        <RouteChangeHandler />
         {/* Performance monitoring script */}
         <script
           dangerouslySetInnerHTML={{
