@@ -29,18 +29,24 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password, {
+      // Store email in localStorage for the confirm-email page
+      localStorage.setItem('emailForSignIn', email);
+      
+      const { data, error } = await signUp(email, password, {
         data: {
           full_name: fullName.trim()
-        }
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`
       });
       
       if (error) throw error;
       
-      // Redirect to dashboard after successful signup
-      router.push('/my-dashboard');
+      // If we get here, the signup was successful
+      // Redirect to confirm-email page with email as query param
+      router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
-      setError(error.message || 'An error occurred during signup');
+      console.error('Signup error:', error);
+      setError(error.message || 'An error occurred during signup. Please try again.');
     } finally {
       setLoading(false);
     }

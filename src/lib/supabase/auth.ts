@@ -1,10 +1,14 @@
 import { supabase } from './client';
 
 // Sign up a new user
-export const signUp = async (email: string, password: string) => {
+export const signUp = async (email: string, password: string, options: { data?: any, emailRedirectTo?: string } = {}) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: options.emailRedirectTo || `${window.location.origin}/dashboard`,
+      data: options.data || {}
+    }
   });
   return { data, error };
 };

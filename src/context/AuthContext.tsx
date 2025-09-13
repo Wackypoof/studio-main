@@ -9,7 +9,10 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, options?: { data?: any }) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string, options?: { 
+    data?: any,
+    emailRedirectTo?: string 
+  }) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<void>;
 };
 
@@ -60,18 +63,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     },
-    signUp: async (email: string, password: string, options?: { data?: any }) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: options?.data?.full_name || '',
-            ...options?.data
+    signUp: async (email: string, password: string, options?: { data?: any, emailRedirectTo?: string }) => {
+      try {
+        // First, sign up the user
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: options?.data?.full_name || '',
+              ...options?.data
+            },
+            emailRedirectTo: options?.emailRedirectTo || `${window.location.origin}/auth/callback`
+          }
+        });
+
+        if (error) throw error;
+
+        // The profile will be created by the database trigger
+        // We'll verify it was created successfully
+        if (data.user) {
+          // Wait a short moment for the trigger to complete
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Verify the profile was created
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+          if (profileError) {
+            console.warn('Profile not found after signup, attempting to create:', profileError);
+            
+            // If profile wasn't created by trigger, try to create it manually
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                id: data.user.id,
+                full_name: options?.data?.full_name || '',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+
+            if (createError) {
+              console.error('Failed to create profile:', createError);
+              // Don't fail the signup if profile creation fails
+              // The user can update their profile later
+            }
           }
         }
-      });
-      return { data, error };
+
+        return { data, error: null };
+      } catch (error: any) {
+        console.error('Signup error:', error);
+        return { data: null, error };
+      }
     },
     signOut: async () => {
       await supabase.auth.signOut();
