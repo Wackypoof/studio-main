@@ -1,7 +1,7 @@
 import { Header } from '@/components/Header';
 import { SiteContainer } from '@/components/site-container';
 
-export default function MarketingLayout({
+export default function LandingLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -1,3 +1,5 @@
+'use client';
+
 import { CheckCircle2, BadgeCheck, Shield, Zap } from 'lucide-react';
 import { Button } from './ui/button';
 
