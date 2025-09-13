@@ -1,13 +1,18 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Search, BarChart3, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { SiteContainer } from '@/components/site-container';
+import { Header } from '@/components/Header';
 
 export default function BuyersPage() {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
+      
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-blue-50 to-white">
+      <section className="pt-16 pb-20 bg-gradient-to-b from-blue-50 to-white">
         <SiteContainer>
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">

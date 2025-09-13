@@ -1,13 +1,19 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, TrendingUp, Users, FileText, Handshake } from 'lucide-react';
+import { CheckCircle2, TrendingUp, Users, FileText, Handshake, Zap, BarChart2, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { SiteContainer } from '@/components/site-container';
+import { Header } from '@/components/Header';
+import { motion } from 'framer-motion';
 
 export default function SellersPage() {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
+      
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-b from-blue-50 to-white">
+      <section className="pt-16 pb-20 bg-gradient-to-b from-blue-50 to-white">
         <SiteContainer>
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -31,12 +37,18 @@ export default function SellersPage() {
       {/* Features Section */}
       <section className="py-20 bg-white">
         <SiteContainer>
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Sell With Us</h2>
-            <p className="text-xl text-gray-600">
-              We help you get the best deal with minimal hassle and maximum value.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We make selling your business simple, secure, and successful
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[

@@ -35,7 +35,10 @@ export function Header() {
                 <nav className="px-6 pb-6 flex flex-col space-y-3 text-foreground/80">
                   <Link href="/buyers">For Buyers</Link>
                   <Link href="/sellers">For Sellers</Link>
-                  <Link href="/pricing">Pricing</Link>
+                  <div className="space-y-2 pl-3 text-sm">
+                    <Link href="/buyers/pricing" className="block">Buyer Pricing</Link>
+                    <Link href="/sellers/pricing" className="block">Seller Pricing</Link>
+                  </div>
                   <div className="pt-4 mt-4 border-t border-border">
                     <Link href="/log-in">Log in</Link>
                     <Link href="/sign-up" className="ml-4 font-medium text-primary">Sign up</Link>
@@ -48,7 +51,18 @@ export function Header() {
           <nav className="hidden md:flex items-center justify-center gap-6 text-sm h-10 leading-none absolute left-1/2 -translate-x-1/2">
             <Link href="/buyers" className="text-foreground hover:text-foreground/80 transition-colors">For Buyers</Link>
             <Link href="/sellers" className="text-foreground/70 hover:text-foreground transition-colors">For Sellers</Link>
-            <Link href="/pricing" className="text-foreground/70 hover:text-foreground transition-colors">Pricing</Link>
+            <div className="group relative">
+              <button className="text-foreground/70 hover:text-foreground transition-colors flex items-center gap-1">
+                Pricing
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 hidden group-hover:block z-50">
+                <Link href="/buyers/pricing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Buyer Pricing</Link>
+                <Link href="/sellers/pricing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Seller Pricing</Link>
+              </div>
+            </div>
           </nav>
 
           <div className="hidden md:flex items-center justify-end gap-2 ml-auto">
