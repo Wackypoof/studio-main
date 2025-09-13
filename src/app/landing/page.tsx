@@ -258,48 +258,7 @@ export default function LandingPage() {
       {/* Featured Listings */}
       <section className="py-20 bg-gray-50">
         <SiteContainer>
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="text-center mb-12"
-          >
-            <motion.h2 
-              variants={fadeInUp}
-              className="text-3xl font-bold text-gray-900 mb-4"
-            >
-              Featured Listings
-            </motion.h2>
-            <motion.p 
-              variants={fadeInUp}
-              className="text-xl text-gray-600 max-w-2xl mx-auto"
-            >
-              Browse our curated selection of high-quality businesses for sale
-            </motion.p>
-          </motion.div>
-          
           <FeaturedListings />
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="mt-12 text-center"
-          >
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="px-8 py-6 text-base font-medium group border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700 transition-all duration-300"
-              asChild
-            >
-              <Link href="/listings" className="flex items-center justify-center space-x-2">
-                <span>View All Listings</span>
-                <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-          </motion.div>
         </SiteContainer>
       </section>
 
