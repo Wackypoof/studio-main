@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthProvider';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -11,7 +11,7 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { signUp, error: authError, loading, clearError } = useAuth();
+  const { signUp, error: authError, isLoading, clearError } = useAuth();
   const router = useRouter();
   
   // Sync local error state with auth context
@@ -95,7 +95,7 @@ export default function SignUpPage() {
                 placeholder="Full Name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                disabled={loading}
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -151,10 +151,10 @@ export default function SignUpPage() {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : 'Sign up'}
+              {isLoading ? 'Creating account...' : 'Sign up'}
             </button>
           </div>
         </form>

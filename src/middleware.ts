@@ -1,21 +1,33 @@
 import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { withRateLimit } from './middleware/rate-limit-middleware';
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-  const supabase = createMiddlewareClient({ req: request, res: response });
+  // Apply rate limiting
+  const response = await withRateLimit(request, () => {
+    const response = NextResponse.next();
+    return Promise.resolve(response);
+  });
+  
+  // If rate limiting returned a response (e.g., rate limit exceeded), return it
+  if (response !== undefined) {
+    return response;
+  }
+  
+  // Handle session management for all routes
+  const nextResponse = NextResponse.next();
+  const supabase = createMiddlewareClient({ req: request, res: nextResponse });
   
   // Refresh session if expired - required for Server Components
   const { data: { session } } = await supabase.auth.getSession();
   
-  // You can add protected route logic here if needed
-  // Example:
+  // Example protected route logic (uncomment and modify as needed)
   // if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
   //   return NextResponse.redirect(new URL('/login', request.url));
   // }
   
-  return response;
+  return nextResponse;
 }
 
 // Configure which routes this middleware runs on
@@ -28,6 +40,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

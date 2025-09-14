@@ -3,18 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthProvider';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { signIn, clearError, loading: authLoading } = useAuth();
+  const [localLoading, setLocalLoading] = useState(false);
+  const { signIn, clearError, isLoading } = useAuth();
   const router = useRouter();
   
   // Use the loading state from AuthContext if available, otherwise use local state
-  const isLoading = authLoading !== undefined ? authLoading : loading;
+  const isLoadingState = isLoading !== undefined ? isLoading : localLoading;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,8 +36,8 @@ export default function LoginPage() {
       // Clear any previous errors
       clearError();
       
-      // Redirect to dashboard on successful login
-      router.push('/dashboard');
+      // Redirect to my-dashboard on successful login
+      router.push('/my-dashboard');
       router.refresh();
       
     } catch (error: any) {
@@ -105,10 +105,10 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={isLoadingState}
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isLoadingState ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoadingState ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>

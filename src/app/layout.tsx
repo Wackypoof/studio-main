@@ -3,8 +3,7 @@ import { Inter } from 'next/font/google';
 import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { Toaster } from 'sonner';
-import { RoleProvider } from '@/contexts/role-context';
-import { AuthProvider } from '@/context/AuthContext';
+import { ClientProviders } from '@/providers/client-providers';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -84,12 +83,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <RoleProvider>
-            <main>{children}</main>
-            <Toaster position="top-center" richColors />
-          </RoleProvider>
-        </AuthProvider>
+        <ClientProviders>
+          <main>{children}</main>
+          <Toaster position="top-center" richColors />
+        </ClientProviders>
         <RouteChangeHandler />
         {/* Performance monitoring script */}
         <script

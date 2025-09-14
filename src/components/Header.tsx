@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu, Search, Briefcase, User, LogOut } from 'lucide-react';
 import { SiteContainer } from '@/components/site-container';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthProvider';
 
 export function Header() {
-  const { user, loading, signOut } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
   const pathname = usePathname();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -60,7 +60,7 @@ export function Header() {
           
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-2">
-            {loading ? (
+            {isLoading ? (
               <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-2">

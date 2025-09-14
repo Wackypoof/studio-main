@@ -1,36 +1,63 @@
+// Types for error handling
+type ErrorCode = 
+  | 'VALIDATION_ERROR'
+  | 'AUTH_ERROR'
+  | 'NOT_FOUND'
+  | 'FORBIDDEN'
+  | 'INTERNAL_SERVER_ERROR'
+  | 'NETWORK_ERROR'
+  | 'TIMEOUT_ERROR'
+  | 'RATE_LIMIT_EXCEEDED'
+  | 'INVALID_INPUT'
+  | 'UNAUTHORIZED';
+
 interface ErrorInfo {
   componentStack?: string;
   context?: Record<string, unknown>;
   url?: string;
   timestamp?: string;
   userAgent?: string;
+  statusCode?: number;
+  code?: ErrorCode;
+  retryable?: boolean;
 }
 
 type ErrorHandler = (error: Error, errorInfo?: ErrorInfo) => void;
 
-type ErrorReport = {
+interface ErrorReport {
   message: string;
   stack?: string;
   name: string;
-  code?: string;
+  code?: ErrorCode;
+  statusCode?: number;
   context?: Record<string, unknown>;
   timestamp: string;
   url: string;
   userAgent: string;
   componentStack?: string;
-};
+  retryable?: boolean;
+  originalError?: unknown;
+}
 
 // Default error handler that logs to console and reports to error tracking services
 const defaultErrorHandler: ErrorHandler = (error, errorInfo = {}) => {
+  const timestamp = new Date().toISOString();
+  const url = typeof window !== 'undefined' ? window.location.href : 'server';
+  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'server';
+  
   const report: ErrorReport = {
     message: error.message,
     stack: error.stack,
     name: error.name,
-    timestamp: new Date().toISOString(),
-    url: typeof window !== 'undefined' ? window.location.href : 'server',
-    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+    timestamp,
+    url: errorInfo.url || url,
+    userAgent: errorInfo.userAgent || userAgent,
+    code: errorInfo.code || 'INTERNAL_SERVER_ERROR',
+    statusCode: errorInfo.statusCode || 500,
+    retryable: errorInfo.retryable ?? false,
     ...(errorInfo.componentStack && { componentStack: errorInfo.componentStack }),
     ...(errorInfo.context && { context: errorInfo.context }),
+    originalError: error,
   };
 
   // Log to console in development
@@ -51,15 +78,29 @@ const defaultErrorHandler: ErrorHandler = (error, errorInfo = {}) => {
 
 // Report to error tracking service (e.g., Sentry, LogRocket, custom API)
 const reportToErrorService = (report: ErrorReport) => {
-  // Example: Send to your error tracking service
-  // fetch('/api/report-error', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(report),
-  // }).catch(console.error);
+  // Format the error for better readability in logs
+  const errorDetails = {
+    timestamp: report.timestamp,
+    message: report.message,
+    name: report.name,
+    code: report.code,
+    statusCode: report.statusCode,
+    url: report.url,
+    userAgent: report.userAgent,
+    context: report.context,
+  };
   
-  // For now, just log the report
-  console.error('Error report:', report);
+  console.error('Error reported to service:', errorDetails);
+  
+  // You can also send to your backend API
+  if (process.env.NEXT_PUBLIC_ERROR_REPORTING_ENABLED === 'true') {
+    fetch('/api/log-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(report),
+      keepalive: true, // Ensures the request is sent even if the page is being unloaded
+    }).catch(console.error);
+  }
 };
 
 let customErrorHandler: ErrorHandler | null = null;
@@ -70,26 +111,33 @@ export const setErrorHandler = (handler: ErrorHandler) => {
 
 export const handleError: ErrorHandler = (error, errorInfo) => {
   const handler = customErrorHandler || defaultErrorHandler;
-  handler(error, errorInfo);};
+  handler(error, errorInfo);
+};
 
 // Helper function to create error objects with additional context
-export const createError = (
+const createError = (
   message: string, 
   options: {
-    code?: string;
+    code?: ErrorCode;
     cause?: unknown;
     context?: Record<string, unknown>;
     statusCode?: number;
+    retryable?: boolean;
   } = {}
-): Error & { code?: string; context?: Record<string, unknown>; statusCode?: number } => {
-  const error = new Error(message, options.cause ? { cause: options.cause } : undefined) as Error & {
-    code?: string;
-    context?: Record<string, unknown>;
-    statusCode?: number;
-  };
+): Error & { 
+  code?: ErrorCode; 
+  context?: Record<string, unknown>; 
+  statusCode?: number;
+  retryable?: boolean;
+} => {
+  const error = new Error(message) as any;
   
   if (options.code) {
     error.code = options.code;
+  }
+  
+  if (options.cause) {
+    error.cause = options.cause;
   }
   
   if (options.context) {
@@ -99,6 +147,13 @@ export const createError = (
   if (options.statusCode) {
     error.statusCode = options.statusCode;
   }
+  
+  if (options.retryable !== undefined) {
+    error.retryable = options.retryable;
+  }
+  
+  // Capture stack trace
+  Error.captureStackTrace?.(error, createError);
   
   return error;
 };
@@ -146,19 +201,38 @@ if (typeof window !== 'undefined') {
 }
 
 // Export a function to manually report errors
-export const reportError = (error: unknown, context: Record<string, unknown> = {}) => {
+export const reportError = (
+  error: unknown, 
+  context: Record<string, unknown> = {},
+  options: {
+    code?: ErrorCode;
+    statusCode?: number;
+    retryable?: boolean;
+  } = {}
+) => {
   if (error instanceof Error) {
-    handleError(error, {
+    handleError(error, { 
       context,
-      url: typeof window !== 'undefined' ? window.location.href : 'server',
-      timestamp: new Date().toISOString(),
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
+      code: options.code,
+      statusCode: options.statusCode,
+      retryable: options.retryable,
     });
+  } else if (typeof error === 'string') {
+    const errorObj = new Error(error);
+    (errorObj as any).code = options.code;
+    (errorObj as any).statusCode = options.statusCode;
+    (errorObj as any).retryable = options.retryable;
+    handleError(errorObj, { context });
   } else {
-    handleError(new Error(String(error)), {
-      context: { originalError: error, ...context },
-      url: typeof window !== 'undefined' ? window.location.href : 'server',
-      timestamp: new Date().toISOString(),
+    const errorObj = new Error('An unknown error occurred');
+    (errorObj as any).code = options.code || 'UNKNOWN_ERROR';
+    (errorObj as any).statusCode = options.statusCode || 500;
+    (errorObj as any).retryable = options.retryable ?? false;
+    handleError(errorObj, { 
+      context: { 
+        ...context, 
+        originalError: error 
+      },
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'server',
     });
   }

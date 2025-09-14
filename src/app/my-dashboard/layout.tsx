@@ -37,7 +37,7 @@ import { mockData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthProvider';
 
 export default function DashboardLayout({
   children,

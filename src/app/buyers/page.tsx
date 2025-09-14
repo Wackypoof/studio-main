@@ -88,7 +88,7 @@ export default function BuyersPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="px-8 py-6 text-base font-medium" asChild>
-                <Link href="/sign-up">Get Started for Free</Link>
+                <Link href="/signup">Get Started for Free</Link>
               </Button>
               <Button size="lg" variant="outline" className="px-8 py-6 text-base font-medium text-blue-700 bg-white hover:bg-blue-50" asChild>
                 <Link href="/listings">Browse Listings</Link>
