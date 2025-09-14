@@ -4,6 +4,7 @@ import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { Toaster } from 'sonner';
 import { ClientProviders } from '@/providers/client-providers';
+import { Footer } from '@/components/layout/footer';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -82,9 +83,10 @@ export default function RootLayout({
         <AxiomWebVitals />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <ClientProviders>
-          <main>{children}</main>
+          <main className="flex-grow">{children}</main>
+          <Footer />
           <Toaster position="top-center" richColors />
         </ClientProviders>
         <RouteChangeHandler />
