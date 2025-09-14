@@ -23,7 +23,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     setRole(newRole);
     
     // Always navigate to the dashboard - the content will update based on the role
-    router.push('/my-dashboard');
+    router.push('/dashboard');
   }, [role, router]);
 
   const value = {

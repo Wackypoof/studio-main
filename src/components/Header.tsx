@@ -16,7 +16,7 @@ export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   // Don't show header on dashboard pages
-  if (pathname.startsWith('/my-dashboard')) {
+  if (pathname.startsWith('/dashboard')) {
     return null;
   }
   return (
@@ -64,7 +64,7 @@ export function Header() {
               <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />
             ) : user ? (
               <div className="flex items-center gap-2">
-                <Link href="/my-dashboard">
+                <Link href="/dashboard">
                   <Button variant="outline" size="sm" className="gap-2">
                     <User className="h-4 w-4" />
                     Dashboard
@@ -139,7 +139,7 @@ export function Header() {
                     {user ? (
                       <div className="space-y-4">
                         <SheetClose asChild>
-                          <Link href="/my-dashboard" className="flex items-center gap-2 py-2">
+                          <Link href="/dashboard" className="flex items-center gap-2 py-2">
                             <User className="h-4 w-4" />
                             Dashboard
                           </Link>

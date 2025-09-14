@@ -36,8 +36,8 @@ export default function LoginPage() {
       // Clear any previous errors
       clearError();
       
-      // Redirect to my-dashboard on successful login
-      router.push('/my-dashboard');
+      // Redirect to dashboard on successful login
+      router.push('/dashboard');
       router.refresh();
       
     } catch (error: any) {
