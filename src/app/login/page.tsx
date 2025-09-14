@@ -10,25 +10,42 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, clearError, loading: authLoading } = useAuth();
   const router = useRouter();
+  
+  // Use the loading state from AuthContext if available, otherwise use local state
+  const isLoading = authLoading !== undefined ? authLoading : loading;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      return;
+    }
 
     try {
-      const { error } = await signIn(email, password);
+      const { error: signInError } = await signIn({ email, password });
       
-      if (error) throw error;
+      if (signInError) {
+        // Error is already set in the AuthContext
+        return;
+      }
       
-      // Redirect to dashboard after successful login
-      router.push('/my-dashboard');
+      // Clear any previous errors
+      clearError();
+      
+      // Redirect to dashboard on successful login
+      router.push('/dashboard');
+      router.refresh();
+      
     } catch (error: any) {
-      setError(error.message || 'An error occurred during login');
-    } finally {
-      setLoading(false);
+      console.error('Login error:', error);
+      const errorMessage = error?.message || 'Failed to sign in. Please check your credentials.';
+      setError(errorMessage);
+      // Log the error to console
+      console.error('Error:', errorMessage);
     }
   };
 
@@ -88,10 +105,10 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>

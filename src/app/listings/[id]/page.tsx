@@ -214,7 +214,7 @@ export default function ListingDetailPage({ params }: ListingDetailPageProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      {operational.map((item: { label: string; value: string | number; icon: React.ElementType }, index: number) => (
+                      {operational.map((item, index) => (
                         <div key={index} className="flex items-start">
                           <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mr-4">
                               <item.icon className="w-6 h-6 text-primary" />

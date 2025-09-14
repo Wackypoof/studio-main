@@ -13,9 +13,13 @@ export interface ErrorBoundaryProps {
   resetOnChange?: any[];
 }
 
+interface ErrorWithCause extends Error {
+  cause?: unknown;
+}
+
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
+  error: ErrorWithCause | null;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -46,8 +50,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: Error | unknown): ErrorBoundaryState {
+    if (error instanceof Error) {
+      return { hasError: true, error };
+    }
+    return { 
+      hasError: true, 
+      error: new Error(error ? String(error) : 'An unknown error occurred')
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -158,7 +168,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <pre className="overflow-x-auto whitespace-pre-wrap break-words text-xs text-muted-foreground">
                   {this.state.error.stack}
                 </pre>
-                {this.state.error.cause && (
+                {this.state.error?.cause !== undefined && (
                   <div className="mt-3">
                     <div className="mb-1 text-xs font-medium text-muted-foreground">Cause:</div>
                     <div className="rounded bg-muted/50 p-2 font-mono text-xs">

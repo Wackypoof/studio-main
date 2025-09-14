@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 
 export default function SignUpPage() {
@@ -10,9 +11,16 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, error: authError, loading, clearError } = useAuth();
   const router = useRouter();
+  
+  // Sync local error state with auth context
+  useEffect(() => {
+    if (authError) {
+      setError(authError.message);
+      toast.error(authError.message);
+    }
+  }, [authError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,30 +34,27 @@ export default function SignUpPage() {
       return setError('Please enter your full name');
     }
 
-    setLoading(true);
-
-    try {
-      // Store email in localStorage for the confirm-email page
-      localStorage.setItem('emailForSignIn', email);
-      
-      const { data, error } = await signUp(email, password, {
-        data: {
-          full_name: fullName.trim()
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`
-      });
-      
-      if (error) throw error;
-      
-      // If we get here, the signup was successful
-      // Redirect to confirm-email page with email as query param
-      router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`);
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      setError(error.message || 'An error occurred during signup. Please try again.');
-    } finally {
-      setLoading(false);
+    // Store email in localStorage for the confirm-email page
+    localStorage.setItem('emailForSignIn', email);
+    
+    const { error: signUpError } = await signUp(email, password, {
+      data: {
+        full_name: fullName.trim()
+      },
+      emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`
+    });
+    
+    if (signUpError) {
+      // Error is already set in the AuthContext
+      return;
     }
+    
+    // Clear any previous errors
+    clearError();
+    
+    // If we get here, the signup was successful
+    // Redirect to confirm-email page with email as query param
+    router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`);
   };
 
   return (

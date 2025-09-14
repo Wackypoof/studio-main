@@ -12,27 +12,24 @@ export interface Database {
       profiles: {
         Row: {
           id: string
-          updated_at: string
-          username: string | null
           full_name: string | null
           avatar_url: string | null
-          website: string | null
+          created_at: string
+          updated_at: string
         }
         Insert: {
           id: string
-          updated_at?: string
-          username?: string | null
           full_name?: string | null
           avatar_url?: string | null
-          website?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
-          updated_at?: string
-          username?: string | null
           full_name?: string | null
           avatar_url?: string | null
-          website?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
     }
@@ -43,12 +40,10 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
+      user_role: 'admin' | 'user' | 'guest'
+    }
+    CompositeTypes: {
       [_ in never]: never
     }
   }
 }
-
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
-
-export type Profile = Tables<'profiles'>

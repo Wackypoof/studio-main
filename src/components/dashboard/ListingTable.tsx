@@ -4,27 +4,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ArrowUpRight, Clock, CheckCircle2, PauseCircle } from "lucide-react";
 import Link from "next/link";
+import { Listing, ListingStatus } from '@/lib/types';
 
-export const statusVariantMap = {
-  draft: "outline",
-  pending: "secondary",
-  live: "default",
-  paused: "secondary",
-  under_offer: "default",
-  closed: "outline",
+const statusVariantMap: Record<ListingStatus, 'default' | 'secondary' | 'outline'> = {
+  draft: 'outline',
+  pending: 'secondary',
+  live: 'default',
+  paused: 'secondary',
+  under_offer: 'default',
+  closed: 'outline',
 } as const;
 
-export const statusIconMap = {
-  draft: <Clock className="h-4 w-4" />,
-  pending: <Clock className="h-4 w-4" />,
-  live: <CheckCircle2 className="h-4 w-4" />,
-  paused: <PauseCircle className="h-4 w-4" />,
-  "under_offer": <Clock className="h-4 w-4" />,
-  closed: <Clock className="h-4 w-4" />,
+const statusIconMap: Record<ListingStatus, React.ReactNode> = {
+  draft: <Clock className="h-3 w-3" />,
+  pending: <Clock className="h-3 w-3" />,
+  live: <CheckCircle2 className="h-3 w-3" />,
+  paused: <PauseCircle className="h-3 w-3" />,
+  under_offer: <Clock className="h-3 w-3" />,
+  closed: <CheckCircle2 className="h-3 w-3" />,
 } as const;
 
 interface ListingTableProps {
-  listings: any[];
+  listings: Listing[];
   onViewListing: (id: string) => void;
   isLoading?: boolean;
 }

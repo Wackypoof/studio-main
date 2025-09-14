@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 import { RoleProvider } from '@/contexts/role-context';
 import { AuthProvider } from '@/context/AuthContext';
 
@@ -87,7 +87,7 @@ export default function RootLayout({
         <AuthProvider>
           <RoleProvider>
             <main>{children}</main>
-            <Toaster />
+            <Toaster position="top-center" richColors />
           </RoleProvider>
         </AuthProvider>
         <RouteChangeHandler />
