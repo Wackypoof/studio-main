@@ -14,7 +14,7 @@ export default function SellerPricingPage() {
             Choose the right plan to maximize your business's value and find the perfect buyer.
           </p>
         </div>
-        <PricingSection />
+        <PricingSection userType="seller" />
       </div>
     </div>
   );

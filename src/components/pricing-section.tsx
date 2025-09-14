@@ -44,7 +44,13 @@ const PricingTier = ({ name, price, description, features, cta, popular = false 
   </div>
 );
 
-export function PricingSection() {
+type UserType = 'buyer' | 'seller';
+
+interface PricingSectionProps {
+  userType: UserType;
+}
+
+export function PricingSection({ userType }: PricingSectionProps) {
   const buyerTiers: PricingTier[] = [
     {
       name: 'Basic Access',
@@ -131,6 +137,13 @@ export function PricingSection() {
     }
   ];
 
+  const isBuyer = userType === 'buyer';
+  const title = isBuyer ? 'For Buyers' : 'For Sellers';
+  const subtitle = isBuyer 
+    ? 'Find and acquire your next business opportunity' 
+    : 'Sell your business with confidence';
+  const tiers = isBuyer ? buyerTiers : sellerTiers;
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,30 +154,15 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Buyer Pricing */}
         <div className="mb-20">
           <div className="text-center mb-10">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">For Buyers</h3>
-            <p className="text-gray-600">Find and acquire your next business opportunity</p>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">{title}</h3>
+            <p className="text-gray-600">{subtitle}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {buyerTiers.map((tier, index) => (
-              <PricingTier key={`buyer-tier-${index}`} {...tier} />
-            ))}
-          </div>
-        </div>
-
-        {/* Seller Pricing */}
-        <div>
-          <div className="text-center mb-10">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">For Sellers</h3>
-            <p className="text-gray-600">Sell your business with confidence</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {sellerTiers.map((tier, index) => (
-              <PricingTier key={`seller-tier-${index}`} {...tier} />
+            {tiers.map((tier, index) => (
+              <PricingTier key={`${userType}-tier-${index}`} {...tier} />
             ))}
           </div>
         </div>
@@ -176,13 +174,16 @@ export function PricingSection() {
                 <BadgeCheck className="h-6 w-6" />
               </div>
             </div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Need Help Deciding?</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Need Help {isBuyer ? 'Finding the Right Business?' : 'Selling Your Business?'}</h3>
             <p className="text-gray-600 mb-6">
-              Our team is here to help you choose the right plan and answer any questions you might have about buying or selling a business.
+              {isBuyer 
+                ? 'Our team is here to help you find the perfect business opportunity and guide you through the acquisition process.'
+                : 'Our team is here to help you maximize your business value and find the right buyer for a successful exit.'
+              }
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button variant="outline" className="bg-white">
-                Contact Sales
+                Contact {isBuyer ? 'an Advisor' : 'Our Team'}
               </Button>
               <Button variant="secondary">
                 Schedule a Call

@@ -14,7 +14,7 @@ export default function BuyerPricingPage() {
             Choose the plan that works best for your business acquisition journey. No hidden fees, no surprises.
           </p>
         </div>
-        <PricingSection />
+        <PricingSection userType="buyer" />
       </div>
     </div>
   );
