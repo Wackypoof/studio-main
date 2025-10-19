@@ -5,6 +5,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 import { ClientProviders } from '@/providers/client-providers';
 import { Footer } from '@/components/layout/footer';
+import { UpdateNotification } from '@/components/ui/UpdateNotification';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -88,6 +89,7 @@ export default function RootLayout({
           <main className="flex-grow">{children}</main>
           <Footer />
           <Toaster position="top-center" richColors />
+          <UpdateNotification />
         </ClientProviders>
         <RouteChangeHandler />
         {/* Performance monitoring script */}
@@ -96,7 +98,7 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').then(
+                  navigator.serviceWorker.register('/service-worker.js').then(
                     (registration) => {
                       console.log('ServiceWorker registration successful');
                     },

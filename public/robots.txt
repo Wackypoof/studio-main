@@ -1,0 +1,11 @@
+# Allow all web crawlers to crawl the site
+User-agent: *
+Allow: /
+
+# Disallow crawling of admin and API routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /dashboard/
+
+# Sitemap location
+Sitemap: https://successionasia.com/sitemap.xml
