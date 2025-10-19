@@ -55,9 +55,7 @@ const nextConfig = {
   },
 
   // Static optimization
-  swcMinify: true,
   productionBrowserSourceMaps: false,
-  optimizeFonts: true,
   
   // Security headers
   async headers() {

@@ -160,15 +160,17 @@ export default function DashboardLayout({
               </div>
             </SidebarFooter>
           </Sidebar>
-          <SidebarInset className="w-full overflow-hidden px-4">
-            <header className="flex items-center justify-end py-4">
-              <SidebarTrigger className="md:hidden" />
-            </header>
-            <main className="w-full max-w-[calc(100vw-200px)] overflow-x-auto">
-              <div className="w-full">
-                {children}
-              </div>
-            </main>
+          <SidebarInset className="flex-1 overflow-hidden">
+            <div className="flex h-full flex-1 flex-col">
+              <header className="flex items-center justify-between border-b border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
+                <SidebarTrigger className="md:hidden" />
+              </header>
+              <main className="flex-1 overflow-y-auto">
+                <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-8 px-4 py-6 md:px-6 lg:px-10 lg:py-10">
+                  {children}
+                </div>
+              </main>
+            </div>
           </SidebarInset>
         </div>
       </SidebarProvider>
