@@ -1,14 +1,15 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { mockData } from '@/lib/data';
 import { 
-  Eye, Clock, CheckCircle2, AlertCircle, FileSignature, 
-  MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search, Plus 
+  Eye, Clock, AlertCircle, FileSignature, 
+  MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search 
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { useRole } from '@/contexts/role-context';
@@ -54,6 +55,47 @@ export default function DashboardPage() {
   const handleCreateNewListing = () => {
     router.push('/my-dashboard/listings/new');
   };
+
+  const renderLoadingState = () => (
+    <div className="flex flex-col gap-8">
+      <div className="h-9 w-2/5 rounded bg-muted/50" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="border-border/60">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="mt-2 h-3 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="grid gap-6 xl:grid-cols-12">
+        <Card className="xl:col-span-8 border-border/60">
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <Skeleton key={index} className="h-12 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+        <Card className="xl:col-span-4 border-border/60">
+          <CardHeader>
+            <Skeleton className="h-5 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[...Array(4)].map((_, index) => (
+              <Skeleton key={index} className="h-10 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     // Reset loading state when role changes
@@ -181,24 +223,7 @@ export default function DashboardPage() {
   }, [isBuyer]);
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-10 bg-muted/50 rounded w-1/3"></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 w-24 bg-muted rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-16 bg-muted rounded"></div>
-                <div className="h-3 w-32 bg-muted rounded mt-2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return renderLoadingState();
   }
 
   // Error boundary fallback component
@@ -229,27 +254,6 @@ export default function DashboardPage() {
 
   // If user is a seller, render the SellerDashboard
   if (!isBuyer) {
-    if (isLoading) {
-      return (
-        <div className="space-y-6">
-          <Skeleton className="h-10 w-1/3" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="pb-2">
-                  <div className="h-4 w-24 bg-muted rounded"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-8 w-16 bg-muted rounded"></div>
-                  <div className="h-3 w-32 bg-muted rounded mt-2"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
     const sellerListings = mockData.listings.filter(listing => 
       listing.userId === user.id
     );
@@ -265,60 +269,40 @@ export default function DashboardPage() {
     );
   }
 
-  // Show loading state for buyer dashboard
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-10 bg-muted/50 rounded w-1/3"></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 w-24 bg-muted rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-16 bg-muted rounded"></div>
-                <div className="h-3 w-32 bg-muted rounded mt-2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   // Default to buyer dashboard
   return (
     <ErrorBoundary fallback={errorFallbackElement}>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-8">
         <PageHeader
           title="Buyer Dashboard"
           description={`Welcome back, ${user.fullName.split(' ')[0]}! Here are your saved listings and recent activity.`}
         />
 
         {data.needsVerification && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader className="py-3">
+          <Card className="border border-yellow-200 bg-yellow-50/80">
+            <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
-                <h3 className="font-medium text-yellow-800">Verification Required</h3>
+                <AlertCircle className="h-5 w-5 text-yellow-700" />
+                <h3 className="text-base font-medium text-yellow-900">Verification required</h3>
               </div>
+              <Badge variant="secondary" className="bg-white/70 text-xs text-yellow-800">
+                Recommended
+              </Badge>
             </CardHeader>
             <CardContent className="pt-0">
-              <p className="text-sm text-yellow-700 mb-3">
+              <p className="mb-4 text-sm text-yellow-800">
                 Complete your profile verification to access all features and increase trust with {isBuyer ? 'sellers' : 'buyers'}.
               </p>
-              <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+              <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-800 hover:bg-yellow-100">
                 Start Verification
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {data.stats.map((stat, index) => (
-            <Card key={index}>
+            <Card key={index} className="border-border/60">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 className="text-sm font-medium text-muted-foreground">{stat.label}</h3>
                 <stat.icon className="h-4 w-4 text-muted-foreground" />
@@ -329,11 +313,10 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </section>
 
-        {/* Recent Activity */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+        <section className="grid gap-6 xl:grid-cols-12">
+          <Card className="xl:col-span-8 border-border/60">
             <CardHeader>
               <CardTitle className="text-lg">Recent Activity</CardTitle>
             </CardHeader>
@@ -357,8 +340,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
-          <Card>
+          <Card className="xl:col-span-4 border-border/60">
             <CardHeader>
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
@@ -388,7 +370,7 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-        </div>
+        </section>
       </div>
     </ErrorBoundary>
   );

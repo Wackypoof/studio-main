@@ -1,12 +1,66 @@
 import type { NextConfig } from 'next';
+import bundleAnalyzer from '@next/bundle-analyzer';
+import { withSentryConfig } from '@sentry/nextjs';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+const securityHeaders: Array<{ key: string; value: string }> = [
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on',
+  },
+  {
+    key: 'X-XSS-Protection',
+    value: '1; mode=block',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'SAMEORIGIN',
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'origin-when-cross-origin',
+  },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.supabase.co *.sentry.io",
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' fonts.gstatic.com",
+      "connect-src 'self' *.supabase.co wss://*.supabase.co *.sentry.io",
+      "frame-ancestors 'self'",
+      "form-action 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join('; '),
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  },
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains; preload',
+  },
+];
 
 const nextConfig: NextConfig = {
-  // Disable Turbopack by not including it in the config
+  reactStrictMode: true,
+  poweredByHeader: false,
+  generateEtags: true,
+  compress: true,
   compiler: {
-    // Enable SWC compilation
     styledComponents: true,
   },
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -28,7 +82,55 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    domains: [
+      'localhost',
+      'images.unsplash.com',
+      'res.cloudinary.com',
+      'lh3.googleusercontent.com',
+      'avatars.githubusercontent.com',
+      'your-production-domain.com',
+    ],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
+  },
+  productionBrowserSourceMaps: false,
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+
+    return config;
   },
 };
 
-export default nextConfig;
+const sentryOptions = {
+  org: 'fang-ventures-private-limited',
+  project: 'javascript-nextjs',
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  disableLogger: true,
+  automaticVercelMonitors: true,
+};
+
+export default withBundleAnalyzer(withSentryConfig(nextConfig, sentryOptions));

@@ -47,7 +47,7 @@ export function SellerDashboard({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-8">
       <DashboardHeader
         title="Dashboard"
         description="Overview of your listings and performance"

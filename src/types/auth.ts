@@ -1,4 +1,4 @@
-import { User as SupabaseUser, UserMetadata } from '@supabase/supabase-js';
+import { Provider, User as SupabaseUser, UserMetadata } from '@supabase/supabase-js';
 
 export interface UserProfile {
   id: string;
@@ -44,6 +44,13 @@ export interface SignInCredentials {
 export interface SignUpCredentials extends SignInCredentials {
   fullName: string;
 }
+
+export interface OAuthSignInOptions {
+  redirectTo?: string;
+  scopes?: string;
+}
+
+export type OAuthProvider = Provider;
 
 // Type guard for AuthError
 export function isAuthError(error: unknown): error is AuthError {

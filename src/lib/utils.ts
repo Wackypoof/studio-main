@@ -54,7 +54,9 @@ export function formatDate(
   const dateObj = safeParseDate(date);
   
   if (!dateObj) {
-    console.warn('Invalid date provided to formatDate:', date);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Invalid date provided to formatDate:', date);
+    }
     return 'Invalid date';
   }
 
@@ -155,7 +157,9 @@ const DEFAULT_CURRENCY_OPTIONS: FormatCurrencyOptions = {
  */
 export function formatCurrency(amount: number, options: FormatCurrencyOptions = {}): string {
   if (typeof amount !== 'number' || isNaN(amount)) {
-    console.warn('Invalid amount provided to formatCurrency');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Invalid amount provided to formatCurrency');
+    }
     return '—';
   }
 

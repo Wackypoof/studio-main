@@ -4,11 +4,11 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
-import { Toaster } from 'sonner';
 import { ClientProviders } from '@/providers/client-providers';
-import { Footer } from '@/components/layout/footer';
 import { UpdateNotification } from '@/components/ui/UpdateNotification';
 import { usePathname } from 'next/navigation';
+import { Footer } from '@/components/layout/footer';
+import { Toaster } from 'sonner';
 
 // Optimize font loading with next/font
 const inter = Inter({
