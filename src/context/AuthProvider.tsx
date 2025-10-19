@@ -1,11 +1,10 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { Session, User } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import {
   AuthUser,
@@ -31,261 +30,379 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Query keys
-const authKeys = {
-  session: ['auth', 'session'] as const,
-  user: ['auth', 'user'] as const,
+const createAuthError = (error: unknown, fallbackMessage: string): AuthError => {
+  if (isAuthError(error)) {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const err = error as Record<string, unknown>;
+    return {
+      message: typeof err.message === 'string' ? err.message : fallbackMessage,
+      code: typeof err.code === 'string' ? err.code : undefined,
+      status: typeof err.status === 'number' ? err.status : undefined,
+      details: typeof err.name === 'string' ? err.name : undefined,
+    };
+  }
+
+  return { message: fallbackMessage };
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const supabase = createClientComponentClient<Database>();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
-  // Fetch session
-  const { data: session, isLoading: isLoadingSession } = useQuery({
-    queryKey: authKeys.session,
-    queryFn: async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      return data.session;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [error, setError] = useState<AuthError | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // Fetch user profile when session changes
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: authKeys.user,
-    queryFn: async () => {
-      if (!session?.user) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-      if (error) throw error;
-      return { ...session.user, ...data } as AuthUser;
-    },
-    enabled: !!session?.user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const isLoading = isInitializing || isAuthenticating;
 
-  // Sign in mutation
-  const signInMutation = useMutation({
-    mutationFn: async (credentials: SignInCredentials) => {
-      const { data, error } = await supabase.auth.signInWithPassword(credentials);
-      
-      if (error) {
-        return { data: null, error } as AuthResponse<{ user: AuthUser; session: Session | null }>;
-      }
-      
-      // Fetch the full user profile
-      const { data: userData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      const authUser = { ...data.user, ...userData } as AuthUser;
-      
-      return { 
-        data: { 
-          user: authUser, 
-          session: data.session 
-        }, 
-        error: null 
-      } as AuthResponse<{ user: AuthUser; session: Session | null }>;
-    },
-    onSuccess: (response) => {
-      if (response.data) {
-        queryClient.setQueryData(authKeys.session, response.data.session);
-        queryClient.setQueryData(authKeys.user, response.data.user);
-        router.push('/dashboard');
-        router.refresh();
-      }
-    },
-    onError: (error) => {
-      console.error('Sign in error:', error);
-      toast.error('Failed to sign in. Please check your credentials.');
-    },
-  });
-
-  // Sign up mutation
-  const signUpMutation = useMutation({
-    mutationFn: async ({
-      email,
-      password,
-      options,
-    }: {
-      email: string;
-      password: string;
-      options?: SignUpOptions;
-    }) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: options?.data,
-          emailRedirectTo: options?.emailRedirectTo || `${window.location.origin}/auth/callback`,
-        },
-      });
-
-      if (error) {
-        return { data: null, error } as AuthResponse<{ user: AuthUser | null; session: Session | null }>;
-      }
-
-      let authUser: AuthUser | null = null;
-      
-      if (data.user) {
-        // If user is returned (email confirmation not required), fetch full profile
-        const { data: userData } = await supabase
+  const fetchProfile = useCallback(
+    async (baseUser: AuthUser): Promise<AuthUser> => {
+      try {
+        const { data, error: profileError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', data.user.id)
+          .eq('id', baseUser.id)
           .single();
-        
-        authUser = { ...data.user, ...userData } as AuthUser;
-      }
 
-      return { 
-        data: { 
-          user: authUser, 
-          session: data.session 
-        }, 
-        error: null 
-      } as AuthResponse<{ user: AuthUser | null; session: Session | null }>;
-    },
-    onSuccess: (response) => {
-      if (response.data) {
-        queryClient.setQueryData(authKeys.session, response.data.session);
-        queryClient.setQueryData(authKeys.user, response.data.user);
-        toast.success('Please check your email to confirm your account');
-      }
-    },
-    onError: (error) => {
-      console.error('Sign up error:', error);
-      toast.error('Failed to create account. Please try again.');
-    },
-  });
-
-  // Sign out mutation
-  const signOutMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        return { error } as { error: AuthError };
-      }
-      
-      return { error: null };
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(authKeys.session, null);
-      queryClient.setQueryData(authKeys.user, null);
-      router.push('/login');
-      router.refresh();
-    },
-    onError: (error) => {
-      console.error('Sign out error:', error);
-      toast.error('Failed to sign out. Please try again.');
-      return { error: error as AuthError };
-    },
-  });
-
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: Partial<UserProfile>) => {
-      if (!user?.id) {
-        throw new Error('No user logged in');
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-        
-      if (error) {
-        return { data: null, error } as AuthResponse<UserProfile>;
-      }
-      
-      const updatedUser = { ...user, ...data } as AuthUser;
-      
-      return { 
-        data: data as UserProfile, 
-        error: null 
-      } as AuthResponse<UserProfile>;
-    },
-    onSuccess: (response) => {
-      if (response.data) {
-        queryClient.setQueryData(authKeys.user, (old: AuthUser | null) => 
-          old ? { ...old, ...response.data } : null
-        );
-        toast.success('Profile updated successfully');
-      }
-    },
-    onError: (error) => {
-      console.error('Update profile error:', error);
-      toast.error('Failed to update profile. Please try again.');
-    },
-  });
-
-  // Clear error function
-  const clearError = useCallback(() => {
-    queryClient.setQueryData(authKeys.session, (current: any) => 
-      current ? { ...current, error: null } : null
-    );
-  }, [queryClient]);
-
-  // Auth state change subscription - using useEffect instead of useQuery for side effects
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          queryClient.setQueryData(authKeys.session, session);
-          if (session?.user) {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            queryClient.setQueryData(authKeys.user, userData);
+        if (profileError) {
+          // Supabase returns code PGRST116 when no profile exists yet.
+          if (profileError.code && profileError.code !== 'PGRST116') {
+            console.error('Error fetching user profile:', profileError);
           }
-        } else if (event === 'SIGNED_OUT') {
-          queryClient.setQueryData(authKeys.session, null);
-          queryClient.setQueryData(authKeys.user, null);
+
+          return baseUser;
+        }
+
+        const existingMetadata = baseUser.user_metadata ?? {};
+
+        return {
+          ...baseUser,
+          ...data,
+          user_metadata: {
+            ...existingMetadata,
+            full_name: data?.full_name ?? existingMetadata.full_name,
+            avatar_url: data?.avatar_url ?? existingMetadata.avatar_url,
+          },
+        } as AuthUser;
+      } catch (err) {
+        console.error('Unexpected error fetching user profile:', err);
+        return baseUser;
+      }
+    },
+    [supabase]
+  );
+
+  const syncSession = useCallback(
+    async (incomingSession: Session | null): Promise<AuthUser | null> => {
+      setSession(incomingSession);
+
+      if (!incomingSession?.user) {
+        setUser(null);
+        return null;
+      }
+
+      const baseUser = {
+        ...(incomingSession.user as AuthUser),
+        user_metadata: {
+          ...(incomingSession.user.user_metadata ?? {}),
+        },
+      } as AuthUser;
+
+      const authUser = await fetchProfile(baseUser);
+      setUser(authUser);
+      return authUser;
+    },
+    [fetchProfile]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initialiseAuth = async () => {
+      try {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (sessionError) {
+          console.error('Error fetching session:', sessionError);
+          const authError = createAuthError(
+            sessionError,
+            'Unable to retrieve session. Please try again.'
+          );
+          setError(authError);
+          setSession(null);
+          setUser(null);
+          return;
+        }
+
+        setError(null);
+        await syncSession(data.session);
+      } catch (err) {
+        if (!isMounted) {
+          return;
+        }
+
+        console.error('Unexpected error fetching session:', err);
+        const authError = createAuthError(
+          err,
+          'Unable to retrieve session. Please try again.'
+        );
+        setError(authError);
+        setSession(null);
+        setUser(null);
+      } finally {
+        if (isMounted) {
+          setIsInitializing(false);
         }
       }
-    );
+    };
+
+    initialiseAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      await syncSession(newSession);
+    });
 
     return () => {
+      isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [queryClient, supabase.auth]);
+  }, [supabase, syncSession]);
 
-  const value = useMemo(() => ({
-    user: user || null,
-    session: session || null,
-    isLoading: isLoadingSession || isLoadingUser,
-    error: null, // Errors are now handled by the mutations
-    clearError,
-    signIn: signInMutation.mutateAsync,
-    signUp: (email: string, password: string, options?: SignUpOptions) =>
-      signUpMutation.mutateAsync({ email, password, options }),
-    signOut: signOutMutation.mutateAsync,
-    updateProfile: updateProfileMutation.mutateAsync,
-  }), [
-    user, 
-    session, 
-    isLoadingSession, 
-    isLoadingUser, 
-    clearError, 
-    signInMutation.mutateAsync, 
-    signUpMutation.mutateAsync, 
-    signOutMutation.mutateAsync, 
-    updateProfileMutation.mutateAsync
-  ]);
+  const signIn = useCallback(
+    async (credentials: SignInCredentials) => {
+      setIsAuthenticating(true);
+      setError(null);
+
+      try {
+        const { data, error: signInError } = await supabase.auth.signInWithPassword(credentials);
+
+        if (signInError) {
+          const authError = createAuthError(
+            signInError,
+            'Failed to sign in. Please check your credentials.'
+          );
+          setError(authError);
+          toast.error(authError.message);
+          return { data: null, error: authError };
+        }
+
+        const authUser = await syncSession(data.session);
+
+        if (!authUser) {
+          const authError: AuthError = {
+            message: 'Unable to determine authenticated user.',
+          };
+          setError(authError);
+          toast.error(authError.message);
+          return { data: null, error: authError };
+        }
+
+        router.push('/dashboard');
+        router.refresh();
+
+        return {
+          data: {
+            user: authUser,
+            session: data.session,
+          },
+          error: null,
+        } as AuthResponse<{ user: AuthUser; session: Session | null }>;
+      } catch (err) {
+        console.error('Sign in error:', err);
+        const authError = createAuthError(
+          err,
+          'Failed to sign in. Please check your credentials.'
+        );
+        setError(authError);
+        toast.error(authError.message);
+        return { data: null, error: authError };
+      } finally {
+        setIsAuthenticating(false);
+      }
+    },
+    [router, supabase, syncSession]
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string, options?: SignUpOptions) => {
+      setIsAuthenticating(true);
+      setError(null);
+
+      try {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: options?.data,
+            emailRedirectTo:
+              options?.emailRedirectTo || `${window.location.origin}/auth/callback`,
+          },
+        });
+
+        if (signUpError) {
+          const authError = createAuthError(
+            signUpError,
+            'Failed to create account. Please try again.'
+          );
+          setError(authError);
+          toast.error(authError.message);
+          return { data: null, error: authError };
+        }
+
+        let authUser: AuthUser | null = null;
+
+        if (data.user) {
+          authUser = await syncSession(data.session);
+        } else {
+          setSession(data.session);
+          setUser(null);
+        }
+
+        toast.success('Please check your email to confirm your account');
+
+        return {
+          data: {
+            user: authUser,
+            session: data.session,
+          },
+          error: null,
+        } as AuthResponse<{ user: AuthUser | null; session: Session | null }>;
+      } catch (err) {
+        console.error('Sign up error:', err);
+        const authError = createAuthError(
+          err,
+          'Failed to create account. Please try again.'
+        );
+        setError(authError);
+        toast.error(authError.message);
+        return { data: null, error: authError };
+      } finally {
+        setIsAuthenticating(false);
+      }
+    },
+    [supabase, syncSession]
+  );
+
+  const signOut = useCallback(async () => {
+    setIsAuthenticating(true);
+    setError(null);
+
+    try {
+      const { error: signOutError } = await supabase.auth.signOut();
+
+      if (signOutError) {
+        const authError = createAuthError(
+          signOutError,
+          'Failed to sign out. Please try again.'
+        );
+        setError(authError);
+        toast.error(authError.message);
+        return { error: authError };
+      }
+
+      await syncSession(null);
+      router.push('/login');
+      router.refresh();
+
+      return { error: null };
+    } catch (err) {
+      console.error('Sign out error:', err);
+      const authError = createAuthError(
+        err,
+        'Failed to sign out. Please try again.'
+      );
+      setError(authError);
+      toast.error(authError.message);
+      return { error: authError };
+    } finally {
+      setIsAuthenticating(false);
+    }
+  }, [router, supabase, syncSession]);
+
+  const updateProfile = useCallback(
+    async (updates: Partial<UserProfile>) => {
+      if (!user?.id) {
+        const authError: AuthError = { message: 'No user logged in' };
+        toast.error(authError.message);
+        return { data: null, error: authError };
+      }
+
+      try {
+        const { data, error: updateError } = await supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', user.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          const authError = createAuthError(
+            updateError,
+            'Failed to update profile. Please try again.'
+          );
+          toast.error(authError.message);
+          return { data: null, error: authError };
+        }
+
+        const nextUser = {
+          ...user,
+          ...data,
+          user_metadata: {
+            ...user.user_metadata,
+            full_name: data?.full_name ?? user.user_metadata?.full_name,
+            avatar_url: data?.avatar_url ?? user.user_metadata?.avatar_url,
+          },
+        } as AuthUser;
+
+        setUser(nextUser);
+        toast.success('Profile updated successfully');
+
+        return {
+          data: data as UserProfile,
+          error: null,
+        } as AuthResponse<UserProfile>;
+      } catch (err) {
+        console.error('Update profile error:', err);
+        const authError = createAuthError(
+          err,
+          'Failed to update profile. Please try again.'
+        );
+        toast.error(authError.message);
+        return { data: null, error: authError };
+      }
+    },
+    [supabase, user]
+  );
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user,
+      session,
+      isLoading,
+      error,
+      clearError,
+      signIn,
+      signUp,
+      signOut,
+      updateProfile,
+    }),
+    [user, session, isLoading, error, clearError, signIn, signUp, signOut, updateProfile]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

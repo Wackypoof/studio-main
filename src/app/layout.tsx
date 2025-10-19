@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AxiomWebVitals } from 'next-axiom';
@@ -6,6 +8,7 @@ import { Toaster } from 'sonner';
 import { ClientProviders } from '@/providers/client-providers';
 import { Footer } from '@/components/layout/footer';
 import { UpdateNotification } from '@/components/ui/UpdateNotification';
+import { usePathname } from 'next/navigation';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -25,6 +28,18 @@ function WebVitals() {
 // Define the RouteChangeHandler component to avoid import issues
 function RouteChangeHandler() {
   return null;
+}
+
+// Client component to conditionally render footer
+function ConditionalFooter() {
+  const pathname = usePathname();
+
+  // Don't show footer on dashboard pages
+  if (pathname?.startsWith('/dashboard')) {
+    return null;
+  }
+
+  return <Footer />;
 }
 
 const metadata: Metadata = {
@@ -87,7 +102,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <ClientProviders>
           <main className="flex-grow">{children}</main>
-          <Footer />
+          <ConditionalFooter />
           <Toaster position="top-center" richColors />
           <UpdateNotification />
         </ClientProviders>

@@ -61,23 +61,23 @@ export default function DashboardLayout({
   }, [user.fullName]);
 
   const buyerMenuItems = [
-    { href: '/my-dashboard', label: 'Dashboard', icon: Home },
-    { href: '/my-dashboard/browse-listings', label: 'Browse Listings', icon: Search },
-    { href: '/my-dashboard/saved-listings', label: 'Saved Listings', icon: FileText },
-    { href: '/my-dashboard/ndas', label: 'NDAs', icon: FileSignature },
-    { href: '/my-dashboard/offers', label: 'My Offers', icon: Handshake },
+    { href: '/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/dashboard/browse-listings', label: 'Browse Listings', icon: Search },
+    { href: '/dashboard/saved-listings', label: 'Saved Listings', icon: FileText },
+    { href: '/dashboard/ndas', label: 'NDAs', icon: FileSignature },
+    { href: '/dashboard/offers', label: 'My Offers', icon: Handshake },
   ];
 
   const sellerMenuItems = [
-    { href: '/my-dashboard', label: 'Overview', icon: Home },
-    { href: '/my-dashboard/listings', label: 'My Listings', icon: Briefcase },
-    { href: '/my-dashboard/analytics', label: 'Analytics', icon: BarChart2 },
-    { href: '/my-dashboard/leads', label: 'Buyer Leads', icon: Users },
+    { href: '/dashboard', label: 'Overview', icon: Home },
+    { href: '/dashboard/listings', label: 'My Listings', icon: Briefcase },
+    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart2 },
+    { href: '/dashboard/leads', label: 'Buyer Leads', icon: Users },
   ];
 
   const commonMenuItems = [
-    { href: '/my-dashboard/messages', label: 'Messages', icon: MessageSquare },
-    { href: '/my-dashboard/verification', label: 'Verification', icon: ShieldCheck },
+    { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
+    { href: '/dashboard/verification', label: 'Verification', icon: ShieldCheck },
   ];
 
   const menuItems = [
@@ -93,7 +93,7 @@ export default function DashboardLayout({
             <SidebarHeader className="p-4">
               <div className="flex items-center gap-2">
                 <Button asChild variant="ghost" className="h-10 w-10 p-2">
-                  <Link href="/my-dashboard">
+                  <Link href="/dashboard">
                     <Briefcase className="h-6 w-6 text-primary" />
                   </Link>
                 </Button>
@@ -124,7 +124,7 @@ export default function DashboardLayout({
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton tooltip="Settings" asChild>
-                    <Link href="/my-dashboard/settings">
+                    <Link href="/dashboard/settings">
                       <Settings/>
                       <span>Settings</span>
                     </Link>

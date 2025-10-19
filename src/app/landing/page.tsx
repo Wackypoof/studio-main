@@ -142,6 +142,17 @@ export default function LandingPage() {
                   <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Link>
               </Button>
+              <Button 
+                variant="ghost" 
+                size="lg" 
+                className="px-8 py-6 text-base font-medium group text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-300"
+                asChild
+              >
+                <Link href="/login" className="flex items-center">
+                  Login
+                  <User className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
             </motion.div>
             
             {/* Trust Indicators */}
