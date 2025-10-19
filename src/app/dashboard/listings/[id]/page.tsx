@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, use } from 'react';
+import { useState, useCallback } from 'react';
 import { notFound } from 'next/navigation';
 import { exampleListings } from '@/lib/example-listings';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
@@ -407,8 +407,5 @@ interface PageParams {
 }
 
 export default function ListingDetailsPage({ params }: { params: PageParams }) {
-  // Use the use hook to properly handle the params promise
-  const resolvedParams = use<PageParams>(params as any);
-  
-  return <ListingDetailsContent id={resolvedParams.id} />;
+  return <ListingDetailsContent id={params.id} />;
 }

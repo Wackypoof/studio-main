@@ -30,7 +30,7 @@ export function RecentListings({
         <h2 className="text-lg font-semibold">Recent Listings</h2>
         {showViewAll && listings.length > 0 && (
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/listings">
+            <Link href="/dashboard/browse-listings">
               View all
               <ArrowUpRight className="ml-1 h-4 w-4" />
             </Link>

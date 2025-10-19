@@ -6,7 +6,12 @@ export default {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+    // Include any other directories that use Tailwind classes
+    './node_modules/@nextui-org/**/*.{js,ts,jsx,tsx}',
   ],
+  // Enable JIT mode for better performance
+  mode: 'jit',
   theme: {
     extend: {
       fontFamily: {
@@ -96,4 +101,11 @@ export default {
     },
   },
   plugins: [require('tailwindcss-animate')],
+  // Performance optimizations
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
+  experimental: {
+    optimizeUniversalDefaults: true,
+  },
 } satisfies Config;

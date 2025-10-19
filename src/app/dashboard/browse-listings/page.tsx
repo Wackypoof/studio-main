@@ -1,13 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { exampleListings } from '@/lib/example-listings';
 import { ListingCard } from '@/components/listing-card';
-import { DashboardCollections } from '@/components/dashboard-collections';
-import { AdvancedFilters } from '@/components/advanced-filters';
+import { LazyAdvancedFilters, LazyDashboardCollections } from '@/lib/lazy-components';
 import { PageHeader } from '@/components/page-header';
 import type { Listing } from '@/lib/types';
 
@@ -88,25 +87,33 @@ export default function BrowseListingsPage() {
             <span className="text-sm text-muted-foreground whitespace-nowrap">
               {filteredListings.length} {filteredListings.length === 1 ? 'result' : 'results'}
             </span>
-            <AdvancedFilters
-              priceRange={priceRange}
-              onPriceRangeChange={setPriceRange}
-              revenueRange={revenueRange}
-              onRevenueRangeChange={setRevenueRange}
-              profitMarginRange={profitMarginRange}
-              onProfitMarginChange={setProfitMarginRange}
-              selectedLocation={selectedLocation}
-              onLocationChange={setSelectedLocation}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-            />
+            <Suspense fallback={<div className="h-10 w-24 bg-gray-200 animate-pulse rounded" />}>
+              <LazyAdvancedFilters
+                priceRange={priceRange}
+                onPriceRangeChange={setPriceRange}
+                revenueRange={revenueRange}
+                onRevenueRangeChange={setRevenueRange}
+                profitMarginRange={profitMarginRange}
+                onProfitMarginChange={setProfitMarginRange}
+                selectedLocation={selectedLocation}
+                onLocationChange={setSelectedLocation}
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
+              />
+            </Suspense>
           </div>
         </div>
         
-        <DashboardCollections
-          selectedIndustry={selectedVertical}
-          onSelect={handleIndustrySelect}
-        />
+        <Suspense fallback={<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>}>
+          <LazyDashboardCollections
+            selectedIndustry={selectedVertical}
+            onSelect={handleIndustrySelect}
+          />
+        </Suspense>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {filteredListings.length > 0 ? (

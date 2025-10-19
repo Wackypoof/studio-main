@@ -42,7 +42,7 @@ function createMemoryLimiter(max: number, windowMs: number): Limiter {
 }
 
 // Rate limit configuration
-const RATE_LIMIT_CONFIG: Record<RateLimitType, Limiter> = ((): Record<RateLimitType, Limiter> => {
+const RATE_LIMIT_CONFIG = ((): Record<string, Limiter> => {
   if (hasUpstash) {
     const redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL!,

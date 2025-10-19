@@ -94,9 +94,9 @@ export function FeaturedListings() {
 
         <div className="mt-12 text-center">
           <Button variant="outline" size="lg" asChild>
-            <Link href="/listings">
-              View All Listings <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
+              <Link href="/dashboard/browse-listings">
+                View All Listings <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
           </Button>
         </div>
       </div>

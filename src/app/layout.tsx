@@ -8,6 +8,7 @@ import { ClientProviders } from '@/providers/client-providers';
 import { UpdateNotification } from '@/components/ui/UpdateNotification';
 import { usePathname } from 'next/navigation';
 import { Footer } from '@/components/layout/footer';
+import { PerformanceMonitor } from '@/components/performance-monitor';
 import { Toaster } from 'sonner';
 
 // Optimize font loading with next/font
@@ -101,40 +102,13 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <ClientProviders>
+          <PerformanceMonitor />
           <main className="flex-grow">{children}</main>
           <ConditionalFooter />
           <Toaster position="top-center" richColors />
           <UpdateNotification />
         </ClientProviders>
         <RouteChangeHandler />
-        {/* Performance monitoring script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/service-worker.js').then(
-                    (registration) => {
-                      console.log('ServiceWorker registration successful');
-                    },
-                    (err) => {
-                      console.log('ServiceWorker registration failed: ', err);
-                    }
-                  );
-                });
-              }
-              
-              // Log page performance metrics
-              if (window.performance) {
-                const navigationEntries = performance.getEntriesByType('navigation');
-                if (navigationEntries.length > 0) {
-                  const navEntry = navigationEntries[0] as PerformanceNavigationTiming;
-                  console.log('Page load time:', navEntry.loadEventEnd - navEntry.startTime, 'ms');
-                }
-              }
-            `,
-          }}
-        />
       </body>
     </html>
   );

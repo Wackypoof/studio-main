@@ -94,21 +94,25 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
+    // Enable modern image formats for better performance
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  productionBrowserSourceMaps: false,
+  // Enhanced experimental features for better performance
   experimental: {
     optimizeCss: true,
-    optimizePackageImports: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+    optimizePackageImports: [
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-select',
+      'lucide-react',
+      'framer-motion'
+    ],
   },
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: securityHeaders,
-      },
-    ];
-  },
-  webpack: (config, { isServer }) => {
+  // Enhanced webpack configuration for better performance
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     if (!isServer) {
       config.resolve = config.resolve || {};
       config.resolve.fallback = {
@@ -119,7 +123,52 @@ const nextConfig: NextConfig = {
       };
     }
 
+    // Optimize bundle splitting
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            // Vendor chunk for common dependencies
+            vendor: {
+              name: 'vendors',
+              chunks: 'all',
+              test: /node_modules/,
+              priority: 20,
+            },
+            // Common chunk for shared code
+            common: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 10,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+          },
+        },
+      };
+    }
+
+    // Optimize moment.js if present
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      })
+    );
+
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
   },
 };
 

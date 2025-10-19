@@ -21,15 +21,6 @@ export const SignUp = dynamic(
   { ssr: false }
 );
 
-// Listings components
-export const Listings = dynamic(
-  () => import('@/app/listings/page').then((mod) => mod.default),
-  { 
-    loading: () => <Skeleton className="h-64 w-full" />,
-    ssr: true 
-  }
-);
-
 export const ListingDetail = dynamic(
   () => import('@/app/listings/[id]/page').then((mod) => mod.default),
   { 

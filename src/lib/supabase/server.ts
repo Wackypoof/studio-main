@@ -13,19 +13,19 @@ export async function createClient() {
   return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       async get(name: string) {
-        const cookie = await cookieStore.get(name);
+        const cookie = cookieStore.get(name);
         return cookie?.value;
       },
       async set(name: string, value: string, options: any) {
         try {
-          await cookieStore.set({ name, value, ...options });
+          cookieStore.set({ name, value, ...options });
         } catch (error) {
           console.error('Error setting cookie:', error);
         }
       },
       async remove(name: string, options: any) {
         try {
-          await cookieStore.set({ name, value: '', ...options });
+          cookieStore.set({ name, value: '', ...options });
         } catch (error) {
           console.error('Error removing cookie:', error);
         }
@@ -33,6 +33,3 @@ export async function createClient() {
     },
   });
 }
-
-// Create a single supabase client for interacting with your database
-export const supabaseServer = createClient();
