@@ -8,7 +8,6 @@ import { useAuth } from '@/context/AuthProvider';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [localLoading, setLocalLoading] = useState(false);
   const { signIn, clearError, isLoading } = useAuth();
   const router = useRouter();
@@ -18,20 +17,13 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
     
     if (!email || !password) {
-      setError('Please enter both email and password');
       return;
     }
 
     try {
-      const { error: signInError } = await signIn({ email, password });
-      
-      if (signInError) {
-        // Error is already set in the AuthContext
-        return;
-      }
+      await signIn({ email, password });
       
       // Clear any previous errors
       clearError();
@@ -40,11 +32,8 @@ export default function LoginPage() {
       router.push('/dashboard');
       
     } catch (error: any) {
+      // Error is already handled by AuthProvider via toast notification
       console.error('Login error:', error);
-      const errorMessage = error?.message || 'Failed to sign in. Please check your credentials.';
-      setError(errorMessage);
-      // Log the error to console
-      console.error('Error:', errorMessage);
     }
   };
 
@@ -57,15 +46,6 @@ export default function LoginPage() {
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -105,7 +85,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoadingState}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isLoadingState ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLoadingState ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isLoadingState ? 'Signing in...' : 'Sign in'}
             </button>

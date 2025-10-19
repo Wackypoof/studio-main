@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
 type ServiceWorkerStatus = 'installing' | 'installed' | 'updated' | 'error' | null;

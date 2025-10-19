@@ -3,52 +3,89 @@ import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Initialize the Redis client using environment variables
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+type LimitResult = {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+};
+
+type Limiter = {
+  limit: (id: string) => Promise<LimitResult>;
+};
+
+// Prefer Upstash if credentials are provided; otherwise fall back to in-memory limiter for local dev
+const hasUpstash = Boolean(
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+);
+
+function createMemoryLimiter(max: number, windowMs: number): Limiter {
+  const store = new Map<string, { count: number; resetAt: number }>();
+  return {
+    async limit(id: string): Promise<LimitResult> {
+      const now = Date.now();
+      const entry = store.get(id);
+
+      if (!entry || entry.resetAt <= now) {
+        store.set(id, { count: 1, resetAt: now + windowMs });
+        return { success: true, limit: max, remaining: max - 1, reset: now + windowMs };
+      }
+
+      if (entry.count < max) {
+        entry.count += 1;
+        return { success: true, limit: max, remaining: max - entry.count, reset: entry.resetAt };
+      }
+
+      return { success: false, limit: max, remaining: 0, reset: entry.resetAt };
+    },
+  };
+}
 
 // Rate limit configuration
-const RATE_LIMIT_CONFIG = {
-  // Rate limit for login attempts (5 attempts per 5 minutes per IP)
-  login: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, '5 m'),
-    analytics: true,
-    prefix: 'ratelimit:auth:login',
-  }),
-  // Rate limit for signup attempts (3 per hour per IP)
-  signup: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(3, '1 h'),
-    analytics: true,
-    prefix: 'ratelimit:auth:signup',
-  }),
-  // General API rate limit (100 requests per minute per IP)
-  api: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, '1 m'),
-    analytics: true,
-    prefix: 'ratelimit:api',
-  }),
-} as const;
+const RATE_LIMIT_CONFIG: Record<RateLimitType, Limiter> = ((): Record<RateLimitType, Limiter> => {
+  if (hasUpstash) {
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    });
+    return {
+      login: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(5, '5 m'),
+        analytics: true,
+        prefix: 'ratelimit:auth:login',
+      }),
+      signup: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(3, '1 h'),
+        analytics: true,
+        prefix: 'ratelimit:auth:signup',
+      }),
+      api: new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(100, '1 m'),
+        analytics: true,
+        prefix: 'ratelimit:api',
+      }),
+    } as const;
+  }
+
+  // In-memory fallbacks for local development
+  return {
+    login: createMemoryLimiter(5, 5 * 60 * 1000),
+    signup: createMemoryLimiter(3, 60 * 60 * 1000),
+    api: createMemoryLimiter(100, 60 * 1000),
+  } as const;
+})();
 
 export type RateLimitType = keyof typeof RATE_LIMIT_CONFIG;
 
 export async function checkRateLimit(
   type: RateLimitType,
   identifier: string
-): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
-  const rateLimit = RATE_LIMIT_CONFIG[type];
-  const result = await rateLimit.limit(identifier);
-  
-  return {
-    success: result.success,
-    limit: result.limit,
-    remaining: result.remaining,
-    reset: result.reset,
-  };
+): Promise<LimitResult> {
+  const limiter = RATE_LIMIT_CONFIG[type];
+  return limiter.limit(identifier);
 }
 
 export async function rateLimitMiddleware(
