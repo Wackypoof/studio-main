@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { ShieldCheck, MapPin } from 'lucide-react';
+import { ShieldCheck, MapPin, Clock } from 'lucide-react';
 import type { Listing } from '@/lib/types';
 
 interface ListingCardProps {
@@ -25,16 +25,22 @@ export function ListingCard({ listing }: ListingCardProps) {
         <CardHeader className="p-4 relative flex flex-row justify-between items-start">
           <div>
             <Badge variant="secondary">{listing.vertical}</Badge>
+          </div>
+          <div className="flex items-center gap-2">
             {listing.verified && (
-                <div className="flex items-center text-xs text-green-600 mt-2">
-                    <ShieldCheck className="h-4 w-4 mr-1" />
-                    Verified
-                </div>
+              <Badge variant="outline" className="gap-1 text-xs border-green-500 text-green-700">
+                <ShieldCheck className="h-3 w-3" />
+                Verified
+              </Badge>
+            )}
+            <Badge variant="outline" className="gap-1 text-xs">
+              <Clock className="h-3 w-3" />
+              {`Responds in ~${Math.max(1, Math.min(72, Math.round(listing.avg_response_time_hours ?? 24)))}h`}
+            </Badge>
+            {listing.status === 'under_offer' && (
+              <Badge variant="destructive">UNDER OFFER</Badge>
             )}
           </div>
-          {listing.status === 'under_offer' && (
-            <Badge variant="destructive">UNDER OFFER</Badge>
-          )}
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-1">
           <h3 className="font-semibold text-lg leading-tight text-foreground/90 group-hover:text-primary transition-colors duration-200">

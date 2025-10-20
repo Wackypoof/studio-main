@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { exampleListings } from '@/lib/example-listings';
@@ -9,6 +9,10 @@ import { ListingCard } from '@/components/listing-card';
 import { LazyAdvancedFilters, LazyDashboardCollections } from '@/lib/lazy-components';
 import { PageHeader } from '@/components/page-header';
 import type { Listing } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 export default function BrowseListingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +22,82 @@ export default function BrowseListingsPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [revenueRange, setRevenueRange] = useState<[number, number]>([0, 1000000]);
   const [profitMarginRange, setProfitMarginRange] = useState<[number, number]>([0, 100]);
+  const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc' | 'revenue_desc' | 'margin_desc'>('newest');
+
+  // Saved searches in localStorage
+  type SavedSearch = {
+    id: string;
+    name: string;
+    createdAt: string;
+    filters: {
+      searchTerm: string;
+      priceRange: [number, number];
+      revenueRange: [number, number];
+      profitMarginRange: [number, number];
+      selectedVertical: string;
+      selectedLocation: string;
+      selectedStatus: string;
+      sortBy: typeof sortBy;
+    };
+    emailAlerts: boolean;
+    pushAlerts: boolean;
+  };
+  const STORAGE_KEY = 'savedSearches_v1';
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [newSearchName, setNewSearchName] = useState('');
+  const [newEmailAlerts, setNewEmailAlerts] = useState(true);
+  const [newPushAlerts, setNewPushAlerts] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSavedSearches(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const persistSavedSearches = (next: SavedSearch[]) => {
+    setSavedSearches(next);
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+    }
+  };
+
+  const handleSaveCurrentSearch = () => {
+    const id = `ss_${Date.now()}`;
+    const payload: SavedSearch = {
+      id,
+      name: newSearchName.trim() || `Search ${savedSearches.length + 1}`,
+      createdAt: new Date().toISOString(),
+      emailAlerts: newEmailAlerts,
+      pushAlerts: newPushAlerts,
+      filters: {
+        searchTerm,
+        priceRange,
+        revenueRange,
+        profitMarginRange,
+        selectedVertical,
+        selectedLocation,
+        selectedStatus,
+        sortBy,
+      },
+    };
+    persistSavedSearches([payload, ...savedSearches]);
+    setSaveDialogOpen(false);
+    setNewSearchName('');
+  };
+
+  const applySavedSearch = (ss: SavedSearch) => {
+    setSearchTerm(ss.filters.searchTerm);
+    setPriceRange(ss.filters.priceRange);
+    setRevenueRange(ss.filters.revenueRange);
+    setProfitMarginRange(ss.filters.profitMarginRange);
+    setSelectedVertical(ss.filters.selectedVertical);
+    setSelectedLocation(ss.filters.selectedLocation);
+    setSelectedStatus(ss.filters.selectedStatus);
+    setSortBy(ss.filters.sortBy);
+  };
 
   const handleIndustrySelect = (industryLabel: string) => {
     setSelectedVertical(industryLabel);
@@ -63,6 +143,23 @@ export default function BrowseListingsPage() {
     );
   });
 
+  const sortedListings = useMemo(() => {
+    const arr = [...filteredListings];
+    switch (sortBy) {
+      case 'price_asc':
+        return arr.sort((a, b) => a.asking_price - b.asking_price);
+      case 'price_desc':
+        return arr.sort((a, b) => b.asking_price - a.asking_price);
+      case 'revenue_desc':
+        return arr.sort((a, b) => b.revenue_t12m - a.revenue_t12m);
+      case 'margin_desc':
+        return arr.sort((a, b) => (b.profit_t12m / b.revenue_t12m) - (a.profit_t12m / a.revenue_t12m));
+      case 'newest':
+      default:
+        return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+  }, [filteredListings, sortBy]);
+
 
   return (
     <div className="space-y-6">
@@ -83,9 +180,9 @@ export default function BrowseListingsPage() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4 flex-wrap md:flex-nowrap">
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {filteredListings.length} {filteredListings.length === 1 ? 'result' : 'results'}
+              {sortedListings.length} {sortedListings.length === 1 ? 'result' : 'results'}
             </span>
             <Suspense fallback={<div className="h-10 w-24 bg-gray-200 animate-pulse rounded" />}>
               <LazyAdvancedFilters
@@ -99,8 +196,63 @@ export default function BrowseListingsPage() {
                 onLocationChange={setSelectedLocation}
                 selectedStatus={selectedStatus}
                 onStatusChange={setSelectedStatus}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
               />
             </Suspense>
+            <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">Save search</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Save this search</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="search-name">Name</Label>
+                    <Input id="search-name" value={newSearchName} onChange={(e) => setNewSearchName(e.target.value)} placeholder="e.g. SaaS > $500k revenue" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">Email alerts</Label>
+                      <p className="text-xs text-muted-foreground">Get a daily summary if new matches arrive</p>
+                    </div>
+                    <Switch checked={newEmailAlerts} onCheckedChange={setNewEmailAlerts} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">Push notifications</Label>
+                      <p className="text-xs text-muted-foreground">Requires browser permission</p>
+                    </div>
+                    <Switch checked={newPushAlerts} onCheckedChange={setNewPushAlerts} />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveCurrentSearch}>Save</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            {savedSearches.length > 0 && (
+              <div className="relative">
+                <select
+                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                  onChange={(e) => {
+                    const ss = savedSearches.find(s => s.id === e.target.value);
+                    if (ss) applySavedSearch(ss);
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Saved searches ({savedSearches.length})
+                  </option>
+                  {savedSearches.map(ss => (
+                    <option key={ss.id} value={ss.id}>{ss.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
         
@@ -116,14 +268,29 @@ export default function BrowseListingsPage() {
         </Suspense>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {filteredListings.length > 0 ? (
-            filteredListings.map((listing: Listing) => (
+          {sortedListings.length > 0 ? (
+            sortedListings.map((listing: Listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))
           ) : (
-            <div className="col-span-3 text-center py-16 text-muted-foreground">
-              <p>No listings found for your criteria.</p>
-              <p className="text-sm mt-2">Try adjusting your filters or search term.</p>
+            <div className="col-span-3 text-center py-16">
+              <div className="text-muted-foreground">
+                <p className="font-medium">No listings found for your criteria.</p>
+                <p className="text-sm mt-2">Try adjusting your filters or search term.</p>
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <Button variant="outline" onClick={() => {
+                  setSearchTerm('');
+                  setPriceRange([0, 2000000]);
+                  setRevenueRange([0, 1000000]);
+                  setProfitMarginRange([0, 100]);
+                  setSelectedVertical('all');
+                  setSelectedLocation('all');
+                  setSelectedStatus('all');
+                  setSortBy('newest');
+                }}>Reset filters</Button>
+                <Button variant="secondary" onClick={() => setSaveDialogOpen(true)}>Save this search</Button>
+              </div>
             </div>
           )}
         </div>

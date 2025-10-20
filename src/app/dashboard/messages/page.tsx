@@ -211,6 +211,11 @@ export default function MessagesPage() {
                       ? 'No conversations match your search.' 
                       : 'You have no messages yet.'}
                   </p>
+                  <div className="mt-4">
+                    <Button asChild size="sm">
+                      <Link href="/dashboard/leads">Start new conversation</Link>
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="divide-y">

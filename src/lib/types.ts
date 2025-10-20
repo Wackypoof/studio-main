@@ -23,6 +23,8 @@ export type Listing = {
   market: string;
   lease_summary: string;
   verified: boolean;
+  // Average seller response time in hours (optional)
+  avg_response_time_hours?: number;
   sellingReason?: 'starting_new_venture' | 'lack_of_time' | 'financing' | 'bootstrapped';
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string

@@ -53,7 +53,7 @@ export default function DashboardPage() {
   };
   
   const handleCreateNewListing = () => {
-    router.push('/my-dashboard/listings/new');
+    router.push('/dashboard/listings/new');
   };
 
   const renderLoadingState = () => (

@@ -285,8 +285,20 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
             <tbody className="divide-y">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                    No leads found matching your criteria.
+                  <td colSpan={7} className="p-8 text-center">
+                    <div className="text-muted-foreground">
+                      <p className="font-medium">No leads found matching your criteria</p>
+                      <p className="text-sm mt-1">Try adjusting filters or add a new lead.</p>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 mt-4">
+                      <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setActiveTab('all'); }}>
+                        Reset filters
+                      </Button>
+                      <Button size="sm">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Lead
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ) : (
