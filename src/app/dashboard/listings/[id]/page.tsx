@@ -116,7 +116,7 @@ function ListingDetailsContent({ id }: { id: string }) {
   ];
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8">
       <div className="w-full p-6 space-y-6 min-w-0 max-w-full">
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">

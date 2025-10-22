@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,8 +9,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/AuthProvider';
 
 export default function SettingsPage() {
+  const { user, updateProfile } = useAuth();
+
+  const fullName = useMemo(() => user?.user_metadata?.full_name || '', [user]);
+  const email = useMemo(() => user?.email || '', [user]);
+  const avatarUrl = useMemo(() => (user?.user_metadata?.avatar_url as string) || '', [user]);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [avatar, setAvatar] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const [first = '', ...rest] = fullName.split(' ').filter(Boolean);
+    setFirstName(first);
+    setLastName(rest.join(' '));
+  }, [fullName]);
+
+  useEffect(() => {
+    setAvatar(avatarUrl || '');
+  }, [avatarUrl]);
+
+  const initials = useMemo(() => {
+    const n = `${firstName} ${lastName}`.trim();
+    if (!n) return (email?.[0] || '?').toUpperCase();
+    return n
+      .split(' ')
+      .filter(Boolean)
+      .map((s) => s[0]?.toUpperCase())
+      .slice(0, 2)
+      .join('');
+  }, [firstName, lastName, email]);
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      const nextFullName = `${firstName} ${lastName}`.trim();
+      await updateProfile({ full_name: nextFullName, avatar_url: avatar });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -34,44 +78,49 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src="/placeholder-avatar.jpg" />
-                  <AvatarFallback>JP</AvatarFallback>
+                  <AvatarImage src={avatar || undefined} />
+                  <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
-                <div className="space-y-1">
-                  <Button variant="outline" size="sm">Change</Button>
-                  <p className="text-xs text-muted-foreground">JPG, GIF or PNG. Max 2MB</p>
+                <div className="space-y-2 w-full max-w-sm">
+                  <Label htmlFor="avatar">Avatar URL</Label>
+                  <Input
+                    id="avatar"
+                    placeholder="https://..."
+                    value={avatar}
+                    onChange={(e) => setAvatar(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="first-name">First name</Label>
-                  <Input id="first-name" defaultValue="John" />
+                  <Input
+                    id="first-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="last-name">Last name</Label>
-                  <Input id="last-name" defaultValue="Doe" />
+                  <Input
+                    id="last-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue="john.doe@example.com" disabled />
+                <Input id="email" type="email" value={email} disabled />
                 <p className="text-xs text-muted-foreground">Contact support to change your email address.</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <p className="text-xs text-muted-foreground mb-2">A brief description of yourself.</p>
-                <textarea
-                  id="bio"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  defaultValue="I'm a business owner looking for new opportunities."
-                />
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save changes</Button>
+              <Button onClick={onSave} disabled={saving}>
+                {saving ? 'Saving…' : 'Save changes'}
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
