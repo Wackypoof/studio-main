@@ -4,11 +4,9 @@ import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { ClientProviders } from '@/providers/client-providers';
 import { UpdateNotification } from '@/components/ui/UpdateNotification';
-import { PerformanceMonitor } from '@/components/performance-monitor';
 import { ConditionalFooter } from '@/components/layout/ConditionalFooter';
 import { AppToaster } from '@/components/ui/AppToaster';
-import { WebVitals } from '@/components/analytics/WebVitals';
-import { RouteChangeHandler } from '@/components/analytics/RouteChangeHandler';
+import { DynamicAnalytics } from '@/components/analytics/DynamicAnalytics';
 
 // Optimize font loading with next/font
 const inter = Inter({
@@ -60,26 +58,30 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const enableMonitoring = process.env.NEXT_PUBLIC_ENABLE_MONITORING === 'true';
+  const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* Preconnect to analytics domains if used */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="preconnect" href="https://www.google-analytics.com" />
+        {/* Preconnect to analytics domains only when analytics enabled */}
+        {enableAnalytics && (
+          <>
+            <link rel="preconnect" href="https://www.googletagmanager.com" />
+            <link rel="preconnect" href="https://www.google-analytics.com" />
+          </>
+        )}
 
-        {/* Axiom Web Vitals */}
-        <AxiomWebVitals />
+        {/* Axiom Web Vitals (gated) */}
+        {enableMonitoring && <AxiomWebVitals />}
       </head>
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <ClientProviders>
-          <PerformanceMonitor />
+          {enableMonitoring && <DynamicAnalytics enableMonitoring={enableMonitoring} />}
           <main className="flex-grow">{children}</main>
           <ConditionalFooter />
           <AppToaster />
           <UpdateNotification />
         </ClientProviders>
-        <WebVitals />
-        <RouteChangeHandler />
       </body>
     </html>
   );

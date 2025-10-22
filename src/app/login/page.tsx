@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthProvider';
 import { useFormValidation } from '@/hooks/useFormValidation';
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [localLoading, setLocalLoading] = useState(false);
   const { signIn, signInWithProvider, clearError, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Use the loading state from AuthContext if available, otherwise use local state
   const isLoadingState = isLoading !== undefined ? isLoading : localLoading;
@@ -43,8 +44,9 @@ export default function LoginPage() {
       // Clear any previous errors
       clearError();
 
-      // Redirect to dashboard on successful login
-      router.push(ROUTES.DASHBOARD);
+      // Redirect to intended page or dashboard on successful login
+      const redirect = searchParams?.get('redirect');
+      router.push(redirect || ROUTES.DASHBOARD);
 
     } catch (error) {
       // Error is already handled by AuthProvider via toast notification

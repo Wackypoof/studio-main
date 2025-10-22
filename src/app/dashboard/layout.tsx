@@ -3,6 +3,7 @@
 
 import React, { useMemo } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { DashboardProviders } from '@/providers/client-providers';
 import {
   Sidebar,
   SidebarProvider,
@@ -96,13 +97,14 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
+      <DashboardProviders>
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden w-full">
           <Sidebar className="border-r">
             <SidebarHeader className="p-4">
               <div className="flex items-center gap-2">
                 <Button asChild variant="ghost" className="h-10 w-10 p-2">
-                  <Link href="/dashboard">
+                  <Link href="/dashboard" prefetch={false}>
                     <Briefcase className="h-6 w-6 text-primary" />
                   </Link>
                 </Button>
@@ -118,7 +120,7 @@ export default function DashboardLayout({
                       isActive={pathname === item.href}
                       tooltip={item.label}
                     >
-                      <Link href={item.href}>
+                      <Link href={item.href} prefetch={false}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
                       </Link>
@@ -133,7 +135,7 @@ export default function DashboardLayout({
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton tooltip="Settings" asChild>
-                    <Link href="/dashboard/settings">
+                    <Link href="/dashboard/settings" prefetch={false}>
                       <Settings/>
                       <span>Settings</span>
                     </Link>
@@ -183,6 +185,7 @@ export default function DashboardLayout({
           </SidebarInset>
         </div>
       </SidebarProvider>
+      </DashboardProviders>
     </ProtectedRoute>
   );
 }

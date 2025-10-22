@@ -104,8 +104,11 @@ export default function DashboardPage() {
     
     const fetchData = async () => {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Simulate API call (minimal in production)
+        const simulatedDelay = process.env.NODE_ENV === 'development' ? 300 : 0;
+        if (simulatedDelay > 0) {
+          await new Promise(resolve => setTimeout(resolve, simulatedDelay));
+        }
         
         // Only update state if the role hasn't changed during the fetch
         if ((isBuyer && role === 'buyer') || (!isBuyer && role === 'seller')) {

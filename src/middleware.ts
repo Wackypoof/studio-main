@@ -21,11 +21,15 @@ export async function middleware(request: NextRequest) {
   
   // Refresh session if expired - required for Server Components
   const { data: { session } } = await supabase.auth.getSession();
-  
-  // Example protected route logic (uncomment and modify as needed)
-  // if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
-  //   return NextResponse.redirect(new URL('/login', request.url));
-  // }
+
+  // Fast server-side redirect for protected dashboard routes
+  if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    // Preserve intent so we can navigate after login
+    url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
   
   return nextResponse;
 }

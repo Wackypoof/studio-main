@@ -10,6 +10,9 @@ interface PerformanceMetrics {
 }
 
 export function PerformanceMonitor() {
+  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+    return null;
+  }
   useReportWebVitals((metric) => {
     // Log metrics to console in development
     if (process.env.NODE_ENV === 'development') {

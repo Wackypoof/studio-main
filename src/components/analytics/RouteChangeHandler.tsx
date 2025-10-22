@@ -5,6 +5,9 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { log } from 'next-axiom';
 
 export function RouteChangeHandler() {
+  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+    return null;
+  }
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

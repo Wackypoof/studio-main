@@ -7,7 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useMemo } from 'react';
 
 // Enhanced QueryClient configuration for better performance
-function createQueryClient() {
+export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
@@ -55,6 +55,20 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <RoleProvider>{children}</RoleProvider>
       </AuthProvider>
+      {process.env.NODE_ENV === 'development' && (
+        <ReactQueryDevtools initialIsOpen={false} position="bottom" />
+      )}
+    </QueryClientProvider>
+  );
+}
+
+// Lightweight providers for dashboard scope only (no AuthProvider)
+export function DashboardProviders({ children }: { children: React.ReactNode }) {
+  const queryClient = useMemo(() => createQueryClient(), []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RoleProvider>{children}</RoleProvider>
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} position="bottom" />
       )}

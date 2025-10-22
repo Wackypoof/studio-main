@@ -12,10 +12,24 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
-import { RevenueChart } from '@/components/charts/RevenueChart';
-import { ProfitRevenueChart } from '@/components/charts/ProfitRevenueChart';
-import { TrafficChart } from '@/components/charts/TrafficChart';
-import { TrafficSourcesChart } from "@/components/charts/TrafficSourcesChart";
+import dynamic from 'next/dynamic';
+// Lazy-load heavy chart components client-side only
+const RevenueChart = dynamic(
+  () => import('@/components/charts/RevenueChart').then((m) => m.RevenueChart),
+  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse bg-muted/50 rounded" /> }
+);
+const ProfitRevenueChart = dynamic(
+  () => import('@/components/charts/ProfitRevenueChart').then((m) => m.ProfitRevenueChart),
+  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse bg-muted/50 rounded" /> }
+);
+const TrafficChart = dynamic(
+  () => import('@/components/charts/TrafficChart').then((m) => m.TrafficChart),
+  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse bg-muted/50 rounded" /> }
+);
+const TrafficSourcesChart = dynamic(
+  () => import('@/components/charts/TrafficSourcesChart').then((m) => m.TrafficSourcesChart),
+  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse bg-muted/50 rounded" /> }
+);
 import { PriceDisplay } from "./price-display";
 
 // Calculate metrics
@@ -121,7 +135,7 @@ function ListingDetailsContent({ id }: { id: string }) {
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
-              <Link href="/dashboard/browse-listings">
+              <Link href="/dashboard/browse-listings" prefetch={false}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
