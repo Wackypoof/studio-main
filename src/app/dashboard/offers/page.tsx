@@ -99,7 +99,7 @@ export default function OffersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader 
         title="My Offers"
         description="Track and manage your business purchase offers"

@@ -40,7 +40,8 @@ registerRoute(
     // Return true to signal that we want to use the handler.
     return true;
   },
-  createHandlerBoundToURL(process.env.PUBLIC_URL + '/index.html')
+  // In Next.js, fall back to the app shell at '/'
+  createHandlerBoundToURL('/')
 );
 
 // Cache page navigations (HTML) with a Stale While Revalidate strategy
@@ -109,12 +110,17 @@ registerRoute(
 // This allows the web app to be installed as a PWA
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  console.log('Service Worker: Installed');
+  // Avoid noisy logs in production
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Service Worker: Installed');
+  }
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(clientsClaim());
-  console.log('Service Worker: Activated');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Service Worker: Activated');
+  }
 });
 
 // Handle fetch events for offline support

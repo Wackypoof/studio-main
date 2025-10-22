@@ -22,8 +22,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { mockData } from '@/lib/data';
 import { PageHeader } from '@/components/page-header';
-
-// Mock data for messages
+import Link from 'next/link';
 const generateConversations = () => {
   const statuses = ['read', 'unread'];
   const listings = ['Dental Clinic', 'Tuition Center', 'Fashion Boutique', 'Cafe', 'Manufacturing'];
@@ -154,7 +153,7 @@ export default function MessagesPage() {
   }, [conversations]);
   
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
+    <div className="w-full flex flex-col h-[calc(100vh-200px)]">
       <PageHeader
         title="Messages"
         description="Communicate with potential buyers and manage your conversations"

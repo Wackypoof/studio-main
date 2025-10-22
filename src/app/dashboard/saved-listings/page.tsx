@@ -15,7 +15,7 @@ export default function SavedListingsPage() {
   const savedListings = mockData.listings.slice(0, 3); // Just for demo
   
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader 
         title="Saved Listings"
         description="Your saved business listings"

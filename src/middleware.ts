@@ -33,13 +33,13 @@ export async function middleware(request: NextRequest) {
 // Configure which routes this middleware runs on
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // Limit middleware to routes that need it to reduce overhead
+    '/api/:path*',
+    '/dashboard/:path*',
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/auth/:path*',
   ],
 };

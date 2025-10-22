@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { notFound } from 'next/navigation';
 import { exampleListings } from '@/lib/example-listings';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
@@ -116,8 +116,8 @@ function ListingDetailsContent({ id }: { id: string }) {
   ];
   
   return (
-    <div className="w-full px-4 py-8">
-      <div className="w-full p-6 space-y-6 min-w-0 max-w-full">
+    <div className="w-full py-6 md:py-8">
+      <div className="w-full space-y-6 min-w-0">
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
@@ -164,17 +164,17 @@ function ListingDetailsContent({ id }: { id: string }) {
               className="w-full min-h-[600px] flex flex-col"
               defaultValue="overview"
             >
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="financials">Financials</TabsTrigger>
-                <TabsTrigger value="traffic">Traffic</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsList className="!grid !gap-0 w-full grid-cols-4 mb-6">
+                <TabsTrigger value="overview" className="w-full !mx-0 !my-0">Overview</TabsTrigger>
+                <TabsTrigger value="financials" className="w-full !mx-0 !my-0">Financials</TabsTrigger>
+                <TabsTrigger value="traffic" className="w-full !mx-0 !my-0">Traffic</TabsTrigger>
+                <TabsTrigger value="documents" className="w-full !mx-0 !my-0">Documents</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="flex-1 w-full">
                 <div className="space-y-6 w-full">
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="md:col-span-2 space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div className="lg:col-span-8 space-y-6 min-w-0">
                       <div className="space-y-2">
                         <h3 className="font-semibold">Business Summary</h3>
                         <p className="text-muted-foreground">
@@ -187,7 +187,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                       <AcquisitionDetails listing={listing} />
                     </div>
                     
-                    <div className="space-y-6">
+                    <div className="space-y-6 lg:col-span-4 min-w-0">
                       <Card>
                         <CardHeader className="pb-3">
                           <h3 className="font-semibold">Financial Highlights</h3>
@@ -406,6 +406,7 @@ interface PageParams {
   id: string;
 }
 
-export default function ListingDetailsPage({ params }: { params: PageParams }) {
-  return <ListingDetailsContent id={params.id} />;
+export default function ListingDetailsPage({ params }: { params: Promise<PageParams> }) {
+  const { id } = (React as any).use(params);
+  return <ListingDetailsContent id={id} />;
 }

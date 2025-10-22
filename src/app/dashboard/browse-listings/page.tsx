@@ -162,7 +162,7 @@ export default function BrowseListingsPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader 
         title="Browse Listings"
         description="Discover and evaluate potential business opportunities."

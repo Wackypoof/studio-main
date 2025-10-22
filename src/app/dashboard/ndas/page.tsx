@@ -127,7 +127,7 @@ export default function NDAsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       <PageHeader 
         title="NDA Management"
         description="View and manage your non-disclosure agreements"

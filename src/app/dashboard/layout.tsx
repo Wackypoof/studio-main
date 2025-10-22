@@ -97,7 +97,7 @@ export default function DashboardLayout({
   return (
     <ProtectedRoute>
       <SidebarProvider>
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden w-full">
           <Sidebar className="border-r">
             <SidebarHeader className="p-4">
               <div className="flex items-center gap-2">
@@ -169,12 +169,12 @@ export default function DashboardLayout({
               </div>
             </SidebarFooter>
           </Sidebar>
-          <SidebarInset className="flex-1 overflow-hidden">
-            <div className="flex h-full flex-1 flex-col">
+          <SidebarInset className="flex-1 overflow-hidden m-0">
+            <div className="flex h-full flex-1 flex-col w-full">
               <header className="flex items-center justify-between bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
                 <SidebarTrigger className="md:hidden" />
               </header>
-              <main className="flex-1 overflow-y-auto">
+              <main className="flex-1 overflow-y-auto w-full">
                 <div className="flex w-full flex-col gap-8 px-4 py-6 md:px-6 lg:px-10 lg:py-10">
                   {children}
                 </div>

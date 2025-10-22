@@ -58,7 +58,7 @@ export function AnalyticsClient({ initialData, searchParams }: AnalyticsClientPr
   };
   
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       <PageHeader
         title="Analytics Dashboard"
         description="Track your listing performance and gain insights"

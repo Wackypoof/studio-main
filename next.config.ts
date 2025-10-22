@@ -96,7 +96,8 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
     // Enable modern image formats for better performance
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    // Ensure images are served inline (not as downloads)
+    contentDispositionType: 'inline',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Enhanced experimental features for better performance
