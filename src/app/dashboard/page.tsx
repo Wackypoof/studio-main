@@ -53,7 +53,7 @@ export default function DashboardPage() {
   };
   
   const handleCreateNewListing = () => {
-    router.push('/dashboard/listings/new');
+    router.push('/my-dashboard/listings/create');
   };
 
   const renderLoadingState = () => (
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                   Browse Listings
                 </Button>
               ) : (
-                <Button variant="outline" className="justify-start">
+                <Button variant="outline" className="justify-start" onClick={handleCreateNewListing}>
                   <Briefcase className="mr-2 h-4 w-4" />
                   Create New Listing
                 </Button>

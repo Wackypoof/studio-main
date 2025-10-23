@@ -94,7 +94,7 @@ export default function ListingsPage() {
         title="My Listings"
         description="Manage your business listings and track their performance"
       >
-        <Button onClick={() => router.push('/dashboard/listings/new')}>
+        <Button onClick={() => router.push('/my-dashboard/listings/create')}>
           <Plus className="mr-2 h-4 w-4" />
           Create New Listing
         </Button>
@@ -161,7 +161,7 @@ export default function ListingsPage() {
                   ? 'No listings match your search criteria.' 
                   : 'You haven\'t created any listings yet.'}
               </p>
-              <Button onClick={() => router.push('/dashboard/listings/new')}>
+              <Button onClick={() => router.push('/my-dashboard/listings/create')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create New Listing
               </Button>
@@ -242,7 +242,7 @@ function OnboardingChecklist() {
     { key: 'profile', label: 'Complete profile', done: true, href: '/dashboard/settings' },
     { key: 'verify', label: 'Verify identity', done: false, href: '/dashboard/verification' },
     { key: 'payout', label: 'Set up payouts', done: false, href: '/dashboard/settings' },
-    { key: 'listing', label: 'Create first listing', done: hasDraft, href: '/dashboard/listings/new' },
+    { key: 'listing', label: 'Create first listing', done: hasDraft, href: '/my-dashboard/listings/create' },
   ];
 
   const completed = steps.filter(s => s.done).length;
@@ -282,7 +282,7 @@ function OnboardingChecklist() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild size="sm">
-            <Link href="/dashboard/listings/new">{hasDraft ? 'Resume draft' : 'Create listing'}</Link>
+            <Link href="/my-dashboard/listings/create">{hasDraft ? 'Resume draft' : 'Create listing'}</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
             <Link href="/dashboard/verification">Verify identity</Link>
