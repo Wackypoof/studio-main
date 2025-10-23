@@ -23,7 +23,10 @@ interface AuthContextType {
   error: AuthError | null;
   clearError: () => void;
   signIn: (credentials: SignInCredentials) => Promise<AuthResponse<{ user: AuthUser; session: Session | null }>>;
-  signInWithProvider: (provider: 'google' | 'github' | 'discord') => Promise<AuthResponse<{ user: AuthUser | null; session: Session | null }>>;
+  signInWithProvider: (
+    provider: 'google' | 'github' | 'discord',
+    nextPath?: string
+  ) => Promise<AuthResponse<{ user: AuthUser | null; session: Session | null }>>;
   signUp: (email: string, password: string, options?: SignUpOptions) => Promise<AuthResponse<{ user: AuthUser | null; session: Session | null }>>;
   signOut: () => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<AuthResponse<UserProfile>>;
@@ -54,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     supabase
   );
 
-  const signInWithProvider = useCallback(async (provider: 'google' | 'github' | 'discord') => {
+  const signInWithProvider = useCallback(async (provider: 'google' | 'github' | 'discord', nextPath?: string) => {
     setIsAuthenticating(true);
     setError(null);
 
@@ -62,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       const { data, error: providerError } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ''}`,
         },
       });
 

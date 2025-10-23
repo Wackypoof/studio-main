@@ -70,7 +70,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
+      <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`} suppressHydrationWarning>
         <ClientProviders>
           {enableMonitoring && <DynamicAnalytics enableMonitoring={enableMonitoring} />}
           <main className="flex-grow">{children}</main>

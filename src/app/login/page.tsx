@@ -56,7 +56,8 @@ export default function LoginPage() {
 
   const handleProviderSignIn = async () => {
     try {
-      await signInWithProvider('google');
+      const redirect = searchParams?.get('redirect') || '/dashboard';
+      await signInWithProvider('google', redirect);
     } catch (error) {
       console.error('Google sign in error:', error);
     }
