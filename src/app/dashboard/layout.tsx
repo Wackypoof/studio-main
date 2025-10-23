@@ -3,7 +3,6 @@
 
 import React, { useMemo } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { DashboardProviders } from '@/providers/client-providers';
 import {
   Sidebar,
   SidebarProvider,
@@ -97,80 +96,78 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <DashboardProviders>
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden w-full">
-          <Sidebar className="border-r">
-            <SidebarHeader className="p-4">
-              <div className="flex items-center gap-2">
-                <Button asChild variant="ghost" className="h-10 w-10 p-2">
-                  <Link href="/dashboard" prefetch={false}>
-                    <Briefcase className="h-6 w-6 text-primary" />
-                  </Link>
-                </Button>
-                <h2 className="text-lg font-semibold tracking-tight">SuccessionAsia</h2>
-              </div>
-            </SidebarHeader>
-            <SidebarContent className="p-2">
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.href}
-                      tooltip={item.label}
-                    >
-                      <Link href={item.href} prefetch={false}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.label}</span>
+            <Sidebar className="border-r">
+              <SidebarHeader className="p-4">
+                <div className="flex items-center gap-2">
+                  <Button asChild variant="ghost" className="h-10 w-10 p-2">
+                    <Link href="/dashboard" prefetch={false}>
+                      <Briefcase className="h-6 w-6 text-primary" />
+                    </Link>
+                  </Button>
+                  <h2 className="text-lg font-semibold tracking-tight">SuccessionAsia</h2>
+                </div>
+              </SidebarHeader>
+              <SidebarContent className="p-2">
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.href}
+                        tooltip={item.label}
+                      >
+                        <Link href={item.href} prefetch={false}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarContent>
+              <SidebarFooter className="p-2">
+                <RoleToggle />
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton tooltip="Settings" asChild>
+                      <Link href="/dashboard/settings" prefetch={false}>
+                        <Settings/>
+                        <span>Settings</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-
-              <RoleToggle />
-            </SidebarContent>
-            <SidebarFooter className="p-2">
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Settings" asChild>
-                    <Link href="/dashboard/settings" prefetch={false}>
-                      <Settings/>
-                      <span>Settings</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    tooltip="Log out" 
-                    onClick={async () => {
-                      await signOut();
-                      router.push('/login');
-                    }}
-                    className="w-full text-left"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Log out</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-              <div className="flex items-center gap-3 p-2 rounded-md bg-muted/60">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-                  <AvatarFallback>{userInitials}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{displayName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {isBuyer ? 'Buyer' : 'Seller'}{user?.email ? ` • ${user.email}` : ''}
-                  </span>
+                </SidebarMenu>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      tooltip="Log out" 
+                      onClick={async () => {
+                        await signOut();
+                        router.push('/login');
+                      }}
+                      className="w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Log out</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+                <div className="flex items-center gap-3 p-2 rounded-md bg-muted/60">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={avatarUrl || undefined} alt={displayName} />
+                    <AvatarFallback>{userInitials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{displayName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {isBuyer ? 'Buyer' : 'Seller'}{user?.email ? ` • ${user.email}` : ''}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </SidebarFooter>
-          </Sidebar>
+              </SidebarFooter>
+            </Sidebar>
           <SidebarInset className="flex-1 overflow-hidden m-0">
             <div className="flex h-full flex-1 flex-col w-full">
               <header className="flex items-center justify-between bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
@@ -185,7 +182,6 @@ export default function DashboardLayout({
           </SidebarInset>
         </div>
       </SidebarProvider>
-      </DashboardProviders>
     </ProtectedRoute>
   );
 }

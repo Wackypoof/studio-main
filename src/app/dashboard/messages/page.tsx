@@ -122,25 +122,22 @@ export default function MessagesPage() {
 
   return (
     <div className="w-full flex flex-col h-[calc(100vh-200px)]">
-      <PageHeader title="Messages" description="Communicate with potential buyers and manage your conversations">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search messages..."
-              className="pl-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-      </PageHeader>
+      <PageHeader title="Messages" description="Communicate with potential buyers and manage your conversations" />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className={`${selectedConversation ? 'hidden md:block md:w-1/3 lg:w-1/4' : 'w-full'} border-r`}>
+        <div className={`${selectedConversation ? 'hidden md:block md:w-1/3 lg:w-1/4' : 'w-full'}`}>
           <div className="h-full flex flex-col">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-3">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search messages..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="all">All</TabsTrigger>
@@ -217,7 +214,7 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Area */}
-        {selectedConversation ? (
+        {selectedConversation && (
           <div className={`${selectedConversation ? 'w-full md:w-2/3 lg:w-3/4' : 'hidden'} flex flex-col h-full`}>
             {/* Chat Header */}
             <div className="border-b p-4 flex items-center justify-between">
@@ -324,17 +321,8 @@ export default function MessagesPage() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="hidden md:flex flex-1 items-center justify-center bg-muted/20">
-            <div className="text-center max-w-md p-6 space-y-2">
-              <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="text-lg font-medium">Select a conversation</h3>
-              <p className="text-sm text-muted-foreground">Choose a conversation from the list or start a new one to begin messaging.</p>
-            </div>
-          </div>
         )}
       </div>
     </div>
   );
 }
-

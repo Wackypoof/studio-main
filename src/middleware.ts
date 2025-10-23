@@ -4,23 +4,18 @@ import type { NextRequest } from 'next/server';
 import { withRateLimit } from './middleware/rate-limit-middleware';
 
 export async function middleware(request: NextRequest) {
-  // Apply rate limiting
-  const response = await withRateLimit(request, () => {
-    const response = NextResponse.next();
-    return Promise.resolve(response);
-  });
-  
-  // If rate limiting returned a response (e.g., rate limit exceeded), return it
-  if (response !== undefined) {
-    return response;
-  }
-  
-  // Handle session management for all routes
-  const nextResponse = NextResponse.next();
-  const supabase = createMiddlewareClient({ req: request, res: nextResponse });
-  
-  // Refresh session if expired - required for Server Components
-  const { data: { session } } = await supabase.auth.getSession();
+  // Reuse a single response instance so Supabase can set cookies on it
+  const response = NextResponse.next();
+
+  // Initialize Supabase and refresh session cookies on every matched request
+  const supabase = createMiddlewareClient({ req: request, res: response });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Apply rate limiting; only return if blocked (429)
+  const rateLimitBlock = await withRateLimit(request, response);
+  if (rateLimitBlock) return rateLimitBlock;
 
   // Fast server-side redirect for protected dashboard routes
   if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
@@ -30,8 +25,8 @@ export async function middleware(request: NextRequest) {
     url.searchParams.set('redirect', request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
-  
-  return nextResponse;
+
+  return response;
 }
 
 // Configure which routes this middleware runs on

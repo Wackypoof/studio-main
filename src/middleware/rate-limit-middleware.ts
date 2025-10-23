@@ -12,7 +12,7 @@ const RATE_LIMIT_ROUTES: Record<string, RateLimitType> = {
 
 export async function withRateLimit(
   request: NextRequest,
-  next: () => Promise<NextResponse>
+  response: NextResponse
 ): Promise<NextResponse | undefined> {
   const pathname = request.nextUrl.pathname;
   
@@ -20,7 +20,6 @@ export async function withRateLimit(
   const rateLimitType = RATE_LIMIT_ROUTES[pathname];
   
   if (rateLimitType) {
-    const response = NextResponse.next();
     const { success, limit, remaining, reset } = await checkRateLimit(rateLimitType, getClientIp(request));
     
     // Set rate limit headers
@@ -43,13 +42,12 @@ export async function withRateLimit(
         }
       );
     }
-    
-    return response;
+    // Allow request to continue using the provided response
+    return undefined;
   }
   
   // Apply general API rate limiting to all API routes
   if (pathname.startsWith('/api/')) {
-    const response = NextResponse.next();
     const { success, limit, remaining, reset } = await checkRateLimit('api', getClientIp(request));
     
     // Set rate limit headers
@@ -72,8 +70,8 @@ export async function withRateLimit(
         }
       );
     }
-    
-    return response;
+    // Allow request to continue
+    return undefined;
   }
   
   // If no rate limiting was applied, return undefined to continue with the next middleware

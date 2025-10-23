@@ -114,6 +114,43 @@ const nextConfig: NextConfig = {
   },
   // Enhanced webpack configuration for better performance
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Reduce or eliminate pack cache big-string serialization overhead
+    if (dev) {
+      // In dev, keep everything in memory to avoid serializing large strings
+      config.cache = { type: 'memory' } as any;
+      // Hide verbose infra warnings in dev
+      config.infrastructureLogging = { level: 'error' };
+    } else {
+      // In prod, keep filesystem cache but tune for less overhead
+      config.cache = {
+        type: 'filesystem',
+        compression: 'gzip',
+        maxMemoryGenerations: 2,
+      } as any;
+      // Keep useful warnings but avoid noise
+      config.infrastructureLogging = { level: 'warn' };
+    }
+
+    // Avoid generating huge inline string sources for common text assets
+    config.module = config.module || {};
+    config.module.rules = config.module.rules || [];
+    config.module.rules.push({
+      test: /\.(md|sql|txt)$/i,
+      // Emit files instead of bundling as big strings
+      type: 'asset/resource',
+    });
+
+    // Help incremental builds and reduce cache churn
+    config.experiments = {
+      ...(config.experiments || {}),
+      cacheUnaffected: true,
+    };
+
+    // Optionally filter only this specific noisy warning
+    config.stats = {
+      ...(config.stats || {}),
+      warningsFilter: [/(Serializing big strings)/],
+    } as any;
     if (!isServer) {
       config.resolve = config.resolve || {};
       config.resolve.fallback = {

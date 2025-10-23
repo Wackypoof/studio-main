@@ -1,6 +1,9 @@
+"use client";
+
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import type { Database } from '@/types/database.types';
 import { toast } from 'sonner';
 
 export interface Conversation {
@@ -54,7 +57,7 @@ export interface SendMessageData {
   file_size?: number;
 }
 
-const supabase = createClient();
+const supabase = createClientComponentClient<Database>();
 
 // Hook for fetching conversations
 export function useConversations() {
