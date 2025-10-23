@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Set up real-time subscription for new messages in this conversation
-    const { data: subscription, error: subscriptionError } = await supabase
+    const channel = supabase
       .channel(`conversation:${conversationId}`)
       .on(
         'postgres_changes',
@@ -51,17 +51,12 @@ export async function GET(request: NextRequest) {
       )
       .subscribe();
 
-    if (subscriptionError) {
-      console.error('Error setting up subscription:', subscriptionError);
-      return new Response('Failed to set up real-time subscription', { status: 500 });
-    }
-
     // For Server-Sent Events (SSE) approach, you could return a stream here
     // But typically, real-time messaging is handled client-side with Supabase's real-time features
 
     return new Response(JSON.stringify({
       success: true,
-      subscription_id: subscription,
+      subscription_id: channel,
       message: 'Real-time subscription established'
     }), {
       headers: {

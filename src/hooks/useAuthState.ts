@@ -1,14 +1,12 @@
-'use client';
-
 import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Session } from '@supabase/supabase-js';
 import type { Database } from '@/types/database.types';
 import type { AuthUser, AuthError } from '@/types/auth';
 import { createAuthError } from '@/lib/auth-utils';
+import { createClient } from '@/lib/supabase/client';
 
 export function useAuthState() {
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createClient();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [error, setError] = useState<AuthError | null>(null);
@@ -130,7 +128,7 @@ export function useAuthState() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (_event: string, newSession: Session | null) => {
       await syncSession(newSession);
     });
 

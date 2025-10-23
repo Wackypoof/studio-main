@@ -188,7 +188,7 @@ export default function MessagesPage() {
                           <div className="flex items-start space-x-3">
                             <Avatar className="h-10 w-10">
                               <AvatarImage src={avatar} alt={name} />
-                              <AvatarFallback>{name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+                              <AvatarFallback>{name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
@@ -225,7 +225,7 @@ export default function MessagesPage() {
 
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={otherParticipant.avatar} alt={otherParticipant.name} />
-                  <AvatarFallback>{otherParticipant.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+                  <AvatarFallback>{otherParticipant.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                 </Avatar>
 
                 <div>

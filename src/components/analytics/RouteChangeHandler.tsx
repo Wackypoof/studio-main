@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { log } from 'next-axiom';
+import { track } from '@vercel/analytics';
 
 export function RouteChangeHandler() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
     return null;
   }
   const pathname = usePathname();
@@ -14,7 +14,7 @@ export function RouteChangeHandler() {
   useEffect(() => {
     const handleRouteChange = () => {
       // Track route changes
-      log.info('route-change', {
+      track('route-change', {
         url: `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`,
         pathname,
         search: searchParams?.toString(),
@@ -27,8 +27,8 @@ export function RouteChangeHandler() {
         if (navigationEntries.length > 0) {
           const navEntry = navigationEntries[0] as PerformanceNavigationTiming;
           const { domComplete, loadEventEnd, domInteractive } = navEntry;
-          
-          log.info('page-load', {
+
+          track('page-load', {
             pathname,
             domComplete,
             loadEventEnd,

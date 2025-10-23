@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AxiomWebVitals } from 'next-axiom';
 import './globals.css';
 import { ClientProviders } from '@/providers/client-providers';
 import { UpdateNotification } from '@/components/ui/UpdateNotification';
@@ -58,8 +57,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const enableMonitoring = process.env.NEXT_PUBLIC_ENABLE_MONITORING === 'true';
-  const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
+  const enableMonitoring = process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() === 'true';
+  const enableAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS?.toString() === 'true';
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
@@ -70,9 +69,6 @@ export default function RootLayout({
             <link rel="preconnect" href="https://www.google-analytics.com" />
           </>
         )}
-
-        {/* Axiom Web Vitals (gated) */}
-        {enableMonitoring && <AxiomWebVitals />}
       </head>
       <body className={`${inter.variable} font-sans antialiased flex flex-col min-h-screen`}>
         <ClientProviders>

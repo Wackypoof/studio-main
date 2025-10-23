@@ -1,15 +1,15 @@
 'use client';
 
 import { useReportWebVitals as useReportNextWebVitals } from 'next/web-vitals';
-import { log } from 'next-axiom';
+import { track } from '@vercel/analytics';
 
 export function WebVitals() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
     return null;
   }
   useReportNextWebVitals((metric) => {
-    // Send Web Vitals to Axiom
-    log.info('web-vitals', {
+    // Send Web Vitals to Vercel Analytics
+    track('web-vitals', {
       ...metric,
       href: typeof window !== 'undefined' ? window.location.href : '',
       path: typeof window !== 'undefined' ? window.location.pathname : '',
@@ -23,10 +23,10 @@ export function WebVitals() {
 // Custom hook to report Web Vitals
 export function useReportWebVitals() {
   return (metric: any) => {
-    if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+    if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
       return;
     }
-    log.info('web-vitals', {
+    track('web-vitals', {
       ...metric,
       href: typeof window !== 'undefined' ? window.location.href : '',
       path: typeof window !== 'undefined' ? window.location.pathname : '',

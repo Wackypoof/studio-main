@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useReportWebVitals } from 'next/web-vitals';
+import { track } from '@vercel/analytics';
 
 interface PerformanceMetrics {
   name: string;
@@ -10,7 +11,7 @@ interface PerformanceMetrics {
 }
 
 export function PerformanceMonitor() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING !== 'true') {
+  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
     return null;
   }
   useReportWebVitals((metric) => {
@@ -21,12 +22,11 @@ export function PerformanceMonitor() {
 
     // Send to analytics service in production
     if (process.env.NODE_ENV === 'production') {
-      // Example: Send to your analytics service
-      // analytics.track('web-vitals', {
-      //   name: metric.name,
-      //   value: metric.value,
-      //   rating: metric.rating,
-      // });
+      track('web-vitals', {
+        name: metric.name,
+        value: metric.value,
+        rating: metric.rating,
+      });
     }
   });
 

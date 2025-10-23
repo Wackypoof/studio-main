@@ -36,6 +36,8 @@ export function AdvancedFilters({
   onLocationChange,
   selectedStatus,
   onStatusChange,
+  sortBy,
+  onSortChange,
 }: AdvancedFiltersProps) {
   const [open, setOpen] = useState(false);
   const DEFAULTS = {
@@ -69,20 +71,22 @@ export function AdvancedFilters({
             </Button>
           </DialogTrigger>
           {/* Optional inline sort control */}
-          <div className="hidden md:block">
-            <Select value={(typeof sortBy !== 'undefined' ? sortBy : DEFAULTS.sortBy)} onValueChange={(v) => onSortChange?.(v as any)}>
-              <SelectTrigger className="h-9 w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                <SelectItem value="revenue_desc">Revenue: High to Low</SelectItem>
-                <SelectItem value="margin_desc">Profit Margin: High to Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {onSortChange && (
+            <div className="hidden md:block">
+              <Select value={(typeof sortBy !== 'undefined' ? sortBy : DEFAULTS.sortBy)} onValueChange={(v) => onSortChange(v as 'newest' | 'price_asc' | 'price_desc' | 'revenue_desc' | 'margin_desc')}>
+                <SelectTrigger className="h-9 w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                  <SelectItem value="revenue_desc">Revenue: High to Low</SelectItem>
+                  <SelectItem value="margin_desc">Profit Margin: High to Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         {/* Active filter chips */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -141,21 +145,23 @@ export function AdvancedFilters({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Advanced Filters</DialogTitle>
-            <div className="flex items-center gap-2">
-              <SortDesc className="h-4 w-4 text-muted-foreground" />
-              <Select value={(typeof sortBy !== 'undefined' ? sortBy : DEFAULTS.sortBy)} onValueChange={(v) => onSortChange?.(v as any)}>
-                <SelectTrigger className="h-9 w-[200px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="revenue_desc">Revenue: High to Low</SelectItem>
-                  <SelectItem value="margin_desc">Profit Margin: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {onSortChange && (
+              <div className="flex items-center gap-2">
+                <SortDesc className="h-4 w-4 text-muted-foreground" />
+                <Select value={(typeof sortBy !== 'undefined' ? sortBy : DEFAULTS.sortBy)} onValueChange={(v) => onSortChange(v as 'newest' | 'price_asc' | 'price_desc' | 'revenue_desc' | 'margin_desc')}>
+                  <SelectTrigger className="h-9 w-[200px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                    <SelectItem value="revenue_desc">Revenue: High to Low</SelectItem>
+                    <SelectItem value="margin_desc">Profit Margin: High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </DialogHeader>
         
