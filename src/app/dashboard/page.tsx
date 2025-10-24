@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { useRole } from '@/contexts/role-context';
-import { SellerDashboard } from '@/components/seller/SellerDashboard';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { handleError } from '@/lib/error-handler';
@@ -378,3 +378,8 @@ export default function DashboardPage() {
     </ErrorBoundary>
   );
 }
+// Code-split SellerDashboard so buyer bundles don't include it
+const SellerDashboard = dynamic(
+  () => import('@/components/seller/SellerDashboard').then((m) => m.SellerDashboard),
+  { ssr: false, loading: () => <div className="h-[300px] w-full animate-pulse bg-muted/50 rounded" /> }
+);

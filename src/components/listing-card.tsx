@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -9,17 +10,14 @@ interface ListingCardProps {
   from?: string;
 }
 
-export function ListingCard({ listing, from }: ListingCardProps) {
-  const formatCurrency = (amount: number) => {
-    if (amount >= 1_000_000) {
-      return `$${(amount / 1_000_000).toFixed(1)}m`;
-    }
-    if (amount >= 1_000) {
-      return `$${(amount / 1_000).toFixed(0)}k`;
-    }
-    return `$${amount}`;
-  };
+const compactCurrency = (amount: number) => {
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}m`;
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}k`;
+  return `$${amount}`;
+};
 
+export const ListingCard = memo(function ListingCard({ listing, from }: ListingCardProps) {
+  
   const href = from ? `/dashboard/listings/${listing.id}?from=${from}` : `/dashboard/listings/${listing.id}`;
 
   return (
@@ -59,19 +57,19 @@ export function ListingCard({ listing, from }: ListingCardProps) {
           <div className="grid grid-cols-3 gap-4 w-full text-center">
               <div>
                   <p className="text-xs text-muted-foreground">Revenue</p>
-                  <p className="font-semibold text-sm">{formatCurrency(listing.revenue_t12m)}</p>
+                  <p className="font-semibold text-sm">{compactCurrency(listing.revenue_t12m)}</p>
               </div>
               <div>
                   <p className="text-xs text-muted-foreground">Profit</p>
-                  <p className="font-semibold text-sm">{formatCurrency(listing.profit_t12m)}</p>
+                  <p className="font-semibold text-sm">{compactCurrency(listing.profit_t12m)}</p>
               </div>
               <div>
                   <p className="text-xs text-muted-foreground">Asking Price</p>
-                  <p className="font-semibold text-sm text-primary">{formatCurrency(listing.asking_price)}</p>
+                  <p className="font-semibold text-sm text-primary">{compactCurrency(listing.asking_price)}</p>
               </div>
           </div>
         </CardFooter>
       </Card>
     </Link>
   );
-}
+});

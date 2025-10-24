@@ -1,13 +1,11 @@
-'use client';
+"use client";
 
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, Search, BarChart3, Users, User, Zap, ChevronRight, Shield, BadgeCheck, TrendingUp, Briefcase } from 'lucide-react';
 import { SiteContainer } from '@/components/site-container';
-import { FeaturedListings } from '@/components/featured-listings';
-import { AnimatedStats } from '@/components/animated-stats';
-import { ProcessFlow } from '@/components/process-flow';
-import { motion, Variants } from 'framer-motion';
-import { ReactNode } from 'react';
+import { LazyFeaturedListings, LazyProcessFlow, LazyAnimatedStats } from '@/lib/lazy-components';
+import { LazyMotion, domAnimation, m, type Variants } from 'framer-motion';
+import { ReactNode, Suspense } from 'react';
 import Link from 'next/link';
 
 interface FeatureCardProps {
@@ -33,7 +31,7 @@ const staggerContainer: Variants = {
 };
 
 const FeatureCard = ({ icon, title, description, delay = 0 }: FeatureCardProps) => (
-  <motion.div
+  <m.div
     initial="hidden"
     whileInView="visible"
     viewport={{ once: true, margin: "-100px" }}
@@ -46,11 +44,12 @@ const FeatureCard = ({ icon, title, description, delay = 0 }: FeatureCardProps) 
     </div>
     <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
     <p className="text-gray-600">{description}</p>
-  </motion.div>
+  </m.div>
 );
 
 export default function LandingPage() {
   return (
+    <LazyMotion features={domAnimation}>
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative py-20 md:py-28 overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50">
@@ -62,14 +61,14 @@ export default function LandingPage() {
         </div>
         
         <SiteContainer className="relative z-10">
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="max-w-5xl mx-auto text-center"
           >
             {/* Trust Badge */}
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
@@ -84,10 +83,10 @@ export default function LandingPage() {
               </div>
               <span>Trusted by 10,000+ entrepreneurs</span>
               <BadgeCheck className="h-4 w-4 text-blue-500" />
-            </motion.div>
+            </m.div>
             
             {/* Main Headline */}
-            <motion.h1 
+            <m.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
@@ -101,10 +100,10 @@ export default function LandingPage() {
                 </span>{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">Online Businesses</span>
               </span>
-            </motion.h1>
+            </m.h1>
             
             {/* Subheadline */}
-            <motion.p 
+            <m.p 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
@@ -112,10 +111,10 @@ export default function LandingPage() {
             >
               Join thousands of entrepreneurs who've successfully bought and sold businesses on our platform. 
               Get the best deals with our data-driven approach and expert support.
-            </motion.p>
+            </m.p>
             
             {/* CTA Buttons */}
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
@@ -153,10 +152,10 @@ export default function LandingPage() {
                   <User className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-            </motion.div>
+            </m.div>
             
             {/* Trust Indicators */}
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
@@ -168,25 +167,27 @@ export default function LandingPage() {
                   <div key={i} className="text-lg font-medium text-gray-700">{company}</div>
                 ))}
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         </SiteContainer>
       </section>
 
       {/* Process Flow */}
-      <ProcessFlow />
+      <Suspense fallback={<div className="h-64" />}> 
+        <LazyProcessFlow />
+      </Suspense>
 
       {/* Stats Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <SiteContainer>
-          <motion.div 
+          <m.div 
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="max-w-5xl mx-auto"
           >
-            <motion.div 
+            <m.div 
               variants={fadeInUp}
               className="text-center mb-16"
             >
@@ -194,36 +195,38 @@ export default function LandingPage() {
               <p className="text-xl text-blue-100 max-w-2xl mx-auto">
                 Join thousands of successful transactions on our platform
               </p>
-            </motion.div>
+            </m.div>
             
-            <AnimatedStats />
-          </motion.div>
+            <Suspense fallback={<div className="h-40" />}> 
+              <LazyAnimatedStats />
+            </Suspense>
+          </m.div>
         </SiteContainer>
       </section>
 
       {/* Features Section */}
       <section className="py-20 bg-white">
         <SiteContainer>
-          <motion.div 
+          <m.div 
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            <motion.h2 
+            <m.h2 
               variants={fadeInUp}
               className="text-3xl font-bold text-gray-900 mb-4"
             >
               Everything You Need to Succeed
-            </motion.h2>
-            <motion.p 
+            </m.h2>
+            <m.p 
               variants={fadeInUp}
               className="text-xl text-gray-600 max-w-2xl mx-auto"
             >
               Our platform is designed to make buying and selling businesses simple, secure, and successful.
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard
@@ -269,7 +272,9 @@ export default function LandingPage() {
       {/* Featured Listings */}
       <section className="py-20 bg-gray-50">
         <SiteContainer>
-          <FeaturedListings />
+          <Suspense fallback={<div className="h-40" />}> 
+            <LazyFeaturedListings />
+          </Suspense>
         </SiteContainer>
       </section>
 
@@ -277,7 +282,7 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <SiteContainer>
           <div className="max-w-4xl mx-auto text-center">
-            <motion.h2 
+            <m.h2 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -285,8 +290,8 @@ export default function LandingPage() {
               className="text-3xl md:text-4xl font-bold mb-6"
             >
               Ready to Start Your Journey?
-            </motion.h2>
-            <motion.p 
+            </m.h2>
+            <m.p 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -294,8 +299,8 @@ export default function LandingPage() {
               className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto"
             >
               Join thousands of entrepreneurs who have successfully bought or sold businesses with us.
-            </motion.p>
-            <motion.div 
+            </m.p>
+            <m.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -322,10 +327,11 @@ export default function LandingPage() {
                   Contact Sales
                 </Link>
               </Button>
-            </motion.div>
+            </m.div>
           </div>
         </SiteContainer>
       </section>
     </div>
+    </LazyMotion>
   );
 }

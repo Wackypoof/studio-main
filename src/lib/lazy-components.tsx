@@ -25,6 +25,12 @@ export const LazyFeaturedListings = lazy(() =>
   }))
 );
 
+export const LazyAnimatedStats = lazy(() =>
+  import('@/components/animated-stats').then(module => ({
+    default: module.AnimatedStats
+  }))
+);
+
 // Skip NDA form for now - path issue
 // export const LazyNDAForm = lazy(() =>
 //   import('@/components/nda/nda-form').then(module => ({

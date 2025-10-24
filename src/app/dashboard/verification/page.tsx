@@ -1,29 +1,52 @@
 'use client';
 
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRole } from '@/contexts/role-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Upload, Info, FileText, CheckCircle, MessageSquare, Briefcase } from "lucide-react"
+import { Upload, FileText, CheckCircle, MessageSquare, Briefcase } from "lucide-react"
 import { PageHeader } from '@/components/page-header';
+import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/context/AuthProvider';
+import { toast } from 'sonner';
 
-function FileUploadInput({ id, label, description }: { id: string, label: string, description: string }) {
-    return (
-        <div className="grid gap-2">
-            <Label htmlFor={id} className="font-semibold">{label}</Label>
-            <p className="text-sm text-muted-foreground">{description}</p>
-            <div className="flex items-center gap-3">
-                <Input id={id} type="file" className="flex-1" />
-                 <Button variant="outline" className="flex-shrink-0">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload File
-                </Button>
-            </div>
-        </div>
-    )
+function FileUploadInput({
+  id,
+  label,
+  description,
+  onSelect,
+  onUpload,
+  disabled,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  onSelect: (file: File | null) => void;
+  onUpload: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor={id} className="font-semibold">{label}</Label>
+      <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="flex items-center gap-3">
+        <Input
+          id={id}
+          type="file"
+          className="flex-1"
+          onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
+          disabled={disabled}
+        />
+        <Button variant="outline" className="flex-shrink-0" onClick={onUpload} disabled={disabled}>
+          <Upload className="mr-2 h-4 w-4" />
+          Upload File
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 const BenefitItem = ({ icon: Icon, text }: { icon: React.ElementType, text: string }) => (
@@ -40,6 +63,10 @@ export default function VerificationPage() {
     const router = useRouter();
     const { role } = useRole();
     const [userRole, setUserRole] = useState<'buyer' | 'seller'>(role || 'buyer');
+    const { user } = useAuth();
+    const userId = user?.id ?? null;
+    const [busy, setBusy] = useState(false);
+    const [selected, setSelected] = useState<Record<string, File | null>>({});
 
     // Update role when context changes
     useEffect(() => {
@@ -96,6 +123,59 @@ export default function VerificationPage() {
         }
     };
 
+    const docTypeMap: Record<string, 'identity' | 'business_registration' | 'business_address' | 'bank_verification' | 'proof_of_funds' | 'other'> = {
+      'identity-document': 'identity',
+      'owner-identity': 'identity',
+      'business-registration': 'business_registration',
+      'business-address': 'business_address',
+      'bank-verification': 'bank_verification',
+      'funds-document': 'proof_of_funds',
+    };
+
+    const uploadFor = async (sectionId: string) => {
+      if (busy) return;
+      const file = selected[sectionId];
+      if (!file) {
+        toast.error('Please choose a file first');
+        return;
+      }
+      if (!userId) {
+        toast.error('You must be logged in');
+        return;
+      }
+      const docType = docTypeMap[sectionId] ?? 'other';
+      setBusy(true);
+      try {
+        const path = `${userId}/${Date.now()}_${file.name}`;
+        const { error: upErr } = await supabase.storage
+          .from('verification-documents')
+          .upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const res = await fetch('/api/verification/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doc_type: docType,
+            storage_path: path,
+            file_name: file.name,
+            file_size: file.size,
+          }),
+        });
+        if (!res.ok) {
+          const msg = (await res.json().catch(() => ({}))).error || 'Failed to record document';
+          throw new Error(msg);
+        }
+        toast.success('Document uploaded');
+        // Clear file selection for this section
+        setSelected((s) => ({ ...s, [sectionId]: null }));
+      } catch (e: any) {
+        console.error('Verification upload failed:', e);
+        toast.error(e?.message || 'Upload failed');
+      } finally {
+        setBusy(false);
+      }
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader 
@@ -114,9 +194,12 @@ export default function VerificationPage() {
                             </CardHeader>
                             <CardContent>
                                 <FileUploadInput 
-                                    id={section.id}
-                                    label={section.label}
-                                    description={section.fileDescription}
+                                  id={section.id}
+                                  label={section.label}
+                                  description={section.fileDescription}
+                                  onSelect={(file) => setSelected((s) => ({ ...s, [section.id]: file }))}
+                                  onUpload={() => uploadFor(section.id)}
+                                  disabled={busy}
                                 />
                             </CardContent>
                         </Card>
@@ -131,14 +214,25 @@ export default function VerificationPage() {
                         </CardHeader>
                         <CardContent>
                             <FileUploadInput 
-                                id="funds-document"
-                                label="Bank Statement or Letter"
-                                description="A recent bank statement or a letter from a financial institution. Accepted formats: PDF. Max size: 5MB."
+                              id="funds-document"
+                              label="Bank Statement or Letter"
+                              description="A recent bank statement or a letter from a financial institution. Accepted formats: PDF. Max size: 5MB."
+                              onSelect={(file) => setSelected((s) => ({ ...s, ['funds-document']: file }))}
+                              onUpload={() => uploadFor('funds-document')}
+                              disabled={busy}
                             />
                         </CardContent>
                     </Card>
                     <div className="flex justify-end">
-                        <Button size="lg">
+                        <Button size="lg" onClick={() => {
+                          const anySelected = Object.values(selected).some(Boolean);
+                          if (!anySelected) {
+                            toast.message('No files to submit', { description: 'Upload at least one document above.' });
+                            return;
+                          }
+                          toast.success('Your documents have been submitted');
+                          router.refresh();
+                        }} disabled={busy}>
                             <FileText className="mr-2 h-4 w-4" />
                             Submit for Verification
                         </Button>

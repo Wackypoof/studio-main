@@ -90,7 +90,7 @@ function ListingDetailsContent({ id }: { id: string }) {
     notFound();
   }
   
-  const { profitMargin, multiple, revenueData, profitRevenueData } = calculateMetrics(listing);
+  const { profitMargin, multiple, revenueData, profitRevenueData } = React.useMemo(() => calculateMetrics(listing), [listing]);
   const isLoading = false; // No loading state needed in server components
 
   if (isLoading) {

@@ -62,10 +62,12 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Allow strict CI builds by setting STRICT_BUILD=true
+    ignoreBuildErrors: process.env.STRICT_BUILD !== 'true',
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Allow strict CI builds by setting STRICT_BUILD=true
+    ignoreDuringBuilds: process.env.STRICT_BUILD !== 'true',
   },
   images: {
     remotePatterns: [
@@ -197,6 +199,31 @@ const nextConfig: NextConfig = {
         contextRegExp: /moment$/,
       })
     );
+
+    // Inject Workbox service worker in client production builds if available
+    if (!dev && !isServer) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { InjectManifest } = require('workbox-webpack-plugin');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const path = require('path');
+        config.plugins.push(
+          new InjectManifest({
+            swSrc: path.join(__dirname, 'src/lib/service-worker.js'),
+            swDest: 'service-worker.js',
+            exclude: [
+              /_next\/static\/.*\.js$/,
+              /_next\/static\/chunks\/webpack.*\.js$/,
+              /_next\/static\/development\/_buildManifest\.js$/,
+            ],
+            maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+          })
+        );
+      } catch (err) {
+        // If workbox isn't installed, skip SW injection without failing the build
+        console.warn('Workbox not available, skipping service worker injection');
+      }
+    }
 
     return config;
   },

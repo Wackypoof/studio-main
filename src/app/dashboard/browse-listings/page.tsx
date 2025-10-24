@@ -1,7 +1,7 @@
 
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState, Suspense } from 'react';
+import { useEffect, useMemo, useState, Suspense, useDeferredValue, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { exampleListings } from '@/lib/example-listings';
@@ -16,6 +16,7 @@ import { Switch } from '@/components/ui/switch';
 
 export default function BrowseListingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearch = useDeferredValue(searchTerm);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
   const [selectedVertical, setSelectedVertical] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
@@ -48,6 +49,8 @@ export default function BrowseListingsPage() {
   const [newSearchName, setNewSearchName] = useState('');
   const [newEmailAlerts, setNewEmailAlerts] = useState(true);
   const [newPushAlerts, setNewPushAlerts] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(18);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -106,12 +109,13 @@ export default function BrowseListingsPage() {
   // Industry mapping is no longer needed as we're using direct matches
   // with the verticals in the listings data
 
-  const filteredListings = exampleListings.filter((listing: Listing) => {
+  const filteredListings = useMemo(() => exampleListings.filter((listing: Listing) => {
     // Search term filter
-    const matchesSearch = searchTerm.trim() === '' ? true : 
-      listing.headline.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      listing.teaser.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.vertical.toLowerCase().includes(searchTerm.toLowerCase());
+    const q = deferredSearch.trim().toLowerCase();
+    const matchesSearch = q === '' ? true : 
+      listing.headline.toLowerCase().includes(q) || 
+      listing.teaser.toLowerCase().includes(q) ||
+      listing.vertical.toLowerCase().includes(q);
     
     // Price range filter
     const matchesPrice = listing.asking_price >= priceRange[0] && listing.asking_price <= priceRange[1];
@@ -141,7 +145,12 @@ export default function BrowseListingsPage() {
       matchesLocation &&
       matchesStatus
     );
-  });
+  }), [deferredSearch, priceRange, revenueRange, profitMarginRange, selectedVertical, selectedLocation, selectedStatus]);
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(18);
+  }, [deferredSearch, priceRange, revenueRange, profitMarginRange, selectedVertical, selectedLocation, selectedStatus, sortBy]);
 
   const sortedListings = useMemo(() => {
     const arr = [...filteredListings];
@@ -160,7 +169,22 @@ export default function BrowseListingsPage() {
     }
   }, [filteredListings, sortBy]);
 
+  // Infinite scroll: grow the visible window as the sentinel enters viewport
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const CHUNK = 18;
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + CHUNK, sortedListings.length));
+      }
+    }, { rootMargin: '200px 0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [sortedListings.length]);
 
+  
   return (
     <div className="w-full space-y-6">
       <PageHeader 
@@ -269,9 +293,16 @@ export default function BrowseListingsPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {sortedListings.length > 0 ? (
-            sortedListings.map((listing: Listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))
+            <>
+              {sortedListings.slice(0, visibleCount).map((listing: Listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+              {visibleCount < sortedListings.length && (
+                <div ref={sentinelRef} className="col-span-3 flex justify-center py-6">
+                  <div className="h-8 w-8 rounded-full border-2 border-muted-foreground/30 border-t-primary animate-spin" aria-label="Loading more" />
+                </div>
+              )}
+            </>
           ) : (
             <div className="col-span-3 text-center py-16">
               <div className="text-muted-foreground">

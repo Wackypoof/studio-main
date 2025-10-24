@@ -135,8 +135,19 @@ self.addEventListener('fetch', (event) => {
           }
           return await fetch(event.request);
         } catch (error) {
-          const cache = await caches.open('pages');
-          return cache.match('/offline.html');
+          try {
+            const cache = await caches.open('pages');
+            // Try a dedicated offline route or homepage as a fallback
+            const offline = (await cache.match('/offline')) || (await cache.match('/'));
+            if (offline) return offline;
+          } catch (_) {
+            // ignore cache errors
+          }
+          // Final minimal fallback to avoid SW errors
+          return new Response('You are offline.', {
+            status: 200,
+            headers: { 'Content-Type': 'text/plain' },
+          });
         }
       })()
     );

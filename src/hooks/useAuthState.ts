@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import type { Database } from '@/types/database.types';
 import type { AuthUser, AuthError } from '@/types/auth';
 import { createAuthError } from '@/lib/auth-utils';
 import { createClient } from '@/lib/supabase/client';

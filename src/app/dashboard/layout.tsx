@@ -89,9 +89,21 @@ export default function DashboardLayout({
     { href: '/dashboard/verification', label: 'Verification', icon: ShieldCheck },
   ];
 
+  // Admin menu (client-side hint only). Server routes still enforce ADMIN_EMAILS.
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const isAdminUser = !!user?.email && adminEmails.includes(user.email.toLowerCase());
+
+  const adminMenuItems = isAdminUser
+    ? ([{ href: '/dashboard/admin', label: 'Admin', icon: LayoutGrid }] as const)
+    : ([] as const);
+
   const menuItems = [
     ...(isBuyer ? buyerMenuItems : sellerMenuItems),
-    ...commonMenuItems
+    ...commonMenuItems,
+    ...adminMenuItems,
   ];
 
   return (

@@ -1,16 +1,24 @@
-'use client';
+"use client";
 
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 import type { AuthUser, UserProfile, AuthResponse, AuthError, SignUpOptions, SignInCredentials } from '@/types/auth';
 import { createAuthError } from '@/lib/auth-utils';
 
-export function useAuthOperations(user: AuthUser | null, session: any, setUser: (user: AuthUser | null) => void, setSession: (session: any) => void, supabase: any) {
+export function useAuthOperations(
+  user: AuthUser | null,
+  session: Session | null,
+  setUser: (user: AuthUser | null) => void,
+  setSession: (session: Session | null) => void,
+  supabase: SupabaseClient<Database>
+) {
   const router = useRouter();
 
   const syncSession = useCallback(
-    async (incomingSession: any): Promise<AuthUser | null> => {
+    async (incomingSession: Session | null): Promise<AuthUser | null> => {
       setSession(incomingSession);
 
       if (!incomingSession?.user) {
@@ -65,7 +73,7 @@ export function useAuthOperations(user: AuthUser | null, session: any, setUser: 
             session: data.session,
           },
           error: null,
-        } as AuthResponse<{ user: AuthUser; session: any | null }>;
+        } as AuthResponse<{ user: AuthUser; session: Session | null }>;
       } catch (err) {
         console.error('Sign in error:', err);
         const authError = createAuthError(
@@ -118,7 +126,7 @@ export function useAuthOperations(user: AuthUser | null, session: any, setUser: 
             session: data.session,
           },
           error: null,
-        } as AuthResponse<{ user: AuthUser | null; session: any | null }>;
+        } as AuthResponse<{ user: AuthUser | null; session: Session | null }>;
       } catch (err) {
         console.error('Sign up error:', err);
         const authError = createAuthError(
