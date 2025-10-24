@@ -6,9 +6,10 @@ import type { Listing } from '@/lib/types';
 
 interface ListingCardProps {
   listing: Listing;
+  from?: string;
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, from }: ListingCardProps) {
   const formatCurrency = (amount: number) => {
     if (amount >= 1_000_000) {
       return `$${(amount / 1_000_000).toFixed(1)}m`;
@@ -19,8 +20,10 @@ export function ListingCard({ listing }: ListingCardProps) {
     return `$${amount}`;
   };
 
+  const href = from ? `/dashboard/listings/${listing.id}?from=${from}` : `/dashboard/listings/${listing.id}`;
+
   return (
-    <Link href={`/dashboard/listings/${listing.id}`} className="block h-full group">
+    <Link href={href} className="block h-full group">
       <Card className="flex flex-col overflow-hidden h-full border border-border/50 transition-all hover:border-primary/20 hover:shadow-md">
         <CardHeader className="p-4 relative flex flex-row justify-between items-start">
           <div>

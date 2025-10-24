@@ -49,11 +49,11 @@ export default function DashboardPage() {
   }, [isBuyer]);
   
   const handleViewListing = (id: string) => {
-    router.push(`/listings/${id}`);
+    router.push(`/dashboard/listings/${id}?from=dashboard`);
   };
   
   const handleCreateNewListing = () => {
-    router.push('/my-dashboard/listings/create');
+    router.push('/dashboard/listings/new');
   };
 
   const renderLoadingState = () => (

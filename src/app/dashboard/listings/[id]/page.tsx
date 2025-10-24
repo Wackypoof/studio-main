@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useSearchParams } from 'next/navigation';
 import { exampleListings } from '@/lib/example-listings';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
@@ -77,6 +77,8 @@ function calculateMetrics(listing: any) {
 
 // We need to use a client component wrapper to handle the params properly
 function ListingDetailsContent({ id }: { id: string }) {
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from');
   const [activeTab, setActiveTab] = useState('overview');
   const listingId = id.startsWith('listing-') 
     ? id 
@@ -135,7 +137,7 @@ function ListingDetailsContent({ id }: { id: string }) {
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
-              <Link href="/dashboard/browse-listings" prefetch={false}>
+              <Link href={from === 'dashboard' ? '/dashboard' : from === 'my-listings' ? '/dashboard/listings' : '/dashboard/browse-listings'} prefetch={false}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>

@@ -112,7 +112,7 @@ export function ListingTable({
               View Details
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <Link href={`/listings/${listing.id}`}>
+              <Link href={`/dashboard/listings/${listing.id}?from=dashboard`}>
                 <ArrowUpRight className="h-4 w-4" />
                 <span className="sr-only">Open in new tab</span>
               </Link>
