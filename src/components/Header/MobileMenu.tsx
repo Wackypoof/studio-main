@@ -16,7 +16,12 @@ export const MobileMenu = React.memo(() => {
     <div className="md:hidden ml-auto">
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-10 w-10" aria-label="Open menu">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full bg-white/10 text-white hover:bg-white/20"
+            aria-label="Open menu"
+          >
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>

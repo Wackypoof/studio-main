@@ -37,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
 import { useAuth } from '@/context/AuthProvider';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
   children,
@@ -50,6 +51,19 @@ export default function DashboardLayout({
   const router = useRouter();
   
   const { user } = useAuth();
+
+  const gradientOverlay = isBuyer
+    ? 'radial-gradient(140% 140% at 0% 0%, rgba(37,99,235,0.32), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(56,189,248,0.22), transparent 65%)'
+    : 'radial-gradient(140% 140% at 0% 0%, rgba(251,191,36,0.3), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(249,115,22,0.22), transparent 65%)';
+
+  const badgeGradient = isBuyer
+    ? 'from-blue-500 via-blue-400 to-emerald-300'
+    : 'from-amber-400 via-orange-400 to-rose-300';
+
+  const modeLabel = isBuyer ? 'Buyer workspace' : 'Seller workspace';
+  const modeHelper = isBuyer
+    ? 'Curated deal flow & diligence tools'
+    : 'Deal desk support & exit tooling';
 
   const displayName = useMemo(() => {
     const metaName = user?.user_metadata?.full_name as string | undefined;
@@ -110,15 +124,16 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <SidebarProvider>
         <div className="flex h-screen overflow-hidden w-full">
-            <Sidebar className="border-r">
+            <Sidebar className="border-r bg-white/80 backdrop-blur">
               <SidebarHeader className="p-4">
-                <div className="flex items-center gap-2">
-                  <Button asChild variant="ghost" className="h-10 w-10 p-2">
-                    <Link href="/dashboard" prefetch={false}>
-                      <Briefcase className="h-6 w-6 text-primary" />
-                    </Link>
-                  </Button>
-                  <h2 className="text-lg font-semibold tracking-tight">SuccessionAsia</h2>
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white">
+                    <Briefcase className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-base font-semibold tracking-tight">Succession Asia</h2>
+                    <p className="text-xs text-slate-500">Growth acquisition platform</p>
+                  </div>
                 </div>
               </SidebarHeader>
               <SidebarContent className="p-2">
@@ -180,12 +195,38 @@ export default function DashboardLayout({
                 </div>
               </SidebarFooter>
             </Sidebar>
-          <SidebarInset className="flex-1 overflow-hidden m-0">
-            <div className="flex h-full flex-1 flex-col w-full">
-              <header className="flex items-center justify-between bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:px-8">
+          <SidebarInset className="relative m-0 flex-1 overflow-hidden bg-white">
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 opacity-90"
+              style={{ background: gradientOverlay }}
+              aria-hidden="true"
+            />
+            <div className="flex h-full w-full flex-1 flex-col">
+              <header className="relative flex items-center justify-between px-4 py-4 lg:px-8">
                 <SidebarTrigger className="md:hidden" />
+                <div className="hidden flex-col gap-1 md:flex">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-2 self-start rounded-full bg-gradient-to-r px-4 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-slate-950 shadow-sm',
+                      badgeGradient
+                    )}
+                  >
+                    {modeLabel}
+                  </span>
+                  <span className="text-xs text-slate-600">{modeHelper}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-500 md:text-sm">
+                  <span className="hidden md:inline">Need to change roles?</span>
+                  <Link
+                    href={isBuyer ? '/sellers' : '/buyers'}
+                    prefetch={false}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-white hover:text-slate-900"
+                  >
+                    {isBuyer ? 'Explore seller playbooks' : 'Browse buyer resources'}
+                  </Link>
+                </div>
               </header>
-              <main className="flex-1 overflow-y-auto w-full">
+              <main className="flex-1 w-full overflow-y-auto">
                 <div className="flex w-full flex-col gap-8 px-4 py-6 md:px-6 lg:px-10 lg:py-10">
                   {children}
                 </div>
