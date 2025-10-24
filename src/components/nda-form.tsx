@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +15,12 @@ const USER_STATE = {
   isVerified: false,
   hasSignedNda: false,
 };
+
+export type NdaUserState = typeof USER_STATE;
+
+interface NdaFormProps {
+  initialState?: NdaUserState;
+}
 
 function LockedContent({ title, description, ctaText, ctaLink }: { title: string, description: string, ctaText: string, ctaLink: string }) {
   return (
@@ -71,8 +77,9 @@ function NdaAgreement() {
     );
 }
 
-export function NdaForm() {
-  const [user, setUser] = useState(USER_STATE);
+export function NdaForm({ initialState }: NdaFormProps = {}) {
+  const defaultState = useMemo(() => initialState ?? USER_STATE, [initialState]);
+  const [user] = useState(defaultState);
 
   if (!user.isLoggedIn) {
     return (
