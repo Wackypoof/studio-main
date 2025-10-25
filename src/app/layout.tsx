@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: 'SuccessionAsia | Buy & Sell SMEs',
   description: 'Confidential, verified marketplace to buy and sell SMEs and professional practices in SEA.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  icons: {
+    icon: '/icons/succession.png',
+    apple: '/icons/succession.png',
+    shortcut: '/icons/succession.png',
+  },
   openGraph: {
     title: 'SuccessionAsia | Buy & Sell SMEs',
     description: 'Confidential, verified marketplace to buy and sell SMEs and professional practices in SEA.',

@@ -1,9 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { ArrowRight, CheckCircle2, Shield, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { SiteContainer } from '@/components/site-container';
 import { useAuth } from '@/context/AuthProvider';
+import { cn } from '@/lib/utils';
+
+const sellingPoints = [
+  'Guided onboarding from valuation to launch',
+  'Deal desk support across 65 buyer markets',
+  'Analytics to benchmark your listing in real time',
+];
+
+const protections = [
+  { label: 'Verified buyers only', icon: Shield },
+  { label: 'Secure escrow workflows', icon: Sparkles },
+];
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -13,8 +31,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const { signUp, error: authError, isLoading, clearError } = useAuth();
   const router = useRouter();
-  
-  // Sync local error state with auth context
+
   useEffect(() => {
     if (authError) {
       setError(authError.message);
@@ -22,143 +39,276 @@ export default function SignUpPage() {
     }
   }, [authError]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFullNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFullName(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handleConfirmPasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    
+
     if (password !== confirmPassword) {
-      return setError('Passwords do not match');
+      setError('Passwords do not match');
+      return;
     }
 
     if (!fullName.trim()) {
-      return setError('Please enter your full name');
-    }
-
-    // Store email in localStorage for the confirm-email page
-    localStorage.setItem('emailForSignIn', email);
-    
-    const { error: signUpError } = await signUp(email, password, {
-      data: {
-        full_name: fullName.trim()
-      },
-      emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`
-    });
-    
-    if (signUpError) {
-      // Error is already set in the AuthContext
+      setError('Please enter your full name');
       return;
     }
-    
-    // Clear any previous errors
+
+    try {
+      localStorage.setItem('emailForSignIn', email);
+    } catch {
+      console.warn('Unable to persist emailForSignIn to localStorage');
+    }
+
+    const { error: signUpError } = await signUp(email, password, {
+      data: { full_name: fullName.trim() },
+      emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+    });
+
+    if (signUpError) {
+      return;
+    }
+
     clearError();
-    
-    // If we get here, the signup was successful
-    // Redirect to confirm-email page with email as query param
     router.push(`/auth/confirm-email?email=${encodeURIComponent(email)}`);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-              sign in to your existing account
-            </a>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 -top-20 h-80 w-80 rounded-full bg-blue-500/30 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[460px] w-[460px] rounded-full bg-emerald-400/20 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.18),transparent_60%)]" />
+      </div>
+
+      <SiteContainer className="relative z-10 flex min-h-screen items-center py-16">
+        <div className="grid gap-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,440px)] xl:gap-24">
+          <div className="space-y-12">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-100/80 backdrop-blur">
+              Join Succession Asia
+            </div>
+
+            <div className="space-y-6">
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight md:text-5xl">
+                Launch your listing with a dedicated deal desk beside you.
+              </h1>
+              <p className="max-w-xl text-lg text-slate-200 md:text-xl">
+                Share your mandate, access pricing intelligence, and get matched with qualified buyers faster than the traditional brokerage playbook.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.3em] text-blue-200/70">
+                  Listings launched
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">580+</p>
+                <p className="text-xs text-blue-100/70">Past 12 months</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.3em] text-blue-200/70">
+                  Median time to first offer
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-white">9 days</p>
+                <p className="text-xs text-blue-100/70">Across SaaS & eCommerce</p>
               </div>
             </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="full-name" className="sr-only">
-                Full Name
-              </label>
-              <input
-                id="full-name"
-                name="fullName"
-                type="text"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={isLoading}
-              />
+
+            <div className="space-y-4 text-sm text-blue-100">
+              {sellingPoints.map((point) => (
+                <div key={point} className="flex items-start gap-3">
+                  <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/20 text-blue-200">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </span>
+                  <span>{point}</span>
+                </div>
+              ))}
             </div>
-            <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+
+            <div className="flex flex-wrap gap-3 text-xs text-blue-100/80">
+              {protections.map(({ label, icon: Icon }) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 backdrop-blur"
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </span>
+              ))}
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
-                Confirm Password
-              </label>
-              <input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
+
+            <div className="text-sm text-blue-200">
+              Already onboarded?{' '}
+              <Link
+                href="/login"
+                className="font-semibold text-white underline-offset-4 transition hover:text-sky-200 hover:underline"
+              >
+                Sign in to manage your listing.
+              </Link>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Creating account...' : 'Sign up'}
-            </button>
+          <div className="relative">
+            <div className="absolute -top-12 right-6 h-28 w-28 rounded-full bg-sky-400/30 blur-3xl" />
+            <div className="absolute bottom-6 -left-10 h-24 w-24 rounded-full bg-blue-500/20 blur-3xl" />
+
+            <div className="relative rounded-3xl border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur md:p-10">
+              <div className="space-y-6">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-blue-100">
+                    Step one
+                  </span>
+                  <h2 className="mt-6 text-2xl font-semibold text-white md:text-3xl">
+                    Create your seller profile
+                  </h2>
+                  <p className="mt-2 text-sm text-blue-100">
+                    We&apos;ll guide you through valuations, buyer outreach, and diligence setup right after this step.
+                  </p>
+                </div>
+
+                {error && (
+                  <div
+                    role="alert"
+                    className="rounded-2xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-200"
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+                  <div className="space-y-2">
+                    <Label htmlFor="full-name" className="text-slate-200">
+                      Full name
+                    </Label>
+                    <Input
+                      id="full-name"
+                      name="fullName"
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={handleFullNameChange}
+                      disabled={isLoading}
+                      className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email-address" className="text-slate-200">
+                      Work email
+                    </Label>
+                    <Input
+                      id="email-address"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={email}
+                      onChange={handleEmailChange}
+                      disabled={isLoading}
+                      className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-slate-200">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={password}
+                      onChange={handlePasswordChange}
+                      disabled={isLoading}
+                      className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-slate-200">
+                      Confirm password
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      name="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      value={confirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                      disabled={isLoading}
+                      className={cn(
+                        'border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60',
+                        error === 'Passwords do not match' &&
+                          'border-red-400/80 bg-red-500/10 focus-visible:border-red-400 focus-visible:ring-red-400'
+                      )}
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className={cn(
+                      'w-full rounded-full bg-gradient-to-r from-blue-500 via-sky-400 to-emerald-300 px-6 py-3 text-base font-semibold text-slate-950 shadow-lg shadow-blue-900/30 transition hover:from-blue-400 hover:to-emerald-200',
+                      isLoading && 'opacity-60'
+                    )}
+                  >
+                    {isLoading ? 'Creating account...' : (
+                      <>
+                        Create account
+                        <ArrowRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-blue-100/70">
+                    By continuing you agree to our{' '}
+                    <Link href="/legal/terms" className="font-medium text-white underline-offset-4 hover:underline">
+                      Terms
+                    </Link>{' '}
+                    and{' '}
+                    <Link href="/legal/privacy" className="font-medium text-white underline-offset-4 hover:underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
+                </form>
+
+                <div className="text-sm text-blue-100">
+                  Prefer to talk first?{' '}
+                  <Link
+                    href="/contact"
+                    className="font-semibold text-white underline-offset-4 transition hover:text-sky-200 hover:underline"
+                  >
+                    Book a strategy call.
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      </SiteContainer>
     </div>
   );
 }

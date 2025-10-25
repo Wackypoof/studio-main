@@ -242,7 +242,7 @@ export default function LandingPage() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="mx-auto max-w-5xl"
+            className="mx-auto max-w-screen-xl"
           >
             <m.div variants={fadeInUp} className="text-center">
               <h2 className="text-3xl font-bold md:text-4xl">Proof the platform works.</h2>
