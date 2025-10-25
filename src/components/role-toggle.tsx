@@ -12,15 +12,11 @@ const roleConfig = {
     label: "Buying",
     icon: BriefcaseBusiness,
     gradient: "from-blue-500 via-blue-400 to-emerald-300",
-    ring: "focus-visible:ring-blue-400",
-    shadow: "shadow-[0_12px_30px_rgba(56,189,248,0.35)]",
   },
   seller: {
     label: "Selling",
     icon: UserRound,
     gradient: "from-amber-400 via-orange-400 to-rose-300",
-    ring: "focus-visible:ring-amber-400",
-    shadow: "shadow-[0_12px_30px_rgba(251,191,36,0.35)]",
   },
 } as const;
 
@@ -29,7 +25,10 @@ export function RoleToggle() {
   const [isToggling, setIsToggling] = useState(false);
   const currentRole: Role = isBuyer ? "buyer" : "seller";
 
-  const handleToggle = async () => {
+  const handleToggle = async (targetRole: Role) => {
+    if ((targetRole === "buyer") === isBuyer) {
+      return;
+    }
     try {
       setIsToggling(true);
       await toggleRole();
@@ -39,42 +38,35 @@ export function RoleToggle() {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/60 p-4 shadow-sm backdrop-blur">
-      <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-slate-500"></p>
-        <div className="flex rounded-full border border-white/40 bg-white/70 p-1 shadow-inner shadow-slate-200">
-          {(["buyer", "seller"] as const).map((role) => {
-            const isActive = currentRole === role;
-            const config = roleConfig[role];
-            const Icon = config.icon;
+    <div className="rounded-lg border border-slate-200 bg-white/70 p-1.5 shadow-sm">
+      <div className="grid grid-cols-2 gap-1 rounded-md bg-white/90 p-1">
+        {(["buyer", "seller"] as const).map((role) => {
+          const isActive = currentRole === role;
+          const config = roleConfig[role];
+          const Icon = config.icon;
 
-            return (
-              <button
-                key={role}
-                onClick={handleToggle}
-                disabled={isToggling}
-                className={cn(
-                  "flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-white",
-                  "disabled:opacity-60 disabled:cursor-not-allowed",
-                  isActive
-                    ? cn(
-                        "bg-gradient-to-r text-slate-950 shadow-lg",
-                        config.gradient,
-                        config.shadow
-                      )
-                    : "text-slate-500 hover:text-slate-700",
-                  config.ring
-                )}
-                aria-pressed={isActive}
-                aria-busy={isToggling}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{config.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          return (
+            <button
+              key={role}
+              type="button"
+              onClick={() => handleToggle(role)}
+              disabled={isToggling}
+              className={cn(
+                "flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-slate-200",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+                isActive
+                  ? cn("bg-gradient-to-r text-slate-950 shadow-sm", config.gradient)
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+              aria-pressed={isActive}
+              aria-busy={isToggling}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{config.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

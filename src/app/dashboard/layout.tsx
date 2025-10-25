@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
@@ -38,6 +37,7 @@ import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
 import { useAuth } from '@/context/AuthProvider';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/Header/Logo';
 
 export default function DashboardLayout({
   children,
@@ -55,10 +55,6 @@ export default function DashboardLayout({
   const gradientOverlay = isBuyer
     ? 'radial-gradient(140% 140% at 0% 0%, rgba(37,99,235,0.32), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(56,189,248,0.22), transparent 65%)'
     : 'radial-gradient(140% 140% at 0% 0%, rgba(251,191,36,0.3), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(249,115,22,0.22), transparent 65%)';
-
-  const badgeGradient = isBuyer
-    ? 'from-blue-500 via-blue-400 to-emerald-300'
-    : 'from-amber-400 via-orange-400 to-rose-300';
 
   const modeLabel = isBuyer ? 'Buyer workspace' : 'Seller workspace';
   const modeHelper = isBuyer
@@ -127,13 +123,7 @@ export default function DashboardLayout({
             <Sidebar className="border-r bg-white/80 backdrop-blur">
               <SidebarHeader className="p-4">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-2 shadow-sm">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white">
-                    <Briefcase className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h2 className="text-base font-semibold tracking-tight">Succession Asia</h2>
-                    <p className="text-xs text-slate-500">Growth acquisition platform</p>
-                  </div>
+                  <Logo clickable={false} />
                 </div>
               </SidebarHeader>
               <SidebarContent className="p-2">
@@ -202,29 +192,11 @@ export default function DashboardLayout({
               aria-hidden="true"
             />
             <div className="flex h-full w-full flex-1 flex-col">
-              <header className="relative flex items-center justify-between px-4 py-4 lg:px-8">
-                <SidebarTrigger className="md:hidden" />
-                <div className="hidden flex-col gap-1 md:flex">
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-2 self-start rounded-full bg-gradient-to-r px-4 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-slate-950 shadow-sm',
-                      badgeGradient
-                    )}
-                  >
-                    {modeLabel}
-                  </span>
-                  <span className="text-xs text-slate-600">{modeHelper}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-500 md:text-sm">
-                  <span className="hidden md:inline">Need to change roles?</span>
-                  <Link
-                    href={isBuyer ? '/sellers' : '/buyers'}
-                    prefetch={false}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-white hover:text-slate-900"
-                  >
-                    {isBuyer ? 'Explore seller playbooks' : 'Browse buyer resources'}
-                  </Link>
-                </div>
+              <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-sm md:px-6 lg:px-8">
+                <SidebarTrigger className="md:hidden text-slate-500 transition-colors hover:text-slate-900" />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">
+                  {modeLabel}
+                </span>
               </header>
               <main className="flex-1 w-full overflow-y-auto">
                 <div className="flex w-full flex-col gap-8 px-4 py-6 md:px-6 lg:px-10 lg:py-10">

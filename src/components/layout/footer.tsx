@@ -1,5 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { FaLinkedin, FaTwitter, FaYoutube } from 'react-icons/fa';
+import { cn } from '@/lib/utils';
 
 const navigation = {
   buyers: [
@@ -33,13 +37,46 @@ const navigation = {
 };
 
 export function Footer() {
+  const pathname = usePathname();
+  const isSellerPage = pathname.startsWith('/sellers');
+
+  const theme = isSellerPage
+    ? {
+        background: 'bg-[#110906]',
+        overlay:
+          'radial-gradient(120% 120% at 10% -10%, rgba(253, 224, 71, 0.28), transparent 55%), radial-gradient(110% 110% at 90% -10%, rgba(251, 146, 60, 0.24), transparent 60%), linear-gradient(160deg, rgba(255, 196, 94, 0.22) 0%, rgba(120, 53, 15, 0.55) 100%)',
+      }
+    : {
+        background: 'bg-slate-950',
+        overlay:
+          'radial-gradient(130% 130% at 0% 0%, rgba(37, 99, 235, 0.25), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(251, 191, 36, 0.25), transparent 65%)',
+      };
+
+  const primaryCta = isSellerPage
+    ? {
+        href: '/sellers',
+        label: 'Explore seller platform',
+        className:
+          'bg-gradient-to-r from-amber-400 via-orange-400 to-rose-300 text-slate-950 shadow-[0_8px_25px_rgba(251,191,36,0.30)] hover:from-amber-300 hover:to-orange-200',
+      }
+    : {
+        href: '/buyers',
+        label: 'Explore buyer platform',
+        className:
+          'bg-gradient-to-r from-blue-500 via-blue-400 to-emerald-300 text-slate-950 shadow-[0_8px_25px_rgba(56,189,248,0.35)] hover:from-blue-400 hover:to-emerald-200',
+      };
+
   return (
-    <footer className="relative overflow-hidden bg-slate-950 text-slate-100">
+    <footer
+      className={cn(
+        'relative overflow-hidden text-slate-100 transition-colors duration-500 ease-out',
+        theme.background,
+      )}
+    >
       <div
         className="pointer-events-none absolute inset-0 -z-10 opacity-90"
         style={{
-          background:
-            'radial-gradient(130% 130% at 0% 0%, rgba(37, 99, 235, 0.25), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(251, 191, 36, 0.25), transparent 65%)',
+          background: theme.overlay,
         }}
         aria-hidden="true"
       />
@@ -70,10 +107,13 @@ export function Footer() {
               </div>
               <div className="flex flex-col gap-3 sm:items-end">
                 <Link
-                  href="/buyers"
-                  className="w-full rounded-full bg-gradient-to-r from-blue-500 via-blue-400 to-emerald-300 px-6 py-3 text-center text-sm font-semibold text-slate-950 shadow-[0_8px_25px_rgba(56,189,248,0.35)] transition hover:from-blue-400 hover:to-emerald-200 sm:w-auto"
+                  href={primaryCta.href}
+                  className={cn(
+                    'w-full rounded-full px-6 py-3 text-center text-sm font-semibold transition sm:w-auto',
+                    primaryCta.className,
+                  )}
                 >
-                  Explore buyer platform
+                  {primaryCta.label}
                 </Link>
                 <Link
                   href="/sellers"

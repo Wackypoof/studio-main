@@ -2,18 +2,40 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Briefcase } from 'lucide-react';
+import Image from 'next/image';
 
 interface LogoProps {
   className?: string;
+  clickable?: boolean;
 }
 
-export const Logo = React.memo<LogoProps>(({ className = "" }) => {
-  return (
-    <Link href="/" className={`flex items-center gap-2 h-10 leading-none ${className}`}>
-      <Briefcase className="h-6 w-6 text-primary" aria-hidden />
+export const Logo = React.memo<LogoProps>(({ className = "", clickable = true }) => {
+  const content = (
+    <>
+      <Image
+        src="/icons/succession.png"
+        alt="SuccessionAsia Logo"
+        width={32}
+        height={32}
+        className="h-8 w-auto"
+        priority
+      />
       <span className="font-semibold tracking-tight">SuccessionAsia</span>
-    </Link>
+    </>
+  );
+
+  if (clickable) {
+    return (
+      <Link href="/" className={`flex items-center gap-2 h-10 leading-none ${className}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={`flex items-center gap-2 h-10 leading-none select-none ${className}`}>
+      {content}
+    </div>
   );
 });
 
