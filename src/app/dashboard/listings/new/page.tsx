@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import type { Database } from "@/types/supabase";
 import {
   Card,
   CardContent,
@@ -18,29 +19,6 @@ import { suggestMultiple, suggestPrice } from "@/lib/pricing";
 import { useAuth } from "@/context/AuthProvider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-
-type Listing = {
-  id: string;
-  owner_id: string;
-  name: string;
-  description?: string;
-  industry: string;
-  subindustry?: string;
-  country?: string;
-  region?: string;
-  city?: string;
-  years_established?: number;
-  currency?: string;
-  revenue?: number | null;
-  profit?: number | null;
-  assets?: number | null;
-  asking_price?: number | null;
-  valuation_multiple?: number | null;
-  employees?: number | null;
-  customers?: number | null;
-  growth_rate?: number | null;
-  status: "draft" | "active" | "sold" | "withdrawn";
-};
 
 export default function CreateListingPage() {
   const { user } = useAuth();
@@ -182,16 +160,20 @@ export default function CreateListingPage() {
   }, [details.industry, financials.profit, autoCalcPrice]);
 
   // Helper to prevent indefinite loading if a request stalls
-  const withTimeout = async <T,>(promise: Promise<T>, ms = 12000, label = 'request'): Promise<T> => {
-    let timer: any;
+  const withTimeout = async <T,>(
+    promise: PromiseLike<T>,
+    ms = 12000,
+    label = "request"
+  ): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
     });
     try {
       // Race the promise against a timeout to avoid hanging UI
-      return await Promise.race([promise, timeout]);
+      return await Promise.race([Promise.resolve(promise), timeout]);
     } finally {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
     }
   };
 
@@ -203,8 +185,9 @@ export default function CreateListingPage() {
     // Fire-and-forget: ensure a matching profile row exists to satisfy FK constraint.
     // Avoid awaiting this call to prevent hangs if RPC is slow/unavailable.
     try {
-      // @ts-expect-error fire-and-forget
-      supabase.rpc("ensure_profile_exists", { user_id: userId }).catch((e) =>
+      void Promise.resolve(
+        supabase.rpc("ensure_profile_exists", { user_id: userId })
+      ).catch((e: unknown) =>
         console.warn("ensure_profile_exists RPC failed (continuing):", e)
       );
     } catch {}
@@ -373,15 +356,15 @@ export default function CreateListingPage() {
 
   const [uploadBusy, setUploadBusy] = useState(false);
   const [photos, setPhotos] = useState<
-    { id: string; url?: string; storage_path: string }[]
+    { id: string; url: string | null; storage_path: string }[]
   >([]);
   const [docs, setDocs] = useState<
     {
       id: string;
-      file_name?: string;
+      file_name: string | null;
       storage_path: string;
-      status: string;
-      doc_type: string;
+      status: Database["public"]["Enums"]["document_status"];
+      doc_type: Database["public"]["Enums"]["document_type"];
     }[]
   >([]);
 
@@ -434,8 +417,9 @@ export default function CreateListingPage() {
       setUploadBusy(false);
     }
   };
-
-  const [docType, setDocType] = useState("financial_statement");
+  const [docType, setDocType] = useState<
+    Database["public"]["Enums"]["document_type"]
+  >("financial_statement");
   const onUploadDoc = async (file: File) => {
     if (!listingId || !userId) return;
     setUploadBusy(true);
@@ -459,7 +443,7 @@ export default function CreateListingPage() {
             storage_path: path,
             file_name: file.name,
             file_size: file.size,
-            doc_type: docType as any,
+            doc_type: docType,
             status: "pending",
           }),
         12000,
@@ -874,7 +858,12 @@ export default function CreateListingPage() {
                 <select
                   className="border-input bg-background text-sm rounded-md p-2"
                   value={docType}
-                  onChange={(e) => setDocType(e.target.value)}
+                  onChange={(e) =>
+                    setDocType(
+                      e.target
+                        .value as Database["public"]["Enums"]["document_type"]
+                    )
+                  }
                 >
                   <option value="financial_statement">
                     Financial Statement
