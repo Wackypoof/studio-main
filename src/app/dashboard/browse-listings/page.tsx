@@ -4,7 +4,6 @@
 import { useEffect, useMemo, useState, Suspense, useDeferredValue, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { exampleListings } from '@/lib/example-listings';
 import { ListingCard } from '@/components/listing-card';
 import { LazyAdvancedFilters, LazyDashboardCollections } from '@/lib/lazy-components';
 import { PageHeader } from '@/components/page-header';
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useListings } from '@/hooks/useListings';
 
 export default function BrowseListingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,21 +44,21 @@ export default function BrowseListingsPage() {
     pushAlerts: boolean;
   };
   const STORAGE_KEY = 'savedSearches_v1';
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as SavedSearch[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [newSearchName, setNewSearchName] = useState('');
   const [newEmailAlerts, setNewEmailAlerts] = useState(true);
   const [newPushAlerts, setNewPushAlerts] = useState(false);
   const [visibleCount, setVisibleCount] = useState(18);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSavedSearches(JSON.parse(raw));
-    } catch {}
-  }, []);
 
   const persistSavedSearches = (next: SavedSearch[]) => {
     setSavedSearches(next);
@@ -149,7 +149,8 @@ export default function BrowseListingsPage() {
 
   // Reset visible count when filters change
   useEffect(() => {
-    setVisibleCount(18);
+    const id = requestAnimationFrame(() => setVisibleCount(18));
+    return () => cancelAnimationFrame(id);
   }, [deferredSearch, priceRange, revenueRange, profitMarginRange, selectedVertical, selectedLocation, selectedStatus, sortBy]);
 
   const sortedListings = useMemo(() => {

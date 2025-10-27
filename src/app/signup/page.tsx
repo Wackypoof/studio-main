@@ -33,10 +33,14 @@ export default function SignUpPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (authError) {
+    if (!authError) return;
+
+    const id = requestAnimationFrame(() => {
       setError(authError.message);
       toast.error(authError.message);
-    }
+    });
+
+    return () => cancelAnimationFrame(id);
   }, [authError]);
 
   const handleFullNameChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { log } from 'next-axiom';
@@ -18,29 +18,32 @@ export function PerformanceDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Mock data for the dashboard
-  const mockMetrics: PerformanceData[] = [
-    {
-      timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
-      domComplete: 1200,
-      loadEventEnd: 1500,
-      domInteractive: 800,
-      pathname: '/listings/1',
-    },
-    {
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      domComplete: 1100,
-      loadEventEnd: 1400,
-      domInteractive: 750,
-      pathname: '/listings/2',
-    },
-    {
-      timestamp: new Date().toISOString(),
-      domComplete: 1000,
-      loadEventEnd: 1300,
-      domInteractive: 700,
-      pathname: '/listings/3',
-    },
-  ];
+  const mockMetrics = useMemo<PerformanceData[]>(
+    () => [
+      {
+        timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
+        domComplete: 1200,
+        loadEventEnd: 1500,
+        domInteractive: 800,
+        pathname: '/listings/1',
+      },
+      {
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        domComplete: 1100,
+        loadEventEnd: 1400,
+        domInteractive: 750,
+        pathname: '/listings/2',
+      },
+      {
+        timestamp: new Date().toISOString(),
+        domComplete: 1000,
+        loadEventEnd: 1300,
+        domInteractive: 700,
+        pathname: '/listings/3',
+      },
+    ],
+    []
+  );
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -63,7 +66,7 @@ export function PerformanceDashboard() {
     };
 
     fetchMetrics();
-  }, []);
+  }, [mockMetrics]);
 
   if (isLoading) {
     return <div>Loading performance data...</div>;

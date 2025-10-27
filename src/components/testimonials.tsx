@@ -51,7 +51,7 @@ export function Testimonials() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Trusted by Thousands of Entrepreneurs</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Don't just take our word for it. Here's what our community has to say.
+            Don&apos;t just take our word for it. Here&apos;s what our community has to say.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ export function Testimonials() {
                   />
                 ))}
               </div>
-              <blockquote className="text-lg text-gray-700 mb-6">"{testimonial.content}"</blockquote>
+              <blockquote className="text-lg text-gray-700 mb-6">&ldquo;{testimonial.content}&rdquo;</blockquote>
               <div className="flex items-center">
                 <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xl">
                   {testimonial.name.charAt(0)}

@@ -23,7 +23,7 @@ export function ErrorBoundary({
       </div>
       <h2 className="text-xl font-semibold mb-2">Something went wrong!</h2>
       <p className="text-muted-foreground mb-6 max-w-md">
-        We're having trouble loading your dashboard. Please try again or contact support if the problem persists.
+        We&apos;re having trouble loading your dashboard. Please try again or contact support if the problem persists.
       </p>
       <Button
         onClick={() => reset()}

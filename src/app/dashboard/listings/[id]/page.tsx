@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
-import { exampleListings } from '@/lib/example-listings';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
-import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, FileText } from 'lucide-react';
+import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useListing, useListingMetrics } from '@/hooks/useListing';
 // Lazy-load heavy chart components client-side only
 const RevenueChart = dynamic(
   () => import('@/components/charts/RevenueChart').then((m) => m.RevenueChart),
@@ -32,82 +32,79 @@ const TrafficSourcesChart = dynamic(
 );
 import { PriceDisplay } from "./price-display";
 
-// Calculate metrics
-function calculateMetrics(listing: any) {
-  const profitMargin = listing.revenue_t12m > 0 
-    ? Math.round((listing.profit_t12m / listing.revenue_t12m) * 100)
-    : 0;
-
-  const multiple = listing.profit_t12m > 0 
-    ? (listing.asking_price / listing.profit_t12m).toFixed(1)
-    : 'N/A';
-
-  const revenueData = [
-    { year: '2021', revenue: listing.revenue_t12m * 0.6 },
-    { year: '2022', revenue: listing.revenue_t12m * 0.8 },
-    { year: '2023', revenue: listing.revenue_t12m },
-    { year: '2024', revenue: listing.revenue_t12m * 1.2 }
-  ];
-
-  const profitRevenueData = [
-    { 
-      year: '2021', 
-      revenue: listing.revenue_t12m * 0.6,
-      profit: (listing.revenue_t12m * 0.6 * profitMargin/100) * 0.9
-    },
-    { 
-      year: '2022', 
-      revenue: listing.revenue_t12m * 0.8,
-      profit: (listing.revenue_t12m * 0.8 * profitMargin/100) * 0.95
-    },
-    { 
-      year: '2023', 
-      revenue: listing.revenue_t12m,
-      profit: listing.profit_t12m
-    },
-    { 
-      year: '2024', 
-      revenue: listing.revenue_t12m * 1.2,
-      profit: (listing.revenue_t12m * 1.2 * profitMargin/100) * 1.05
-    }
-  ];
-
-  return { profitMargin, multiple, revenueData, profitRevenueData };
-}
-
 // We need to use a client component wrapper to handle the params properly
+const STATUS_STYLES: Record<
+  string,
+  { label: string; className?: string }
+> = {
+  draft: { label: 'Draft' },
+  pending: { label: 'Pending Review', className: 'border-yellow-500 text-yellow-700' },
+  live: { label: 'Live', className: 'border-green-500 text-green-700' },
+  paused: { label: 'Paused' },
+  under_offer: { label: 'Under Offer', className: 'border-blue-500 text-blue-700' },
+  closed: { label: 'Closed' },
+};
+
 function ListingDetailsContent({ id }: { id: string }) {
   const searchParams = useSearchParams();
   const from = searchParams.get('from');
   const [activeTab, setActiveTab] = useState('overview');
-  const listingId = id.startsWith('listing-') 
-    ? id 
-    : `listing-${id}`;
-  
-  const listing = exampleListings.find(l => l.id === listingId);
-  
-  if (!listing) {
-    notFound();
-  }
-  
-  const { profitMargin, multiple, revenueData, profitRevenueData } = React.useMemo(() => calculateMetrics(listing), [listing]);
-  const isLoading = false; // No loading state needed in server components
+  const { listing, isLoading, error, refetch } = useListing(id);
+  const { profitMargin, multiple, revenueData, profitRevenueData } = useListingMetrics(listing);
+
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div
+          className="h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary"
+          aria-label="Loading listing"
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <div>
+          <h2 className="text-lg font-semibold">Unable to load listing</h2>
+          <p className="text-sm text-muted-foreground">
+            {error.message || 'Please try again.'}
+          </p>
+        </div>
+        <Button onClick={() => refetch()} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }
 
   if (!listing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Listing not found</p>
-      </div>
-    );
+    notFound();
+    return null;
   }
+
+  const statusInfo = STATUS_STYLES[listing.status] ?? {
+    label: listing.status,
+  };
+  const location = listing.location_area || 'Location not specified';
+  const revenueMultiple =
+    listing.revenue_t12m > 0
+      ? (listing.asking_price / listing.revenue_t12m).toFixed(1)
+      : 'N/A';
+  const paybackPeriod =
+    listing.profit_t12m > 0
+      ? (listing.asking_price / listing.profit_t12m).toFixed(1)
+      : 'N/A';
+  const monthlyProfit =
+    listing.profit_t12m > 0 ? listing.profit_t12m / 12 : 0;
+  const profitMarginLabel =
+    listing.revenue_t12m > 0 ? `${profitMargin}% Margin` : 'Margin unavailable';
 
   const trafficData = [
     { month: 'Jan', visitors: 12500 },
@@ -118,11 +115,6 @@ function ListingDetailsContent({ id }: { id: string }) {
     { month: 'Jun', visitors: 19500 }
   ];
   
-  // Memoize the tab change handler
-  const handleTabChange = useCallback((value: string) => {
-    setActiveTab(value);
-  }, []);
-
   const trafficSources = [
     { name: 'Organic', value: 45 },
     { name: 'Direct', value: 25 },
@@ -161,16 +153,20 @@ function ListingDetailsContent({ id }: { id: string }) {
               <div>
                 <div className="flex items-center gap-3">
                   <h2 className="text-2xl font-bold">{listing.headline}</h2>
-                  <Badge variant="outline" className="border-green-500 text-green-700">
-                    {listing.status}
+                  <Badge
+                    variant="outline"
+                    className={`gap-1 text-xs ${statusInfo.className ?? ''}`}
+                  >
+                    {statusInfo.label}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{listing.location_area}</span>
+                  <span>{location}</span>
                 </div>
               </div>
-              <PriceDisplay price={listing.asking_price} />            </div>
+              <PriceDisplay price={listing.asking_price} />
+            </div>
           </CardHeader>
           
           <CardContent className="p-6">
@@ -194,7 +190,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                       <div className="space-y-2">
                         <h3 className="font-semibold">Business Summary</h3>
                         <p className="text-muted-foreground">
-                          {listing.teaser} This business has shown consistent growth over the past 3 years with a strong recurring revenue model and high customer retention rates.
+                          {listing.teaser || 'Seller has not provided a summary yet.'}
                         </p>
                       </div>
                       
@@ -220,11 +216,11 @@ function ListingDetailsContent({ id }: { id: string }) {
                           <div>
                             <p className="text-sm text-muted-foreground">Annual Profit</p>
                             <p className="text-lg font-semibold">{formatCurrency(listing.profit_t12m)}</p>
-                            <p className="text-xs text-green-600">{profitMargin}% Margin</p>
+                            <p className="text-xs text-green-600">{profitMarginLabel}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Monthly Profit</p>
-                            <p className="text-lg font-semibold">{formatCurrency(listing.profit_t12m / 12)}</p>
+                            <p className="text-lg font-semibold">{formatCurrency(monthlyProfit)}</p>
                           </div>
                         </CardContent>
                       </Card>
@@ -236,15 +232,21 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <CardContent className="space-y-3">
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Revenue Multiple</span>
-                            <span className="font-medium">{(listing.asking_price / listing.revenue_t12m).toFixed(1)}x</span>
+                            <span className="font-medium">
+                              {revenueMultiple === 'N/A' ? 'N/A' : `${revenueMultiple}x`}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Profit Multiple</span>
-                            <span className="font-medium">{multiple}x</span>
+                            <span className="font-medium">
+                              {multiple === 'N/A' ? 'N/A' : `${multiple}x`}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Payback Period</span>
-                            <span className="font-medium">{(listing.asking_price / listing.profit_t12m).toFixed(1)} years</span>
+                            <span className="font-medium">
+                              {paybackPeriod === 'N/A' ? 'N/A' : `${paybackPeriod} years`}
+                            </span>
                           </div>
                         </CardContent>
                       </Card>
@@ -398,7 +400,7 @@ function ListingDetailsContent({ id }: { id: string }) {
           
           <CardFooter className="flex flex-col md:flex-row justify-between gap-4 border-t p-4 bg-muted/30">
             <div className="text-sm text-muted-foreground">
-              <p>Last updated: {formatDate(new Date().toISOString())}</p>
+              <p>Last updated: {formatDate(listing.updatedAt)}</p>
               <p>Listing ID: {listing.id}</p>
             </div>
             <div className="flex gap-2">
@@ -422,7 +424,6 @@ interface PageParams {
   id: string;
 }
 
-export default function ListingDetailsPage({ params }: { params: Promise<PageParams> }) {
-  const { id } = (React as any).use(params);
-  return <ListingDetailsContent id={id} />;
+export default function ListingDetailsPage({ params }: { params: PageParams }) {
+  return <ListingDetailsContent id={params.id} />;
 }

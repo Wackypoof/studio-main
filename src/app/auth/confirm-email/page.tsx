@@ -62,7 +62,7 @@ export default function ConfirmEmailPage() {
             Check your email
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            We've sent a confirmation link to {email || 'your email'}
+            We&apos;ve sent a confirmation link to {email || "your email"}
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export default function ConfirmEmailPage() {
             </svg>
             <h3 className="mt-2 text-lg font-medium text-gray-900">Check your email</h3>
             <p className="mt-1 text-sm text-gray-500">
-              We've sent a confirmation link to {email || 'your email address'}. Click the link to
+              We&apos;ve sent a confirmation link to {email || "your email address"}. Click the link to
               confirm your account and get started.
             </p>
             <div className="mt-6">

@@ -98,7 +98,7 @@ export function useFormattedDate(
   date: Date | number | string | null | undefined, 
   options: FormatDateOptions = {}
 ): string {
-  return useMemo(() => formatDate(date, options), [date, JSON.stringify(options)]);
+  return useMemo(() => formatDate(date, options), [date, options]);
 }
 
 /**
@@ -183,7 +183,7 @@ export function formatCurrency(amount: number, options: FormatCurrencyOptions = 
 export function useFormattedCurrency(amount: number, options: FormatCurrencyOptions = {}): string {
   return useMemo(
     () => formatCurrency(amount, options),
-    [amount, JSON.stringify(options)]
+    [amount, options]
   );
 }
 

@@ -131,33 +131,48 @@ export default function CreateListingPage() {
 
   // Auto-calc fields based on toggles
   useEffect(() => {
-    if (autoCalcMultiple) {
-      const rev = parseFloat(financials.revenue || "0");
-      const ask = parseFloat(financials.asking_price || "0");
-      let m: number | null = null;
-      if (rev > 0 && ask > 0) m = +(ask / rev).toFixed(2);
-      else m = suggestMultiple(details.industry, parseFloat(financials.profit || "0"));
-      setFinancials((f) => ({
-        ...f,
-        valuation_multiple: m != null ? String(m) : f.valuation_multiple,
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [financials.revenue, financials.asking_price, details.industry, financials.profit, autoCalcMultiple]);
+    if (!autoCalcMultiple) return;
+
+    setFinancials((prev) => {
+      const revenueValue = parseFloat(prev.revenue || "0");
+      const askingValue = parseFloat(prev.asking_price || "0");
+      let multiple: number | null = null;
+      const profitValue = parseFloat(prev.profit || "0");
+      if (revenueValue > 0 && askingValue > 0) {
+        multiple = +(askingValue / revenueValue).toFixed(2);
+      } else {
+        multiple = suggestMultiple(details.industry, profitValue);
+      }
+      const nextValue = multiple != null ? String(multiple) : prev.valuation_multiple;
+      if (nextValue === prev.valuation_multiple) {
+        return prev;
+      }
+      return {
+        ...prev,
+        valuation_multiple: nextValue,
+      };
+    });
+  }, [autoCalcMultiple, details.industry]);
 
   useEffect(() => {
-    if (autoCalcPrice) {
-      const p = suggestPrice({
+    if (!autoCalcPrice) return;
+
+    setFinancials((prev) => {
+      const profitValue = parseFloat(prev.profit || "0");
+      const price = suggestPrice({
         industry: details.industry,
-        profit: parseFloat(financials.profit || "0"),
+        profit: profitValue,
       });
-      setFinancials((f) => ({
-        ...f,
-        asking_price: p != null ? String(p) : f.asking_price,
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [details.industry, financials.profit, autoCalcPrice]);
+      const nextValue = price != null ? String(price) : prev.asking_price;
+      if (nextValue === prev.asking_price) {
+        return prev;
+      }
+      return {
+        ...prev,
+        asking_price: nextValue,
+      };
+    });
+  }, [autoCalcPrice, details.industry]);
 
   // Helper to prevent indefinite loading if a request stalls
   const withTimeout = async <T,>(

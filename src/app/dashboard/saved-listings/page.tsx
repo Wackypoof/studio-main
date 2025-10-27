@@ -54,7 +54,7 @@ export default function SavedListingsPage() {
               <Heart className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">No saved listings</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Save listings you're interested in to view them here later.
+                Save listings you&apos;re interested in to view them here later.
               </p>
               <Button onClick={() => {}}>
                 <Search className="mr-2 h-4 w-4" />

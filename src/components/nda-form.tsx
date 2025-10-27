@@ -59,8 +59,8 @@ function NdaAgreement() {
         <CardContent className="space-y-6">
           <div className="h-48 overflow-y-auto p-4 border rounded-md text-xs text-muted-foreground bg-muted/30">
             <p className="font-bold mb-2">NON-DISCLOSURE AGREEMENT (NDA)</p>
-            <p className="mb-2">This Agreement is entered into as of {new Date().toLocaleDateString()} between the user ("Recipient") and the seller ("Disclosing Party").</p>
-            <p className="mb-2">1. Confidential Information. The Disclosing Party proposes to disclose certain of its confidential and proprietary information ("Confidential Information") to the Recipient. Confidential Information shall include all data, materials, products, technology, computer programs, specifications, manuals, business plans, software, marketing plans, business plans, financial information, and other information disclosed or submitted, orally, in writing, or by any other media, to the Recipient by the Disclosing Party.</p>
+            <p className="mb-2">This Agreement is entered into as of {new Date().toLocaleDateString()} between the user (&quot;Recipient&quot;) and the seller (&quot;Disclosing Party&quot;).</p>
+            <p className="mb-2">1. Confidential Information. The Disclosing Party proposes to disclose certain of its confidential and proprietary information (&quot;Confidential Information&quot;) to the Recipient. Confidential Information shall include all data, materials, products, technology, computer programs, specifications, manuals, business plans, software, marketing plans, business plans, financial information, and other information disclosed or submitted, orally, in writing, or by any other media, to the Recipient by the Disclosing Party.</p>
             <p>2. Use of Confidential Information. Recipient agrees not to use any Confidential Information for its own use or for any purpose except to evaluate the business opportunity. Recipient shall not disclose any Confidential Information to third parties.</p>
             <p>3. Term. This Agreement shall remain in effect for a period of five (5) years from the date of disclosure.</p>
           </div>
@@ -110,7 +110,7 @@ export function NdaForm({ initialState }: NdaFormProps = {}) {
         <CardTitle>Seller Verified</CardTitle>
       </CardHeader>
       <CardContent>
-        <p>You have access to the seller's details.</p>
+        <p>You have access to the seller&apos;s details.</p>
       </CardContent>
     </Card>
   );

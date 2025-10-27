@@ -223,7 +223,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [isBuyer]);
+  }, [isBuyer, role]);
 
   if (isLoading) {
     return renderLoadingState();

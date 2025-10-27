@@ -9,9 +9,10 @@ export function UpdateNotification() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (updateAvailable) {
-      setIsVisible(true);
-    }
+    if (!updateAvailable) return;
+
+    const id = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(id);
   }, [updateAvailable]);
 
   const handleUpdate = () => {

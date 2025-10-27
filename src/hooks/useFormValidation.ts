@@ -136,7 +136,6 @@ export function useFormAutosave<T>({ storageKey, data, enabled = true, throttleM
   const triggerSave = useMemo(() => debounced(save, throttleMs), [debounced, save, throttleMs]);
 
   // Save whenever data changes (debounced)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!enabled) return;
     triggerSave();

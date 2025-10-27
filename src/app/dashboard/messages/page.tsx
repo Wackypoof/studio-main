@@ -60,7 +60,7 @@ export default function MessagesPage() {
   const { data: conversationsData, isLoading: isLoadingConversations } = useConversations();
   const { data: messagesData, isLoading: isLoadingMessages } = useMessages(selectedConversation);
   const sendMessageMutation = useSendMessage(selectedConversation || '');
-  const markAsReadMutation = useMarkAsRead(selectedConversation || '');
+  const { mutate: markAsRead } = useMarkAsRead(selectedConversation || '');
 
   useMessagingSubscription(selectedConversation);
 
@@ -93,9 +93,9 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (selectedConversation && !isLoadingMessages) {
-      markAsReadMutation.mutate();
+      markAsRead();
     }
-  }, [selectedConversation, isLoadingMessages]);
+  }, [selectedConversation, isLoadingMessages, markAsRead]);
 
   const unreadCount = useMemo(() => {
     return conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);

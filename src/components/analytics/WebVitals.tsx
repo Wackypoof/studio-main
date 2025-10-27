@@ -2,13 +2,15 @@
 
 import { useReportWebVitals as useReportNextWebVitals } from 'next/web-vitals';
 import { track } from '@vercel/analytics';
+import type { NextWebVitalsMetric } from 'next/dist/shared/lib/utils';
 
 export function WebVitals() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
-    return null;
-  }
+  const monitoringEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() === 'true';
+
   useReportNextWebVitals((metric) => {
-    // Send Web Vitals to Vercel Analytics
+    if (!monitoringEnabled) return;
+
     track('web-vitals', {
       ...metric,
       href: typeof window !== 'undefined' ? window.location.href : '',
@@ -20,12 +22,13 @@ export function WebVitals() {
   return null;
 }
 
-// Custom hook to report Web Vitals
 export function useReportWebVitals() {
-  return (metric: any) => {
-    if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
-      return;
-    }
+  const monitoringEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() === 'true';
+
+  return (metric: NextWebVitalsMetric) => {
+    if (!monitoringEnabled) return;
+
     track('web-vitals', {
       ...metric,
       href: typeof window !== 'undefined' ? window.location.href : '',

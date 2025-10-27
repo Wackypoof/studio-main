@@ -119,7 +119,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           </h1>
           
           <p className="mb-6 max-w-md text-muted-foreground">
-            We've been notified about this issue and are working on a fix. 
+            We&apos;ve been notified about this issue and are working on a fix. 
             In the meantime, you can try refreshing the page or return home.
           </p>
           

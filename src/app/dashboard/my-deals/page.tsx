@@ -102,7 +102,7 @@ export default function MyDealsPage() {
                     <Card className="flex items-center justify-center h-60 bg-muted/50 border-0 shadow-none">
                         <div className="text-center">
                             <h3 className="text-base font-semibold text-foreground/90">Nothing in your pipeline just yet</h3>
-                            <p className="text-muted-foreground text-sm mt-1 max-w-sm">When you request access to startups you're interested in, they'll appear here.</p>
+                            <p className="text-muted-foreground text-sm mt-1 max-w-sm">When you request access to startups you&apos;re interested in, they&apos;ll appear here.</p>
                              <Button asChild className="mt-4">
                                 <Link href="/">
                                     Browse Listings

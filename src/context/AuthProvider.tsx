@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     } finally {
       setIsAuthenticating(false);
     }
-  }, [supabase]);
+  }, [setError, setIsAuthenticating, supabase]);
 
   const value = useMemo(
     () => ({

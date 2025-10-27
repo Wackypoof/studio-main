@@ -1,85 +1,136 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type ServiceWorkerStatus = 'installing' | 'installed' | 'updated' | 'error' | null;
 
+const UPDATE_INTERVAL_MS = 60 * 60 * 1000;
+
 export function useServiceWorker() {
-  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  const updateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const detachRegistrationListenersRef = useRef<(() => void) | null>(null);
   const [status, setStatus] = useState<ServiceWorkerStatus>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
+    const shouldRegister =
+      process.env.NEXT_PUBLIC_ENABLE_SERVICE_WORKER?.toString() === 'true';
+    const swPath = process.env.NEXT_PUBLIC_SERVICE_WORKER_PATH || '/service-worker.js';
+
+    if (!shouldRegister) {
+      return;
+    }
+
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       console.warn('Service workers are not supported in this browser');
       return;
     }
 
+    const handleControllerChange = () => {
+      window.location.reload();
+    };
+
+    const attachRegistrationListeners = (
+      registration: ServiceWorkerRegistration
+    ) => {
+      const cleanupFns: Array<() => void> = [];
+
+      const handleInstallingStateChange = (installing: ServiceWorker) => () => {
+        if (installing.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            setStatus('updated');
+            setUpdateAvailable(true);
+          } else {
+            setStatus('installed');
+          }
+        }
+      };
+
+      const handleUpdateFound = () => {
+        const installing = registration.installing;
+        if (!installing) {
+          if (registration.waiting) {
+            setStatus('updated');
+            setUpdateAvailable(true);
+          }
+          return;
+        }
+
+        setStatus('installing');
+
+        const stateChangeListener = handleInstallingStateChange(installing);
+        installing.addEventListener('statechange', stateChangeListener);
+        cleanupFns.push(() =>
+          installing.removeEventListener('statechange', stateChangeListener)
+        );
+      };
+
+      registration.addEventListener('updatefound', handleUpdateFound);
+      cleanupFns.push(() =>
+        registration.removeEventListener('updatefound', handleUpdateFound)
+      );
+
+      handleUpdateFound();
+
+      return () => {
+        cleanupFns.forEach((fn) => fn());
+      };
+    };
+
     const registerServiceWorker = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
-        setRegistration(registration);
-        
-        // Check for updates immediately
-        await registration.update();
-        
-        // Listen for the "controllerchange" event
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
+        const registration = await navigator.serviceWorker.register(swPath);
+        registrationRef.current = registration;
 
-        // Check for updates every hour
-        const updateInterval = setInterval(() => {
-          registration.update().catch(console.error);
-        }, 60 * 60 * 1000);
+        detachRegistrationListenersRef.current?.();
+        detachRegistrationListenersRef.current =
+          attachRegistrationListeners(registration);
 
-        // Clean up interval on unmount
-        return () => clearInterval(updateInterval);
+        await registration.update().catch(() => undefined);
+
+        updateIntervalRef.current = setInterval(() => {
+          registration.update().catch((error) => {
+            console.error('Service worker update failed:', error);
+          });
+        }, UPDATE_INTERVAL_MS);
       } catch (error) {
         console.error('Service worker registration failed:', error);
         setStatus('error');
       }
     };
 
-    // Listen for the "load" event to avoid delaying the initial page load
     window.addEventListener('load', registerServiceWorker);
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
-    // Listen for the "updatefound" event to track installation progress
-    if (registration) {
-      const { installing, waiting } = registration;
-      
-      if (installing) {
-        setStatus('installing');
-        installing.onstatechange = () => {
-          if (installing.state === 'installed') {
-            if (navigator.serviceWorker.controller) {
-              setStatus('updated');
-              setUpdateAvailable(true);
-            } else {
-              setStatus('installed');
-            }
-          }
-        };
-      } else if (waiting) {
-        setStatus('updated');
-        setUpdateAvailable(true);
-      }
+    if (document.readyState === 'complete') {
+      void registerServiceWorker();
     }
 
-    // Clean up event listeners
     return () => {
       window.removeEventListener('load', registerServiceWorker);
-    };
-  }, [registration]);
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        handleControllerChange
+      );
 
-  // Function to update the service worker
-  const updateServiceWorker = () => {
-    if (registration && registration.waiting) {
-      // Send a message to the waiting service worker to skip waiting
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
+        updateIntervalRef.current = null;
+      }
+
+      detachRegistrationListenersRef.current?.();
+      detachRegistrationListenersRef.current = null;
+    };
+  }, []);
+
+  const updateServiceWorker = useCallback(() => {
+    const registration = registrationRef.current;
+    if (registration?.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       setUpdateAvailable(false);
     }
-  };
+  }, []);
 
   return { status, updateAvailable, updateServiceWorker };
 }

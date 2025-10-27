@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { notFound } from 'next/navigation';
-import { exampleListings } from '@/lib/example-listings';
 import type { Listing } from '@/lib/types';
 
 interface UseListingOptions {
@@ -37,11 +36,11 @@ export function useListing(
   const [listing, setListing] = useState<Listing | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const normalizedId = useMemo(() => {
     if (!id) return null;
-    const idValue = typeof id === 'string' ? id : id.id;
-    return idValue.startsWith('listing-') ? idValue : `listing-${idValue}`;
+    return typeof id === 'string' ? id : id.id;
   }, [id]);
 
   const fetchListing = useCallback(async () => {
@@ -51,27 +50,51 @@ export function useListing(
       return;
     }
 
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       setIsLoading(true);
       setError(null);
-      
-      // Simulate API call with a small delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      const listingData = exampleListings.find(l => l.id === normalizedId);
-      
-      if (!listingData) {
+
+      const response = await fetch(`/api/listings/${normalizedId}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      if (response.status === 404) {
         notFound();
       }
-      
-      setListing(listingData);
-      onSuccess?.(listingData);
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to fetch listing');
+      }
+
+      const data = await response.json();
+      const listingData = data?.listing as Listing | undefined;
+
+      if (!controller.signal.aborted) {
+        if (!listingData) {
+          notFound();
+        } else {
+          setListing(listingData);
+          onSuccess?.(listingData);
+        }
+      }
     } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
       const error = err instanceof Error ? err : new Error('Failed to fetch listing');
       setError(error);
       onError?.(error);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [normalizedId, onSuccess, onError]);
 
@@ -79,6 +102,9 @@ export function useListing(
     if (enabled) {
       fetchListing();
     }
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [enabled, fetchListing]);
 
   return { 

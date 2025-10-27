@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,14 +39,14 @@ export default function AdminVerificationsPage() {
   const roleFromType = (t: string): 'Buyer' | 'Seller' =>
     ['business_registration', 'business_address', 'bank_verification'].includes(t) ? 'Seller' : 'Buyer';
 
-  const buildQuery = () => {
+  const buildQuery = useCallback(() => {
     const params = new URLSearchParams();
     params.set('status', status);
     if (role !== 'all') params.set('role', role);
     return `/api/verification/admin/list?${params.toString()}`;
-  };
+  }, [role, status]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(buildQuery(), { cache: "no-store" });
@@ -68,11 +68,11 @@ export default function AdminVerificationsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [buildQuery]);
 
   useEffect(() => {
-    load();
-  }, [status, role]);
+    void load();
+  }, [load]);
 
   const act = async (id: string, status: "verified" | "rejected") => {
     setActingId(id);

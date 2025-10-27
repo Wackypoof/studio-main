@@ -32,7 +32,7 @@ export default function Error({
       </h1>
       
       <p className="mb-6 max-w-md text-muted-foreground">
-        We've encountered an unexpected error. Our team has been notified and is working on a fix.
+        We&apos;ve encountered an unexpected error. Our team has been notified and is working on a fix.
         Please try again later or contact support if the problem persists.
       </p>
       

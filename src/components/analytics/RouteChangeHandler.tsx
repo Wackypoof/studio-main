@@ -5,23 +5,25 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { track } from '@vercel/analytics';
 
 export function RouteChangeHandler() {
-  if (process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() !== 'true') {
-    return null;
-  }
+  const monitoringEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_MONITORING?.toString() === 'true';
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const search = searchParams?.toString() ?? '';
 
   useEffect(() => {
+    if (!monitoringEnabled) return;
+
     const handleRouteChange = () => {
-      // Track route changes
+      const url = search ? `${pathname}?${search}` : pathname;
+
       track('route-change', {
-        url: `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ''}`,
+        url,
         pathname,
-        search: searchParams?.toString(),
+        search,
         timestamp: new Date().toISOString(),
       });
 
-      // Track page load performance
       if (typeof window !== 'undefined' && window.performance) {
         const navigationEntries = performance.getEntriesByType('navigation');
         if (navigationEntries.length > 0) {
@@ -41,10 +43,8 @@ export function RouteChangeHandler() {
       }
     };
 
-    // Initial page load
     handleRouteChange();
 
-    // Set up observer for route changes
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
         if (entry.entryType === 'navigation') {
@@ -58,7 +58,7 @@ export function RouteChangeHandler() {
     return () => {
       observer.disconnect();
     };
-  }, [pathname, searchParams]);
+  }, [monitoringEnabled, pathname, search]);
 
   return null;
 }

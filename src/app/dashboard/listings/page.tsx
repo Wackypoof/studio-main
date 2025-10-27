@@ -7,53 +7,69 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Plus, Search, Filter, FileText, CheckCircle, Clock, AlertCircle, X, MoreVertical, 
-  Pencil, Eye, BarChart2, Trash2, Share2, Copy, Tag, DollarSign, Calendar, MapPin, Users, BriefcaseBusiness
+import {
+  Plus,
+  Search,
+  Filter,
+  FileText,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  X,
+  MoreVertical,
+  Pencil,
+  BarChart2,
+  Trash2,
+  Tag,
+  Users,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { mockData } from '@/lib/data';
-import { Listing, ListingStatus } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { ListingStatus } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
-import { useRole } from '@/contexts/role-context';
 import { ListingCard } from '@/components/listing-card';
 import { Progress } from '@/components/ui/progress';
+import { useListings } from '@/hooks/useListings';
 
 export default function ListingsPage() {
   const router = useRouter();
-  const { isBuyer } = useRole();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const {
+    listings,
+    isLoading,
+    error,
+    refetch,
+    count: totalCount,
+  } = useListings({ scope: 'mine' });
 
-  // In a real app, this would come from the API based on the authenticated user
-  const currentUser = useMemo(() => {
-    return mockData.testUsers.seller1; // Default to seller1 for demo
-  }, []);
-
-  // Filter listings by current user and search term
   const filteredListings = useMemo(() => {
-    return mockData.listings
-      .filter(listing => listing.userId === currentUser.id)
-      .filter(listing => 
-        listing.headline.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.vertical.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        listing.location_area.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .filter(listing => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return listings
+      .filter((listing) => {
+        if (!normalizedSearch) return true;
+        return (
+          listing.headline.toLowerCase().includes(normalizedSearch) ||
+          listing.vertical.toLowerCase().includes(normalizedSearch) ||
+          listing.location_area.toLowerCase().includes(normalizedSearch)
+        );
+      })
+      .filter((listing) => {
         if (activeTab === 'all') return true;
         return listing.status === activeTab;
       });
-  }, [currentUser.id, searchTerm, activeTab]);
+  }, [listings, searchTerm, activeTab]);
 
-  const getStatusBadge = (status: ListingStatus) => {
+  const hasListings = filteredListings.length > 0;
+
+  const renderStatusBadge = (status: ListingStatus) => {
     const statusConfig = {
       draft: { label: 'Draft', variant: 'outline' as const, icon: <FileText className="h-3 w-3" /> },
       pending: { label: 'Pending Review', variant: 'secondary' as const, icon: <Clock className="h-3 w-3" /> },
@@ -61,13 +77,14 @@ export default function ListingsPage() {
       paused: { label: 'Paused', variant: 'outline' as const, icon: <AlertCircle className="h-3 w-3" /> },
       under_offer: { label: 'Under Offer', variant: 'secondary' as const, icon: <Tag className="h-3 w-3" /> },
       closed: { label: 'Closed', variant: 'outline' as const, icon: <X className="h-3 w-3" /> },
-    }[status];
+    }[status] ?? {
+      label: status,
+      variant: 'outline' as const,
+      icon: <FileText className="h-3 w-3" />,
+    };
 
     return (
-      <Badge 
-        variant={statusConfig.variant} 
-        className="gap-1 text-xs"
-      >
+      <Badge variant={statusConfig.variant} className="gap-1 text-xs">
         {statusConfig.icon}
         {statusConfig.label}
       </Badge>
@@ -152,14 +169,36 @@ export default function ListingsPage() {
         </CardHeader>
 
         <CardContent>
-          {filteredListings.length === 0 ? (
+          {isLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-48 w-full animate-pulse rounded-lg border border-dashed border-muted"
+                />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <AlertCircle className="h-10 w-10 text-red-500" />
+              <div>
+                <h3 className="text-lg font-semibold">Something went wrong</h3>
+                <p className="text-sm text-muted-foreground">
+                  {error.message || 'Unable to load listings right now.'}
+                </p>
+              </div>
+              <Button onClick={() => refetch()} variant="outline">
+                Retry
+              </Button>
+            </div>
+          ) : !hasListings ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium">No listings found</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                {searchTerm 
-                  ? 'No listings match your search criteria.' 
-                  : 'You haven\'t created any listings yet.'}
+                {searchTerm
+                  ? 'No listings match your search criteria.'
+                  : "You haven't created any listings yet."}
               </p>
               <Button onClick={() => router.push('/dashboard/listings/new')}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -170,11 +209,18 @@ export default function ListingsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredListings.map((listing) => (
                 <div key={listing.id} className="relative group">
+                  <div className="pointer-events-none absolute left-3 top-3 z-10">
+                    {renderStatusBadge(listing.status)}
+                  </div>
                   <ListingCard listing={listing} from="my-listings" />
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-8 w-8 bg-background/80 backdrop-blur-sm">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -205,11 +251,11 @@ export default function ListingsPage() {
           )}
         </CardContent>
         
-        {filteredListings.length > 0 && (
+        {!isLoading && !error && hasListings && (
           <CardFooter className="flex justify-between border-t px-6 py-4">
             <p className="text-sm text-muted-foreground">
               Showing <span className="font-medium">{filteredListings.length}</span> of{' '}
-              <span className="font-medium">{filteredListings.length}</span> listings
+              <span className="font-medium">{totalCount || listings.length}</span> listings
             </p>
             <div className="space-x-2">
               <Button variant="outline" size="sm" disabled>
@@ -227,15 +273,41 @@ export default function ListingsPage() {
 }
 
 function OnboardingChecklist() {
-  const [hidden, setHidden] = useState(false);
-  const [hasDraft, setHasDraft] = useState(false);
+  const [hidden, setHidden] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('onboarding_hidden') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [hasDraft, setHasDraft] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return Boolean(localStorage.getItem('listingNewDraft'));
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      setHidden(localStorage.getItem('onboarding_hidden') === '1');
-      setHasDraft(!!localStorage.getItem('listingNewDraft'));
-    } catch {}
+
+    const syncState = () => {
+      try {
+        const shouldHide = localStorage.getItem('onboarding_hidden') === '1';
+        const draftExists = Boolean(localStorage.getItem('listingNewDraft'));
+        setHidden(shouldHide);
+        setHasDraft(draftExists);
+      } catch {}
+    };
+
+    const frameId = requestAnimationFrame(syncState);
+    window.addEventListener('storage', syncState);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('storage', syncState);
+    };
   }, []);
 
   const steps = [
