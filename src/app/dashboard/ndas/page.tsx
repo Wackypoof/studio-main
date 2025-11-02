@@ -1,64 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Search, FileText, Clock, CheckCircle2, AlertTriangle, MoreVertical, Download, Eye, FileSignature, Filter, RefreshCcw, ShieldCheck, Loader2 } from 'lucide-react';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, FileText, Clock, Check, AlertCircle, MoreVertical, Download, Eye, FileSignature, Filter, X } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { PageHeader } from '@/components/page-header';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { toast } from '@/hooks/use-toast';
+import { NdaFormClient } from '@/components/nda/nda-form-client';
+import { getExpiringSoonCount, getNdaStatusCounts, getUpcomingExpirations } from '@/lib/nda/helpers';
+import { useNdaAgreements } from '@/hooks/useNdaAgreements';
+import type { NdaAgreementSummary, NdaStatus } from '@/types/nda';
 
-type NDAStatus = 'signed' | 'pending' | 'expired' | 'declined';
+type TabValue = 'all' | NdaStatus;
 
-interface NDA {
-  id: string;
-  listingId: string;
-  listingName: string;
-  sellerName: string;
-  status: NDAStatus;
-  signedDate?: string;
-  expiresDate?: string;
-}
-
-// Mock data - in a real app, this would come from an API
-const mockNDAs: NDA[] = [
-  {
-    id: 'nda-1',
-    listingId: 'listing-1',
-    listingName: 'Premium Skincare Dropshipping Store',
-    sellerName: 'Jane Smith',
-    status: 'signed',
-    signedDate: '2023-10-15',
-    expiresDate: '2024-10-15'
+const statusCopy: Record<NdaStatus, { label: string; badgeVariant: 'default' | 'outline' | 'secondary' | 'destructive'; icon: ReactNode }> = {
+  signed: {
+    label: 'Signed',
+    badgeVariant: 'default',
+    icon: <CheckCircle2 className="h-3 w-3" />,
   },
-  {
-    id: 'nda-2',
-    listingId: 'listing-2',
-    listingName: 'Boutique Coffee Roastery',
-    sellerName: 'John Doe',
-    status: 'pending',
+  pending: {
+    label: 'Pending',
+    badgeVariant: 'outline',
+    icon: <Clock className="h-3 w-3" />,
   },
-  {
-    id: 'nda-3',
-    listingId: 'listing-3',
-    listingName: 'AI-Powered Marketing SaaS',
-    sellerName: 'Acme Inc.',
-    status: 'expired',
-    signedDate: '2022-05-10',
-    expiresDate: '2023-05-10'
+  expired: {
+    label: 'Expired',
+    badgeVariant: 'secondary',
+    icon: <AlertTriangle className="h-3 w-3" />,
   },
-];
+  declined: {
+    label: 'Declined',
+    badgeVariant: 'destructive',
+    icon: <AlertTriangle className="h-3 w-3" />,
+  },
+};
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'N/A';
-
   return date.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -66,71 +55,109 @@ const formatDate = (value?: string) => {
   });
 };
 
-type TabValue = 'all' | NDAStatus;
+const formatRelative = (value?: string) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 export default function NDAsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<TabValue>('all');
+  const [selectedAgreement, setSelectedAgreement] = useState<NdaAgreementSummary | null>(null);
+  const [renewalTarget, setRenewalTarget] = useState<string | null>(null);
 
-  const statusCounts = mockNDAs.reduce(
-    (acc, nda) => {
-      acc.total += 1;
-      acc[nda.status] = (acc[nda.status] ?? 0) + 1;
-      return acc;
-    },
-    { total: 0, signed: 0, pending: 0, expired: 0, declined: 0 } as Record<'total' | NDAStatus, number>
+  const {
+    agreements,
+    isLoading,
+    isError,
+    error,
+    requestRenewal,
+    isRenewalLoading,
+  } = useNdaAgreements();
+
+  const statusCounts = useMemo(() => getNdaStatusCounts(agreements), [agreements]);
+  const expiringSoon = useMemo(() => getExpiringSoonCount(agreements, 30), [agreements]);
+  const renewalRequests = useMemo(
+    () => agreements.filter((nda) => nda.renewalRequested).length,
+    [agreements]
   );
 
-  const stats: { label: string; value: number; icon: LucideIcon }[] = [
+  const filteredAgreements = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return agreements
+      .filter((nda) => statusFilter === 'all' || nda.status === statusFilter)
+      .filter((nda) => {
+        if (!query) return true;
+        return (
+          nda.listingName.toLowerCase().includes(query) ||
+          nda.sellerName.toLowerCase().includes(query) ||
+          nda.buyerName.toLowerCase().includes(query) ||
+          nda.listingId.toLowerCase().includes(query) ||
+          nda.id.toLowerCase().includes(query)
+        );
+      });
+  }, [agreements, searchTerm, statusFilter]);
+
+  const upcomingExpirations = useMemo(
+    () => getUpcomingExpirations(agreements, 4),
+    [agreements]
+  );
+
+  const stats = [
     { label: 'Total NDAs', value: statusCounts.total, icon: FileText },
-    { label: 'Signed', value: statusCounts.signed, icon: Check },
+    { label: 'Signed', value: statusCounts.signed, icon: CheckCircle2 },
     { label: 'Pending', value: statusCounts.pending, icon: Clock },
-    { label: 'Expired', value: statusCounts.expired, icon: AlertCircle },
-  ];
+    { label: 'Expiring this month', value: expiringSoon, icon: AlertTriangle },
+  ] as const;
 
-  const filteredNDAs = mockNDAs
-    .filter((nda) => statusFilter === 'all' || nda.status === statusFilter)
-    .filter((nda) => {
-      if (!searchTerm.trim()) return true;
-
-      const query = searchTerm.toLowerCase();
-      return (
-        nda.listingName.toLowerCase().includes(query) ||
-        nda.sellerName.toLowerCase().includes(query) ||
-        nda.listingId.toLowerCase().includes(query)
-      );
+  const handleDownload = (nda: NdaAgreementSummary) => {
+    toast({
+      title: 'Download started',
+      description: `Preparing ${nda.listingName} NDA for download.`,
     });
+  };
 
-  const upcomingExpirations = mockNDAs
-    .filter((nda) => nda.expiresDate)
-    .sort((a, b) => {
-      const aTime = new Date(a.expiresDate ?? '').getTime();
-      const bTime = new Date(b.expiresDate ?? '').getTime();
-      return aTime - bTime;
-    })
-    .slice(0, 3);
+  const handleRenewalRequest = async (nda: NdaAgreementSummary) => {
+    try {
+      setRenewalTarget(nda.id);
+      await requestRenewal(nda.id);
+      toast({
+        title: 'Renewal request sent',
+        description: `We let ${nda.sellerName} know you would like to renew access.`,
+      });
+    } catch (err) {
+      toast({
+        title: 'Unable to request renewal',
+        description: err instanceof Error ? err.message : 'Please try again shortly.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRenewalTarget(null);
+    }
+  };
 
-  const getStatusBadge = (status: NDAStatus) => {
-    const statusConfig = {
-      signed: { label: 'Signed', variant: 'default' as const, icon: <Check className="h-3 w-3" /> },
-      pending: { label: 'Pending', variant: 'outline' as const, icon: <Clock className="h-3 w-3" /> },
-      expired: { label: 'Expired', variant: 'secondary' as const, icon: <AlertCircle className="h-3 w-3" /> },
-      declined: { label: 'Declined', variant: 'destructive' as const, icon: <X className="h-3 w-3" /> },
-    }[status];
-
+  const renderStatusBadge = (status: NdaStatus) => {
+    const meta = statusCopy[status];
     return (
-      <Badge variant={statusConfig.variant} className="gap-1 text-xs">
-        {statusConfig.icon}
-        {statusConfig.label}
+      <Badge variant={meta.badgeVariant} className="gap-1 text-xs font-medium">
+        {meta.icon}
+        {meta.label}
       </Badge>
     );
   };
 
   return (
-    <div className="w-full flex flex-col gap-8">
-      <PageHeader 
+    <div className="flex w-full flex-col gap-8">
+      <PageHeader
         title="NDA Management"
-        description="View and manage your non-disclosure agreements"
+        description="Track agreements, monitor expirations, and renew confidential access."
       />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -146,7 +173,7 @@ export default function NDAsPage() {
           </Card>
         ))}
       </section>
-      
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card className="border-border/60">
           <CardHeader className="border-b border-border/60 bg-muted/30">
@@ -157,7 +184,7 @@ export default function NDAsPage() {
                   <Input
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search by listing, seller, or ID..."
+                    placeholder="Search by listing, seller, or buyer..."
                     className="pl-10"
                   />
                 </div>
@@ -167,11 +194,21 @@ export default function NDAsPage() {
                   className="w-full sm:w-auto"
                 >
                   <TabsList className="flex w-full flex-wrap justify-start gap-2 sm:flex-nowrap">
-                    <TabsTrigger value="all" className="px-4">All</TabsTrigger>
-                    <TabsTrigger value="signed" className="px-4">Signed</TabsTrigger>
-                    <TabsTrigger value="pending" className="px-4">Pending</TabsTrigger>
-                    <TabsTrigger value="expired" className="px-4">Expired</TabsTrigger>
-                    <TabsTrigger value="declined" className="px-4">Declined</TabsTrigger>
+                    <TabsTrigger value="all" className="px-4">
+                      All
+                    </TabsTrigger>
+                    <TabsTrigger value="signed" className="px-4">
+                      Signed
+                    </TabsTrigger>
+                    <TabsTrigger value="pending" className="px-4">
+                      Pending
+                    </TabsTrigger>
+                    <TabsTrigger value="expired" className="px-4">
+                      Expired
+                    </TabsTrigger>
+                    <TabsTrigger value="declined" className="px-4">
+                      Declined
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -179,38 +216,86 @@ export default function NDAsPage() {
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                 <Button variant="outline" size="sm">
                   <Filter className="mr-2 h-4 w-4" />
-                  Filters
+                  Saved filters
                 </Button>
-                <Button size="sm">
-                  <FileSignature className="mr-2 h-4 w-4" />
-                  New NDA
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <FileSignature className="mr-2 h-4 w-4" />
+                      New NDA
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                      <DialogTitle>Sign a new NDA</DialogTitle>
+                      <DialogDescription>
+                        Complete the NDA workflow to unlock full listing details from sellers.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <NdaFormClient />
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <Table className="min-w-[720px] text-sm">
+              <Table className="min-w-[860px] text-sm">
                 <TableHeader>
                   <TableRow className="bg-muted/20">
                     <TableHead className="min-w-[220px]">Listing</TableHead>
-                    <TableHead className="min-w-[160px]">Seller</TableHead>
+                    <TableHead className="min-w-[140px]">Seller</TableHead>
+                    <TableHead className="min-w-[140px]">Buyer</TableHead>
                     <TableHead className="min-w-[120px]">Status</TableHead>
-                    <TableHead className="min-w-[140px]">Signed</TableHead>
-                    <TableHead className="min-w-[140px]">Expires</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="min-w-[120px]">Signed</TableHead>
+                    <TableHead className="min-w-[120px]">Expires</TableHead>
+                    <TableHead className="min-w-[120px] text-right">Security</TableHead>
+                    <TableHead className="w-[50px]" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredNDAs.length > 0 ? (
-                    filteredNDAs.map((nda) => (
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={8}>
+                        <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading agreements…</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : isError ? (
+                    <TableRow>
+                      <TableCell colSpan={8}>
+                        <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-muted-foreground">
+                          <AlertTriangle className="h-10 w-10" />
+                          <div>
+                            <p className="font-medium text-foreground">Failed to load NDAs</p>
+                            <p className="text-sm">{error?.message ?? 'Please try again shortly.'}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredAgreements.length > 0 ? (
+                    filteredAgreements.map((nda) => (
                       <TableRow key={nda.id} className="hover:bg-muted/30">
-                        <TableCell className="font-medium">{nda.listingName}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span>{nda.listingName}</span>
+                            <span className="text-xs text-muted-foreground">#{nda.id}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>{nda.sellerName}</TableCell>
-                        <TableCell>{getStatusBadge(nda.status)}</TableCell>
+                        <TableCell>{nda.buyerName}</TableCell>
+                        <TableCell>{renderStatusBadge(nda.status)}</TableCell>
                         <TableCell>{formatDate(nda.signedDate)}</TableCell>
                         <TableCell>{formatDate(nda.expiresDate)}</TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant="secondary" className="gap-1 text-xs">
+                            <ShieldCheck className="h-3 w-3" />
+                            {nda.securityLevel === 'strict' ? 'Strict' : 'Standard'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -220,18 +305,30 @@ export default function NDAsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => setSelectedAgreement(nda)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                <span>View</span>
+                                <span>View details</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleDownload(nda)}>
                                 <Download className="mr-2 h-4 w-4" />
-                                <span>Download</span>
+                                <span>Download PDF</span>
                               </DropdownMenuItem>
                               {nda.status === 'pending' && (
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => toast({ title: 'Signature requested', description: `The seller has been notified to countersign ${nda.listingName}.` })}>
                                   <FileSignature className="mr-2 h-4 w-4" />
-                                  <span>Sign NDA</span>
+                                  <span>Request signature</span>
+                                </DropdownMenuItem>
+                              )}
+                              {nda.status === 'signed' && (
+                                <DropdownMenuItem
+                                  disabled={isRenewalLoading && renewalTarget === nda.id}
+                                  onSelect={() => {
+                                    if (isRenewalLoading && renewalTarget && renewalTarget !== nda.id) return;
+                                    void handleRenewalRequest(nda);
+                                  }}
+                                >
+                                  <RefreshCcw className="mr-2 h-4 w-4" />
+                                  <span>Request renewal</span>
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -241,7 +338,7 @@ export default function NDAsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={8}>
                         <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-muted-foreground">
                           <FileText className="h-10 w-10" />
                           <div>
@@ -262,23 +359,32 @@ export default function NDAsPage() {
           <Card className="border-border/60">
             <CardHeader>
               <CardTitle className="text-base">Agreement health</CardTitle>
-              <CardDescription>Track where agreements need your attention.</CardDescription>
+              <CardDescription>Monitor the balance of your NDA portfolio.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-5">
-              {stats.slice(1).map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-muted p-2">
-                      <stat.icon className="h-4 w-4 text-muted-foreground" />
+            <CardContent className="space-y-4">
+              {(Object.keys(statusCopy) as NdaStatus[]).map((status) => {
+                const count = statusCounts[status];
+                const percentage = statusCounts.total ? Math.round((count / statusCounts.total) * 100) : 0;
+                return (
+                  <div key={status} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span className="flex items-center gap-2">
+                        {statusCopy[status].icon}
+                        {statusCopy[status].label}
+                      </span>
+                      <span>{count}</span>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{stat.label}</p>
-                      <p className="text-xs text-muted-foreground">Latest status count</p>
-                    </div>
+                    <Progress value={percentage} className="h-1.5" />
                   </div>
-                  <span className="text-lg font-semibold">{stat.value}</span>
-                </div>
-              ))}
+                );
+              })}
+              <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
+                {renewalRequests > 0 ? (
+                  <span>{renewalRequests} agreement{renewalRequests > 1 ? 's' : ''} awaiting renewal confirmation.</span>
+                ) : (
+                  <span>All signed agreements are current. No renewal actions queued.</span>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -305,10 +411,24 @@ export default function NDAsPage() {
                       <span className="text-xs text-muted-foreground">
                         Signed {formatDate(nda.signedDate)}
                       </span>
-                      <Button variant="ghost" size="sm" className="h-8 px-3">
-                        Review
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3"
+                        disabled={isRenewalLoading && renewalTarget === nda.id}
+                        onClick={() => void handleRenewalRequest(nda)}
+                      >
+                        {isRenewalLoading && renewalTarget === nda.id ? (
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        ) : null}
+                        Request renewal
                       </Button>
                     </div>
+                    {nda.renewalRequested && (
+                      <p className="mt-2 text-xs text-amber-600">
+                        Renewal already requested — awaiting seller response.
+                      </p>
+                    )}
                   </div>
                 ))
               ) : (
@@ -321,8 +441,109 @@ export default function NDAsPage() {
               )}
             </CardContent>
           </Card>
+
+          <Card className="border-border/60">
+            <CardHeader>
+              <CardTitle className="text-base">Last activity</CardTitle>
+              <CardDescription>Keep tabs on the agreements that recently moved.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {agreements.length > 0 ? (
+                agreements
+                  .slice()
+                  .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime())
+                  .slice(0, 4)
+                  .map((nda) => (
+                    <div key={nda.id} className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-foreground">{nda.listingName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {statusCopy[nda.status].label} • {formatRelative(nda.lastUpdated)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3"
+                        onClick={() => setSelectedAgreement(nda)}
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No recent NDA activity yet.</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      <Dialog open={!!selectedAgreement} onOpenChange={(open) => !open && setSelectedAgreement(null)}>
+        <DialogContent className="max-w-lg">
+          {selectedAgreement && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedAgreement.listingName}</DialogTitle>
+                <DialogDescription>
+                  Signed between {selectedAgreement.buyerName} and {selectedAgreement.sellerName}.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div>
+                    <p className="text-xs uppercase text-muted-foreground">Status</p>
+                    <div className="mt-1">{renderStatusBadge(selectedAgreement.status)}</div>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-muted-foreground">Security tier</p>
+                    <p className="mt-1 font-medium text-foreground">
+                      {selectedAgreement.securityLevel === 'strict' ? 'Strict controls' : 'Standard'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-muted-foreground">Signed</p>
+                    <p className="mt-1 font-medium text-foreground">{formatDate(selectedAgreement.signedDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-muted-foreground">Expires</p>
+                    <p className="mt-1 font-medium text-foreground">{formatDate(selectedAgreement.expiresDate)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs uppercase text-muted-foreground">Participants</p>
+                  <div className="rounded-md border border-border/60 p-3">
+                    <p className="font-medium text-foreground">{selectedAgreement.buyerName}</p>
+                    <p className="text-xs text-muted-foreground">{selectedAgreement.buyerCompany ?? 'Independent buyer'}</p>
+                  </div>
+                  <div className="rounded-md border border-border/60 p-3">
+                    <p className="font-medium text-foreground">{selectedAgreement.sellerName}</p>
+                    <p className="text-xs text-muted-foreground">Listing ID {selectedAgreement.listingId}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => handleDownload(selectedAgreement)} size="sm" variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download copy
+                  </Button>
+                  {selectedAgreement.status === 'signed' && (
+                    <Button onClick={() => handleRenewalRequest(selectedAgreement)} size="sm">
+                      <RefreshCcw className="mr-2 h-4 w-4" />
+                      Request renewal
+                    </Button>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  An audit trail of every action is retained for compliance. Contact support if you need a copy.
+                </p>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

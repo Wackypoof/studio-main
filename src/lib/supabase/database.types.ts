@@ -242,7 +242,193 @@ export interface Database {
           {
             foreignKeyName: "listing_photos_listing_id_fkey";
             columns: ["listing_id"];
+          referencedRelation: "listings";
+          referencedColumns: ["id"];
+        }
+      ];
+      };
+      nda_agreements: {
+        Row: {
+          buyer_id: string;
+          buyer_company: string | null;
+          created_at: string;
+          document_url: string | null;
+          expires_at: string | null;
+          id: string;
+          listing_id: string;
+          renewal_requested: boolean;
+          security_level: string;
+          seller_id: string;
+          signed_at: string | null;
+          status: Database["public"]["Enums"]["nda_status"];
+          updated_at: string;
+        };
+        Insert: {
+          buyer_id: string;
+          buyer_company?: string | null;
+          created_at?: string;
+          document_url?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          listing_id: string;
+          renewal_requested?: boolean;
+          security_level?: string;
+          seller_id: string;
+          signed_at?: string | null;
+          status?: Database["public"]["Enums"]["nda_status"];
+          updated_at?: string;
+        };
+        Update: {
+          buyer_id?: string;
+          buyer_company?: string | null;
+          created_at?: string;
+          document_url?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          listing_id?: string;
+          renewal_requested?: boolean;
+          security_level?: string;
+          seller_id?: string;
+          signed_at?: string | null;
+          status?: Database["public"]["Enums"]["nda_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nda_agreements_buyer_id_fkey";
+            columns: ["buyer_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nda_agreements_listing_id_fkey";
+            columns: ["listing_id"];
             referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nda_agreements_seller_id_fkey";
+            columns: ["seller_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      nda_audit_events: {
+        Row: {
+          agreement_id: string | null;
+          created_at: string;
+          created_by: string;
+          event_type: Database["public"]["Enums"]["nda_audit_event_type"];
+          id: string;
+          note: string | null;
+          request_id: string | null;
+        };
+        Insert: {
+          agreement_id?: string | null;
+          created_at?: string;
+          created_by: string;
+          event_type: Database["public"]["Enums"]["nda_audit_event_type"];
+          id?: string;
+          note?: string | null;
+          request_id?: string | null;
+        };
+        Update: {
+          agreement_id?: string | null;
+          created_at?: string;
+          created_by?: string;
+          event_type?: Database["public"]["Enums"]["nda_audit_event_type"];
+          id?: string;
+          note?: string | null;
+          request_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nda_audit_events_agreement_id_fkey";
+            columns: ["agreement_id"];
+            referencedRelation: "nda_agreements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nda_audit_events_request_id_fkey";
+            columns: ["request_id"];
+            referencedRelation: "nda_requests";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      nda_requests: {
+        Row: {
+          buyer_company: string | null;
+          buyer_email: string;
+          buyer_id: string;
+          created_at: string;
+          document_url: string | null;
+          expires_at: string | null;
+          id: string;
+          last_activity_at: string;
+          listing_id: string;
+          notes: string | null;
+          requested_at: string;
+          risk_level: Database["public"]["Enums"]["nda_risk_level"];
+          seller_id: string;
+          signed_at: string | null;
+          status: Database["public"]["Enums"]["nda_request_status"];
+          updated_at: string;
+        };
+        Insert: {
+          buyer_company?: string | null;
+          buyer_email: string;
+          buyer_id: string;
+          created_at?: string;
+          document_url?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          last_activity_at?: string;
+          listing_id: string;
+          notes?: string | null;
+          requested_at?: string;
+          risk_level?: Database["public"]["Enums"]["nda_risk_level"];
+          seller_id: string;
+          signed_at?: string | null;
+          status?: Database["public"]["Enums"]["nda_request_status"];
+          updated_at?: string;
+        };
+        Update: {
+          buyer_company?: string | null;
+          buyer_email?: string;
+          buyer_id?: string;
+          created_at?: string;
+          document_url?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          last_activity_at?: string;
+          listing_id?: string;
+          notes?: string | null;
+          requested_at?: string;
+          risk_level?: Database["public"]["Enums"]["nda_risk_level"];
+          seller_id?: string;
+          signed_at?: string | null;
+          status?: Database["public"]["Enums"]["nda_request_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nda_requests_buyer_id_fkey";
+            columns: ["buyer_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nda_requests_listing_id_fkey";
+            columns: ["listing_id"];
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nda_requests_seller_id_fkey";
+            columns: ["seller_id"];
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];
@@ -312,6 +498,21 @@ export interface Database {
         | "other";
       listing_status: "draft" | "active" | "sold" | "withdrawn";
       user_role: "admin" | "user" | "guest";
+      nda_audit_event_type:
+        | "requested"
+        | "approved"
+        | "declined"
+        | "signed"
+        | "expired"
+        | "system";
+      nda_request_status:
+        | "pending"
+        | "approved"
+        | "declined"
+        | "signed"
+        | "expired";
+      nda_risk_level: "low" | "medium" | "high";
+      nda_status: "pending" | "signed" | "expired" | "declined";
     };
     CompositeTypes: {
       [_ in never]: never;
