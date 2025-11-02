@@ -1,9 +1,9 @@
-import type { Database } from '@/types/supabase';
-
-export type NdaStatus = Database['public']['Enums']['nda_status'];
-export type NdaRequestStatus = Database['public']['Enums']['nda_request_status'];
-export type NdaRiskLevel = Database['public']['Enums']['nda_risk_level'];
-export type NdaAuditEventType = Database['public']['Enums']['nda_audit_event_type'];
+import type { 
+  NdaStatus, 
+  NdaRequestStatus, 
+  NdaRiskLevel, 
+  NdaAuditEventType 
+} from '@/types/db';
 
 export interface NdaAuditEvent {
   id: string;

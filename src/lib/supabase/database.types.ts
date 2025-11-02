@@ -496,7 +496,7 @@ export interface Database {
         | "tax_return"
         | "photo"
         | "other";
-      listing_status: "draft" | "active" | "sold" | "withdrawn";
+      listing_status: "draft" | "active" | "sold" | "withdrawn" | "pending" | "paused" | "under_offer";
       user_role: "admin" | "user" | "guest";
       nda_audit_event_type:
         | "requested"

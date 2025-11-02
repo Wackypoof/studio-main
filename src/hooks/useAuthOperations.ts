@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/types/db';
 import type { AuthUser, UserProfile, AuthResponse, AuthError, SignUpOptions, SignInCredentials } from '@/types/auth';
 import { createAuthError } from '@/lib/auth-utils';
 

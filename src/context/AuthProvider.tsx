@@ -3,7 +3,7 @@
 import { createContext, useContext, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import type { Session } from '@supabase/supabase-js';
-import type { Database } from '@/types/database.types';
+import type { Database } from '@/types/db';
 import type {
   AuthUser,
   UserProfile,

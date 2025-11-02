@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/types/db';
 import type { Listing, ListingStatus } from '@/lib/types';
 
 type ListingRow = Database['public']['Tables']['listings']['Row'];
@@ -11,15 +11,18 @@ const dbToAppStatus: Record<ListingStatusDb, ListingStatus> = {
   draft: 'draft',
   active: 'live',
   sold: 'closed',
-  withdrawn: 'paused',
+  withdrawn: 'paused', // legacy, kept for backward compatibility
+  pending: 'pending',
+  paused: 'paused',
+  under_offer: 'under_offer',
 };
 
 const appToDbStatus: Record<ListingStatus, ListingStatusDb> = {
   draft: 'draft',
-  pending: 'withdrawn',
+  pending: 'pending',
   live: 'active',
-  paused: 'withdrawn',
-  under_offer: 'withdrawn',
+  paused: 'paused',
+  under_offer: 'under_offer',
   closed: 'sold',
 };
 
@@ -206,7 +209,7 @@ export const mapListingRowToListing = (
     assets_summary: meta.assets_summary || '',
     licences_summary: meta.licences_summary || '',
     teamSize: row.employees ?? 0,
-    staff_count: row.employees ?? null,
+    staff_count: row.employees ?? undefined,
     established: deriveEstablished(row, meta),
     hoursPerWeek: meta.hours_per_week ?? 0,
     market: meta.market || row.industry,

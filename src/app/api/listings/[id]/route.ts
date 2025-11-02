@@ -5,7 +5,7 @@ import {
   mapListingToResponse,
   parseStatusInput,
 } from '@/lib/listings/helpers';
-import type { Database } from '@/types/supabase';
+import type { Database } from '@/types/db';
 
 const shouldApplyFinancials = (
   financials: Record<string, unknown> | null | undefined
