@@ -13,32 +13,10 @@ export function useAuthOperations(
   session: Session | null,
   setUser: (user: AuthUser | null) => void,
   setSession: (session: Session | null) => void,
-  supabase: SupabaseClient<Database>
+  supabase: SupabaseClient<Database>,
+  syncSession: (incomingSession: Session | null) => Promise<AuthUser | null>
 ) {
   const router = useRouter();
-
-  const syncSession = useCallback(
-    async (incomingSession: Session | null): Promise<AuthUser | null> => {
-      setSession(incomingSession);
-
-      if (!incomingSession?.user) {
-        setUser(null);
-        return null;
-      }
-
-      const baseUser = {
-        ...(incomingSession.user as AuthUser),
-        user_metadata: {
-          ...(incomingSession.user.user_metadata ?? {}),
-        },
-      } as AuthUser;
-
-      const authUser = await fetchProfile(baseUser, supabase);
-      setUser(authUser);
-      return authUser;
-    },
-    [supabase, setUser, setSession]
-  );
 
   const signIn = useCallback(
     async (credentials: SignInCredentials) => {
@@ -231,38 +209,4 @@ export function useAuthOperations(
     signOut,
     updateProfile,
   };
-}
-
-async function fetchProfile(baseUser: AuthUser, supabase: any): Promise<AuthUser> {
-  try {
-    const { data, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', baseUser.id)
-      .single();
-
-    if (profileError) {
-      // Supabase returns code PGRST116 when no profile exists yet.
-      if (profileError.code && profileError.code !== 'PGRST116') {
-        console.error('Error fetching user profile:', profileError);
-      }
-
-      return baseUser;
-    }
-
-    const existingMetadata = baseUser.user_metadata ?? {};
-
-    return {
-      ...baseUser,
-      ...data,
-      user_metadata: {
-        ...existingMetadata,
-        full_name: data?.full_name ?? existingMetadata.full_name,
-        avatar_url: data?.avatar_url ?? existingMetadata.avatar_url,
-      },
-    } as AuthUser;
-  } catch (err) {
-    console.error('Unexpected error fetching user profile:', err);
-    return baseUser;
-  }
 }

@@ -110,8 +110,8 @@ export default function DashboardPage() {
           await new Promise(resolve => setTimeout(resolve, simulatedDelay));
         }
         
-        // Only update state if the role hasn't changed during the fetch
-        if ((isBuyer && role === 'buyer') || (!isBuyer && role === 'seller')) {
+        if (isBuyer) {
+          // Buyer dashboard data
           setData({
             stats: [
               {

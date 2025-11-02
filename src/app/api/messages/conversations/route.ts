@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Get conversations with last message and unread count
+    // Get conversations with participants
     const { data: conversations, error } = await supabase
       .from('conversations')
       .select(`
@@ -41,18 +41,6 @@ export async function GET(request: NextRequest) {
             full_name,
             avatar_url
           )
-        ),
-        messages(
-          id,
-          content,
-          sender_id,
-          created_at,
-          is_read,
-          profiles!messages_sender_id_fkey(
-            id,
-            full_name,
-            avatar_url
-          )
         )
       `)
       .eq('conversation_participants.user_id', user.id)
@@ -64,22 +52,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
     }
 
-    // Transform the data to match the expected format
-    const transformedConversations = conversations?.map(conv => {
+    // Fetch last message and unread count for each conversation efficiently
+    const transformedConversations = await Promise.all((conversations || []).map(async (conv) => {
       const participants = conv.conversation_participants || [];
-      const messages = conv.messages || [];
 
-      // Get the last message
-      const lastMessage = messages
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      // Fetch only the latest message for this conversation
+      const { data: lastMessageData } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          sender_id,
+          created_at,
+          profiles!messages_sender_id_fkey(
+            id,
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('conversation_id', conv.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      // Fetch unread count efficiently
+      const { count: unreadCount } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', conv.id)
+        .eq('is_read', false)
+        .neq('sender_id', user.id);
 
       // Get other participants (excluding current user)
       const otherParticipants = participants.filter(p => p.user_id !== user.id);
-
-      // Get unread count
-      const unreadCount = messages.filter(m =>
-        !m.is_read && m.sender_id !== user.id
-      ).length;
 
       return {
         id: conv.id,
@@ -93,17 +98,17 @@ export async function GET(request: NextRequest) {
           full_name: p.profiles?.full_name,
           avatar_url: p.profiles?.avatar_url,
         })),
-        last_message: lastMessage ? {
-          id: lastMessage.id,
-          content: lastMessage.content,
-          sender_id: lastMessage.sender_id,
-          created_at: lastMessage.created_at,
-          sender: lastMessage.profiles
+        last_message: lastMessageData ? {
+          id: lastMessageData.id,
+          content: lastMessageData.content,
+          sender_id: lastMessageData.sender_id,
+          created_at: lastMessageData.created_at,
+          sender: lastMessageData.profiles
         } : null,
-        unread_count: unreadCount,
+        unread_count: unreadCount || 0,
         participant_count: participants.length
       };
-    }) || [];
+    }));
 
     return NextResponse.json({
       conversations: transformedConversations,

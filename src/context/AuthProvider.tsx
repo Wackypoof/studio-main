@@ -54,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     session,
     setUser,
     setSession,
-    supabase
+    supabase,
+    syncSession
   );
 
   const signInWithProvider = useCallback(async (provider: 'google' | 'github' | 'discord', nextPath?: string) => {

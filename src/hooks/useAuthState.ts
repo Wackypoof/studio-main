@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { AuthUser, AuthError } from '@/types/auth';
 import { createAuthError } from '@/lib/auth-utils';
 import { createClient } from '@/lib/supabase/client';
+import { fetchUserProfile } from '@/lib/auth-profile';
 
 export function useAuthState() {
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [error, setError] = useState<AuthError | null>(null);
@@ -16,37 +18,7 @@ export function useAuthState() {
 
   const fetchProfile = useCallback(
     async (baseUser: AuthUser): Promise<AuthUser> => {
-      try {
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', baseUser.id)
-          .single();
-
-        if (profileError) {
-          // Supabase returns code PGRST116 when no profile exists yet.
-          if (profileError.code && profileError.code !== 'PGRST116') {
-            console.error('Error fetching user profile:', profileError);
-          }
-
-          return baseUser;
-        }
-
-        const existingMetadata = baseUser.user_metadata ?? {};
-
-        return {
-          ...baseUser,
-          ...data,
-          user_metadata: {
-            ...existingMetadata,
-            full_name: data?.full_name ?? existingMetadata.full_name,
-            avatar_url: data?.avatar_url ?? existingMetadata.avatar_url,
-          },
-        } as AuthUser;
-      } catch (err) {
-        console.error('Unexpected error fetching user profile:', err);
-        return baseUser;
-      }
+      return fetchUserProfile(baseUser, supabase);
     },
     [supabase]
   );
@@ -135,7 +107,9 @@ export function useAuthState() {
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [supabase, syncSession]);
+    // supabase is stable from useRef, so supabase.auth is also stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncSession]);
 
   return {
     user,
@@ -149,5 +123,6 @@ export function useAuthState() {
     syncSession,
     supabase,
     setError,
+    fetchProfile,
   };
 }

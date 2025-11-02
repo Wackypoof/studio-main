@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { VALIDATION, FORM_FIELDS } from '@/lib/constants';
 
 export interface FormErrors {
@@ -83,6 +83,7 @@ export function useFormValidation<T extends Record<string, any>>(): UseFormValid
 export function useFormAutosave<T>({ storageKey, data, enabled = true, throttleMs = 800 }: UseFormAutosaveOptions<T>): UseFormAutosaveReturn<T> {
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const safeLocalStorage = typeof window !== 'undefined' ? window.localStorage : null;
 
@@ -125,21 +126,26 @@ export function useFormAutosave<T>({ storageKey, data, enabled = true, throttleM
   }, [safeLocalStorage, storageKey]);
 
   // Debounced autosave on data changes
-  const debounced = useCallback((fn: () => void, wait: number) => {
-    let t: any;
-    return () => {
-      clearTimeout(t);
-      t = setTimeout(fn, wait);
-    };
-  }, []);
-
-  const triggerSave = useMemo(() => debounced(save, throttleMs), [debounced, save, throttleMs]);
-
-  // Save whenever data changes (debounced)
   useEffect(() => {
     if (!enabled) return;
-    triggerSave();
-  }, [data, enabled, triggerSave]);
+
+    // Clear any pending timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    // Schedule new save
+    timerRef.current = setTimeout(() => {
+      save();
+    }, throttleMs);
+
+    // Cleanup on unmount
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [data, enabled, save, throttleMs]);
 
   return { lastSavedAt, isSaving, hasDraft, restore, clear, saveNow };
 }
