@@ -59,6 +59,8 @@ export interface SendMessageData {
 const supabase = createSupabaseClient();
 
 // Hook for fetching conversations
+// Note: Real-time updates are handled by useMessagingSubscription
+// Polling removed to avoid redundant traffic - subscriptions handle updates
 export function useConversations() {
   return useQuery({
     queryKey: ['conversations'],
@@ -69,11 +71,15 @@ export function useConversations() {
       }
       return response.json();
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    // No polling - rely on real-time subscriptions for updates
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
   });
 }
 
 // Hook for fetching messages in a conversation
+// Note: Real-time updates are handled by useMessagingSubscription
+// Polling removed to avoid redundant traffic - subscriptions handle updates
 export function useMessages(conversationId: string | null) {
   return useQuery({
     queryKey: ['messages', conversationId],
@@ -87,7 +93,9 @@ export function useMessages(conversationId: string | null) {
       return response.json();
     },
     enabled: !!conversationId,
-    refetchInterval: 10000, // Refetch every 10 seconds when conversation is active
+    // No polling - rely on real-time subscriptions for updates
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    staleTime: 1000 * 30, // Consider data fresh for 30 seconds
   });
 }
 

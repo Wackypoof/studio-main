@@ -2,6 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
 
+// Types for RPC function response
+interface ConversationDetail {
+  conversation_id: string;
+  conversation_title: string | null;
+  listing_id: string | null;
+  conversation_created_at: string;
+  conversation_updated_at: string;
+  participant_count: number;
+  unread_count: number;
+  last_message_id: string | null;
+  last_message_content: string | null;
+  last_message_sender_id: string | null;
+  last_message_created_at: string | null;
+  last_message_sender_full_name: string | null;
+  last_message_sender_avatar_url: string | null;
+}
+
+interface ParticipantData {
+  conversation_id: string;
+  user_id: string;
+  role: string;
+  profiles: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
 // Schema for creating a conversation
 const createConversationSchema = z.object({
   title: z.string().optional(),
@@ -23,91 +51,81 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Get conversations with participants
-    const { data: conversations, error } = await supabase
-      .from('conversations')
-      .select(`
-        id,
-        title,
-        listing_id,
-        created_at,
-        updated_at,
-        conversation_participants!inner(
-          user_id,
-          role,
-          last_read_at,
-          profiles:profiles(
-            id,
-            full_name,
-            avatar_url
-          )
-        )
-      `)
-      .eq('conversation_participants.user_id', user.id)
-      .order('updated_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    // Use optimized RPC function to get all conversation data in a single query
+    // This eliminates N+1 queries (was: 1 + 2N queries, now: 1 query)
+    const { data: conversationDetails, error: rpcError } = await supabase
+      .rpc('get_conversations_with_details', {
+        p_user_id: user.id,
+        p_limit: limit,
+        p_offset: offset
+      });
 
-    if (error) {
-      console.error('Error fetching conversations:', error);
+    if (rpcError) {
+      console.error('Error fetching conversations:', rpcError);
       return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
     }
 
-    // Fetch last message and unread count for each conversation efficiently
-    const transformedConversations = await Promise.all((conversations || []).map(async (conv) => {
-      const participants = conv.conversation_participants || [];
-
-      // Fetch only the latest message for this conversation
-      const { data: lastMessageData } = await supabase
-        .from('messages')
-        .select(`
+    // Get all unique conversation IDs to fetch participants
+    const conversationIds = (conversationDetails || []).map((c: ConversationDetail) => c.conversation_id);
+    
+    // Fetch participants for all conversations in one query
+    const { data: allParticipants, error: participantsError } = await supabase
+      .from('conversation_participants')
+      .select(`
+        conversation_id,
+        user_id,
+        role,
+        profiles:profiles(
           id,
-          content,
-          sender_id,
-          created_at,
-          profiles!messages_sender_id_fkey(
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('conversation_id', conv.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+          full_name,
+          avatar_url
+        )
+      `)
+      .in('conversation_id', conversationIds);
 
-      // Fetch unread count efficiently
-      const { count: unreadCount } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('conversation_id', conv.id)
-        .eq('is_read', false)
-        .neq('sender_id', user.id);
+    if (participantsError) {
+      console.error('Error fetching participants:', participantsError);
+      return NextResponse.json({ error: 'Failed to fetch participants' }, { status: 500 });
+    }
 
-      // Get other participants (excluding current user)
-      const otherParticipants = participants.filter(p => p.user_id !== user.id);
-
-      return {
-        id: conv.id,
-        title: conv.title,
-        listing_id: conv.listing_id,
-        created_at: conv.created_at,
-        updated_at: conv.updated_at,
-        participants: otherParticipants.map((p: any) => ({
+    // Group participants by conversation ID
+    const participantsByConversation = (allParticipants || []).reduce((acc: Record<string, any[]>, p: any) => {
+      if (!acc[p.conversation_id]) {
+        acc[p.conversation_id] = [];
+      }
+      if (p.user_id !== user.id) {
+        const profile = Array.isArray(p.profiles) ? p.profiles[0] : p.profiles;
+        acc[p.conversation_id].push({
           user_id: p.user_id,
           role: p.role,
-          full_name: p.profiles?.full_name,
-          avatar_url: p.profiles?.avatar_url,
-        })),
-        last_message: lastMessageData ? {
-          id: lastMessageData.id,
-          content: lastMessageData.content,
-          sender_id: lastMessageData.sender_id,
-          created_at: lastMessageData.created_at,
-          sender: lastMessageData.profiles
-        } : null,
-        unread_count: unreadCount || 0,
-        participant_count: participants.length
-      };
+          full_name: profile?.full_name || '',
+          avatar_url: profile?.avatar_url || null,
+        });
+      }
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Transform the data to match the expected format
+    const transformedConversations = (conversationDetails || []).map((conv: ConversationDetail) => ({
+      id: conv.conversation_id,
+      title: conv.conversation_title,
+      listing_id: conv.listing_id,
+      created_at: conv.conversation_created_at,
+      updated_at: conv.conversation_updated_at,
+      participants: participantsByConversation[conv.conversation_id] || [],
+      last_message: conv.last_message_id ? {
+        id: conv.last_message_id,
+        content: conv.last_message_content,
+        sender_id: conv.last_message_sender_id,
+        created_at: conv.last_message_created_at,
+        sender: {
+          id: conv.last_message_sender_id,
+          full_name: conv.last_message_sender_full_name,
+          avatar_url: conv.last_message_sender_avatar_url
+        }
+      } : null,
+      unread_count: Number(conv.unread_count) || 0,
+      participant_count: Number(conv.participant_count) || 0
     }));
 
     return NextResponse.json({
