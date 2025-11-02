@@ -2,12 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
+import { cn } from '@/lib/utils';
 
 export const UserMenu = React.memo(() => {
   const { user, isLoading, signOut } = useAuth();
+  const pathname = usePathname();
+  const isSellerPage = pathname?.startsWith('/sellers') ?? false;
 
   if (isLoading) {
     return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
@@ -55,7 +59,12 @@ export const UserMenu = React.memo(() => {
       <Link href="/signup">
         <Button
           size="sm"
-          className="rounded-full bg-gradient-to-r from-blue-500 via-blue-400 to-emerald-300 text-slate-950 shadow-[0_10px_25px_rgba(56,189,248,0.35)]"
+          className={cn(
+            'rounded-full text-slate-950 transition',
+            isSellerPage
+              ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-rose-300 shadow-[0_10px_25px_rgba(251,191,36,0.35)] hover:from-amber-300 hover:via-orange-300 hover:to-rose-200'
+              : 'bg-gradient-to-r from-blue-500 via-blue-400 to-emerald-300 shadow-[0_10px_25px_rgba(56,189,248,0.35)] hover:from-blue-400 hover:via-blue-300 hover:to-emerald-200',
+          )}
         >
           Sign up
         </Button>

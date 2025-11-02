@@ -2,15 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu, User, LogOut, Briefcase } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import { Logo } from './Logo';
+import { cn } from '@/lib/utils';
 
 export const MobileMenu = React.memo(() => {
   const { user, signOut } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const pathname = usePathname();
+  const isSellerPage = pathname?.startsWith('/sellers') ?? false;
 
   return (
     <div className="md:hidden ml-auto">
@@ -90,7 +94,12 @@ export const MobileMenu = React.memo(() => {
                   <SheetClose asChild>
                     <Link
                       href="/signup"
-                      className="block w-full text-center py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+                      className={cn(
+                        'block w-full rounded-md py-2 text-center transition',
+                        isSellerPage
+                          ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-rose-300 text-slate-950 shadow-[0_10px_25px_rgba(251,191,36,0.25)] hover:from-amber-300 hover:via-orange-300 hover:to-rose-200'
+                          : 'bg-primary text-primary-foreground hover:bg-primary/90',
+                      )}
                     >
                       Sign up
                     </Link>
