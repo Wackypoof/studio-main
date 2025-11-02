@@ -75,7 +75,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.2),transparent_55%)]" />
       </div>
 
-      <SiteContainer className="relative z-10 flex min-h-screen items-center py-16">
+      <SiteContainer className="relative z-10 flex min-h-[calc(100dvh-6rem)] items-center py-12 md:min-h-[calc(100dvh-8rem)] md:py-16">
         <div className="grid gap-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,420px)] xl:gap-24">
           <div className="space-y-12">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-blue-100/80 backdrop-blur">

@@ -2,10 +2,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import LoginPage from '../page';
 
+const pushMock = jest.fn();
+
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
-    push: jest.fn(),
+    push: pushMock,
   })),
+  useSearchParams: jest.fn(() => new URLSearchParams()),
 }));
 
 const mockSignIn = jest.fn();
@@ -28,6 +31,7 @@ describe('LoginPage', () => {
     mockSignIn.mockClear();
     mockSignInWithProvider.mockClear();
     mockClearError.mockClear();
+    pushMock.mockClear();
   });
 
   it('shows validation errors when submitting empty form', async () => {
@@ -66,7 +70,7 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /continue with google/i }));
 
     await waitFor(() => {
-      expect(mockSignInWithProvider).toHaveBeenCalledWith('google');
+      expect(mockSignInWithProvider).toHaveBeenCalledWith('google', '/dashboard');
     });
   });
 });

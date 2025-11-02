@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -14,6 +14,7 @@ const ErrorComponent = ({ shouldThrow = false }) => {
 describe('ErrorBoundary', () => {
   // Suppress console.error during tests
   const originalError = console.error;
+  const fallbackHeadline = /oops! something went wrong/i;
   
   beforeAll(() => {
     console.error = jest.fn();
@@ -40,9 +41,11 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByText('Something went wrong!')).toBeInTheDocument();
-    expect(screen.getByText('Test error')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+    expect(screen.getByText(fallbackHeadline)).toBeInTheDocument();
+    expect(
+      screen.getByText(/we've been notified about this issue/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /refresh page/i })).toBeInTheDocument();
   });
 
   it('calls onError when an error is caught', () => {
@@ -60,6 +63,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('resets error state when resetOnChange prop changes', () => {
+    jest.useFakeTimers();
     const { rerender } = render(
       <ErrorBoundary resetOnChange={[1]}>
         <ErrorComponent shouldThrow={true} />
@@ -67,7 +71,7 @@ describe('ErrorBoundary', () => {
     );
     
     // Should show error UI
-    expect(screen.getByText('Something went wrong!')).toBeInTheDocument();
+    expect(screen.getByText(fallbackHeadline)).toBeInTheDocument();
     
     // Change the resetOnChange value
     rerender(
@@ -75,17 +79,19 @@ describe('ErrorBoundary', () => {
         <ErrorComponent shouldThrow={false} />
       </ErrorBoundary>
     );
-    
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
     // Should now show the child component
     expect(screen.getByText('No error')).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('calls resetErrorBoundary when reset button is clicked', () => {
-    const mockReset = jest.fn();
-    
-    // Mock the ErrorBoundary's reset method
-    const originalReset = ErrorBoundary.prototype.resetErrorBoundary;
-    ErrorBoundary.prototype.resetErrorBoundary = mockReset;
+    jest.useFakeTimers();
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     
     render(
       <ErrorBoundary>
@@ -93,10 +99,10 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
-    expect(mockReset).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: /refresh page/i }));
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
     
-    // Restore the original method
-    ErrorBoundary.prototype.resetErrorBoundary = originalReset;
+    setTimeoutSpy.mockRestore();
+    jest.useRealTimers();
   });
 });
