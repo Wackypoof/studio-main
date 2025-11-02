@@ -17,16 +17,17 @@ const shouldApplyFinancials = (
 };
 
 export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const supabase = await createClient();
 
     const { data: listing, error } = await supabase
       .from('listings')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .maybeSingle();
 
     if (error) {
@@ -61,8 +62,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const supabase = await createClient();
     const {
@@ -76,7 +78,7 @@ export async function PATCH(
     const { data: existing, error: fetchError } = await supabase
       .from('listings')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .maybeSingle();
 
     if (fetchError) {
@@ -129,7 +131,7 @@ export async function PATCH(
       const { data: updateResult, error: updateError } = await supabase
         .from('listings')
         .update(updatePayload)
-        .eq('id', params.id)
+        .eq('id', id)
         .select('*')
         .single();
 
@@ -207,9 +209,10 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const supabase = await createClient();
     const {
@@ -223,7 +226,7 @@ export async function DELETE(
     const { data: existing, error } = await supabase
       .from('listings')
       .select('id, owner_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .maybeSingle();
 
     if (error) {
@@ -245,7 +248,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('listings')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (deleteError) {
       const isRlsViolation =

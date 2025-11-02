@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
@@ -424,6 +424,8 @@ interface PageParams {
   id: string;
 }
 
-export default function ListingDetailsPage({ params }: { params: PageParams }) {
-  return <ListingDetailsContent id={params.id} />;
+export default function ListingDetailsPage({ params }: { params: Promise<PageParams> }) {
+  // Use React.use() to unwrap the params Promise
+  const resolvedParams = React.use(params);
+  return <ListingDetailsContent id={resolvedParams.id} />;
 }
