@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState, Suspense, useDeferredValue, useRef } from 'react';
+import { useEffect, useMemo, useState, Suspense, useDeferredValue, useRef, type ChangeEvent } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ListingCard } from '@/components/listing-card';
@@ -102,6 +102,8 @@ export default function BrowseListingsPage() {
     setSortBy(ss.filters.sortBy);
   };
 
+  const { listings: apiListings, isLoading, error, refetch } = useListings({ scope: 'public' });
+
   const handleIndustrySelect = (industryLabel: string) => {
     setSelectedVertical(industryLabel);
   };
@@ -109,61 +111,96 @@ export default function BrowseListingsPage() {
   // Industry mapping is no longer needed as we're using direct matches
   // with the verticals in the listings data
 
-  const filteredListings = useMemo(() => exampleListings.filter((listing: Listing) => {
-    // Search term filter
-    const q = deferredSearch.trim().toLowerCase();
-    const matchesSearch = q === '' ? true : 
-      listing.headline.toLowerCase().includes(q) || 
-      listing.teaser.toLowerCase().includes(q) ||
-      listing.vertical.toLowerCase().includes(q);
-    
-    // Price range filter
-    const matchesPrice = listing.asking_price >= priceRange[0] && listing.asking_price <= priceRange[1];
-    
-    // Revenue range filter
-    const matchesRevenue = listing.revenue_t12m >= revenueRange[0] && listing.revenue_t12m <= revenueRange[1];
-    
-    // Profit margin filter
-    const listingProfitMargin = (listing.profit_t12m / listing.revenue_t12m) * 100;
-    const matchesProfitMargin = listingProfitMargin >= profitMarginRange[0] && listingProfitMargin <= profitMarginRange[1];
-    
-    // Vertical filter - direct match with listing's vertical
-    const matchesVertical = selectedVertical === 'all' || listing.vertical === selectedVertical;
-    
-    // Location filter
-    const matchesLocation = selectedLocation === 'all' ? true : listing.location_area === selectedLocation;
-    
-    // Status filter
-    const matchesStatus = selectedStatus === 'all' ? true : listing.status === selectedStatus;
+  const filteredListings = useMemo(() => {
+    const sourceListings = (apiListings || []) as Listing[];
+    return sourceListings.filter((listing) => {
+      const q = deferredSearch.trim().toLowerCase();
+      const headline = (listing.headline || '').toLowerCase();
+      const teaser = (listing.teaser || '').toLowerCase();
+      const verticalValue = (listing.vertical || listing.market || '').toLowerCase();
 
-    return (
-      matchesSearch &&
-      matchesPrice &&
-      matchesRevenue &&
-      matchesProfitMargin &&
-      matchesVertical &&
-      matchesLocation &&
-      matchesStatus
-    );
-  }), [deferredSearch, priceRange, revenueRange, profitMarginRange, selectedVertical, selectedLocation, selectedStatus]);
+      const matchesSearch =
+        q === '' ||
+        headline.includes(q) ||
+        teaser.includes(q) ||
+        verticalValue.includes(q);
 
+      const askingPrice = listing.asking_price ?? 0;
+      const matchesPrice = askingPrice >= priceRange[0] && askingPrice <= priceRange[1];
+
+      const revenue = listing.revenue_t12m ?? 0;
+      const matchesRevenue = revenue >= revenueRange[0] && revenue <= revenueRange[1];
+
+      const profit = listing.profit_t12m ?? 0;
+      const listingProfitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+      const matchesProfitMargin =
+        listingProfitMargin >= profitMarginRange[0] &&
+        listingProfitMargin <= profitMarginRange[1];
+
+      const matchesVertical =
+        selectedVertical === 'all' ||
+        (listing.vertical || listing.market || '') === selectedVertical;
+
+      const matchesLocation =
+        selectedLocation === 'all' ||
+        (listing.location_area || '') === selectedLocation;
+
+      const matchesStatus =
+        selectedStatus === 'all' || listing.status === selectedStatus;
+
+      return (
+        matchesSearch &&
+        matchesPrice &&
+        matchesRevenue &&
+        matchesProfitMargin &&
+        matchesVertical &&
+        matchesLocation &&
+        matchesStatus
+      );
+    });
+  }, [
+    apiListings,
+    deferredSearch,
+    priceRange,
+    revenueRange,
+    profitMarginRange,
+    selectedVertical,
+    selectedLocation,
+    selectedStatus,
+  ]);
   // Reset visible count when filters change
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisibleCount(18));
     return () => cancelAnimationFrame(id);
-  }, [deferredSearch, priceRange, revenueRange, profitMarginRange, selectedVertical, selectedLocation, selectedStatus, sortBy]);
+  }, [
+    deferredSearch,
+    priceRange,
+    revenueRange,
+    profitMarginRange,
+    selectedVertical,
+    selectedLocation,
+    selectedStatus,
+    sortBy,
+    apiListings,
+  ]);
 
   const sortedListings = useMemo(() => {
     const arr = [...filteredListings];
     switch (sortBy) {
       case 'price_asc':
-        return arr.sort((a, b) => a.asking_price - b.asking_price);
+        return arr.sort((a, b) => (a.asking_price ?? 0) - (b.asking_price ?? 0));
       case 'price_desc':
-        return arr.sort((a, b) => b.asking_price - a.asking_price);
+        return arr.sort((a, b) => (b.asking_price ?? 0) - (a.asking_price ?? 0));
       case 'revenue_desc':
-        return arr.sort((a, b) => b.revenue_t12m - a.revenue_t12m);
+        return arr.sort((a, b) => (b.revenue_t12m ?? 0) - (a.revenue_t12m ?? 0));
       case 'margin_desc':
-        return arr.sort((a, b) => (b.profit_t12m / b.revenue_t12m) - (a.profit_t12m / a.revenue_t12m));
+        return arr.sort((a, b) => {
+          const aRevenue = a.revenue_t12m ?? 0;
+          const bRevenue = b.revenue_t12m ?? 0;
+          const aMargin = aRevenue > 0 ? (a.profit_t12m ?? 0) / aRevenue : 0;
+          const bMargin = bRevenue > 0 ? (b.profit_t12m ?? 0) / bRevenue : 0;
+          return bMargin - aMargin;
+        });
       case 'newest':
       default:
         return arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -202,12 +239,12 @@ export default function BrowseListingsPage() {
               placeholder="Search listings..."
               className="pl-10 w-full"
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="flex items-center gap-2 md:gap-4 flex-wrap md:flex-nowrap">
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {sortedListings.length} {sortedListings.length === 1 ? 'result' : 'results'}
+              {isLoading ? 'Loading…' : `${sortedListings.length} ${sortedListings.length === 1 ? 'result' : 'results'}`}
             </span>
             <Suspense fallback={<div className="h-10 w-24 bg-gray-200 animate-pulse rounded" />}>
               <LazyAdvancedFilters
@@ -293,7 +330,16 @@ export default function BrowseListingsPage() {
         </Suspense>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {sortedListings.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-60 rounded-xl border border-border/60 bg-muted/50 animate-pulse" />
+            ))
+          ) : error ? (
+            <div className="col-span-3 flex flex-col items-center justify-center gap-4 py-16 text-center">
+              <p className="text-muted-foreground">We couldn&apos;t load listings right now.</p>
+              <Button onClick={() => refetch()}>Try again</Button>
+            </div>
+          ) : sortedListings.length > 0 ? (
             <>
               {sortedListings.slice(0, visibleCount).map((listing: Listing) => (
                 <ListingCard key={listing.id} listing={listing} />
