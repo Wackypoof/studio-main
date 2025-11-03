@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -135,10 +136,10 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button>
+          <RoleAwareButton>
             <UserPlus className="mr-2 h-4 w-4" />
             Add Lead
-          </Button>
+          </RoleAwareButton>
         </div>
       </PageHeader>
       
@@ -294,10 +295,10 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
                       <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setActiveTab('all'); }}>
                         Reset filters
                       </Button>
-                      <Button size="sm">
+                      <RoleAwareButton size="sm">
                         <UserPlus className="mr-2 h-4 w-4" />
                         Add Lead
-                      </Button>
+                      </RoleAwareButton>
                     </div>
                   </td>
                 </tr>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { RoleAwareButton } from "@/components/dashboard/RoleAwareButton"
 import { Upload, FileText, CheckCircle, MessageSquare, Briefcase } from "lucide-react"
 import { PageHeader } from '@/components/page-header';
 import { supabase } from '@/lib/supabase/client';
@@ -224,7 +225,7 @@ export default function VerificationPage() {
                         </CardContent>
                     </Card>
                     <div className="flex justify-end">
-                        <Button size="lg" onClick={() => {
+                        <RoleAwareButton size="lg" onClick={() => {
                           const anySelected = Object.values(selected).some(Boolean);
                           if (!anySelected) {
                             toast.message('No files to submit', { description: 'Upload at least one document above.' });
@@ -235,7 +236,7 @@ export default function VerificationPage() {
                         }} disabled={busy}>
                             <FileText className="mr-2 h-4 w-4" />
                             Submit for Verification
-                        </Button>
+                        </RoleAwareButton>
                     </div>
                 </div>
 

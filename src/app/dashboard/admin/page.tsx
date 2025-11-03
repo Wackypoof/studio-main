@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RoleAwareButton } from "@/components/dashboard/RoleAwareButton";
 
 export default function AdminHubPage() {
   return (
@@ -17,9 +18,9 @@ export default function AdminHubPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">Review identity and business verification documents submitted by buyers and sellers.</p>
-            <Button asChild>
+            <RoleAwareButton asChild>
               <Link href="/dashboard/admin/verifications">Open Queue</Link>
-            </Button>
+            </RoleAwareButton>
           </CardContent>
         </Card>
 
@@ -38,4 +39,3 @@ export default function AdminHubPage() {
     </div>
   );
 }
-

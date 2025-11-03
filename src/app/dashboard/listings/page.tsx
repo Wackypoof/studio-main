@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -111,10 +112,10 @@ export default function ListingsPage() {
         title="My Listings"
         description="Manage your business listings and track their performance"
       >
-        <Button onClick={() => router.push('/dashboard/listings/new')}>
+        <RoleAwareButton onClick={() => router.push('/dashboard/listings/new')}>
           <Plus className="mr-2 h-4 w-4" />
           Create New Listing
-        </Button>
+        </RoleAwareButton>
       </PageHeader>
 
       <Card>
@@ -200,10 +201,10 @@ export default function ListingsPage() {
                   ? 'No listings match your search criteria.'
                   : "You haven't created any listings yet."}
               </p>
-              <Button onClick={() => router.push('/dashboard/listings/new')}>
+              <RoleAwareButton onClick={() => router.push('/dashboard/listings/new')}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create New Listing
-              </Button>
+              </RoleAwareButton>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -346,16 +347,16 @@ function OnboardingChecklist() {
                 {step.done ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Clock className="h-4 w-4 text-muted-foreground" />}
                 <span className={step.done ? 'line-through text-muted-foreground' : ''}>{step.label}</span>
               </div>
-              <Button asChild size="sm" variant={step.done ? 'outline' : 'default'}>
+              <RoleAwareButton asChild size="sm" variant={step.done ? 'outline' : 'default'}>
                 <Link href={step.href}>{step.done ? 'View' : 'Start'}</Link>
-              </Button>
+              </RoleAwareButton>
             </div>
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild size="sm">
+          <RoleAwareButton asChild size="sm">
             <Link href="/dashboard/listings/new">{hasDraft ? 'Resume draft' : 'Create listing'}</Link>
-          </Button>
+          </RoleAwareButton>
           <Button asChild size="sm" variant="outline">
             <Link href="/dashboard/verification">Verify identity</Link>
           </Button>

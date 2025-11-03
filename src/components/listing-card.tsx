@@ -23,20 +23,16 @@ export const ListingCard = memo(function ListingCard({ listing, from }: ListingC
   return (
     <Link href={href} className="block h-full group">
       <Card className="flex flex-col overflow-hidden h-full border border-border/50 transition-all hover:border-primary/20 hover:shadow-md">
-        <CardHeader className="p-4 relative flex flex-row justify-between items-start">
-          <div>
-            <Badge variant="secondary">{listing.vertical}</Badge>
-          </div>
-          <div className="flex items-center gap-2">
+        <CardHeader className="p-4 relative">
+          <div className="flex justify-between items-start">
             {listing.verified && (
               <Badge variant="outline" className="gap-1 text-xs border-green-500 text-green-700">
                 <ShieldCheck className="h-3 w-3" />
                 Verified
               </Badge>
             )}
-            <Badge variant="outline" className="gap-1 text-xs">
-              <Clock className="h-3 w-3" />
-              {`Responds in ~${Math.max(1, Math.min(72, Math.round(listing.avg_response_time_hours ?? 24)))}h`}
+            <Badge variant="secondary" className="ml-auto">
+              {listing.vertical}
             </Badge>
             {listing.status === 'under_offer' && (
               <Badge variant="destructive">UNDER OFFER</Badge>

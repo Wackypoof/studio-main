@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -242,7 +243,7 @@ export default function DashboardPage() {
       <p className="text-muted-foreground mb-4">
         {error?.message || 'Failed to load dashboard data'}
       </p>
-      <Button onClick={reset}>Try Again</Button>
+      <RoleAwareButton onClick={reset}>Try Again</RoleAwareButton>
     </div>
   );
   

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -118,9 +119,9 @@ export default function SettingsPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={onSave} disabled={saving}>
+              <RoleAwareButton onClick={onSave} disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
-              </Button>
+              </RoleAwareButton>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -165,7 +166,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Save preferences</Button>
+              <RoleAwareButton>Save preferences</RoleAwareButton>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -222,7 +223,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button>Update notifications</Button>
+              <RoleAwareButton>Update notifications</RoleAwareButton>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -250,7 +251,7 @@ export default function SettingsPage() {
                     <Input id="confirm-password" type="password" />
                   </div>
                 </div>
-                <Button>Update password</Button>
+                <RoleAwareButton>Update password</RoleAwareButton>
               </div>
               
               <Separator />

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Search, FileText, Clock, CheckCircle2, AlertTriangle, MoreVertical, Download, Eye, FileSignature, Filter, RefreshCcw, ShieldCheck, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -220,10 +221,10 @@ export default function NDAsPage() {
                 </Button>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button size="sm">
+                    <RoleAwareButton size="sm">
                       <FileSignature className="mr-2 h-4 w-4" />
                       New NDA
-                    </Button>
+                    </RoleAwareButton>
                   </DialogTrigger>
                   <DialogContent className="max-w-3xl">
                     <DialogHeader>
@@ -529,10 +530,10 @@ export default function NDAsPage() {
                     Download copy
                   </Button>
                   {selectedAgreement.status === 'signed' && (
-                    <Button onClick={() => handleRenewalRequest(selectedAgreement)} size="sm">
+                    <RoleAwareButton onClick={() => handleRenewalRequest(selectedAgreement)} size="sm">
                       <RefreshCcw className="mr-2 h-4 w-4" />
                       Request renewal
-                    </Button>
+                    </RoleAwareButton>
                   )}
                 </div>
 

@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
 import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -408,9 +409,9 @@ function ListingDetailsContent({ id }: { id: string }) {
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Ask a Question
               </Button>
-              <Button size="sm">
+              <RoleAwareButton size="sm">
                 Make an Offer
-              </Button>
+              </RoleAwareButton>
             </div>
           </CardFooter>
         </Card>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -332,9 +333,9 @@ export function AdvancedFilters({
           }}>
             Reset Filters
           </Button>
-          <Button onClick={() => setOpen(false)}>
+          <RoleAwareButton onClick={() => setOpen(false)}>
             Apply Filters
-          </Button>
+          </RoleAwareButton>
         </div>
       </DialogContent>
       </Dialog>

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RoleAwareButton } from "@/components/dashboard/RoleAwareButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -647,12 +648,12 @@ export default function CreateListingPage() {
           </CardContent>
           <CardFooter className="justify-between">
             <div />
-            <Button
+            <RoleAwareButton
               onClick={saveDetails}
               disabled={saving || !details.name || !details.industry}
             >
               {saving ? "Saving…" : "Save & Continue"}
-            </Button>
+            </RoleAwareButton>
           </CardFooter>
         </Card>
       )}
@@ -775,9 +776,9 @@ export default function CreateListingPage() {
             <Button variant="outline" onClick={() => setStep(1)}>
               Back
             </Button>
-            <Button onClick={saveFinancials} disabled={saving}>
+            <RoleAwareButton onClick={saveFinancials} disabled={saving}>
               {saving ? "Saving…" : "Save & Continue"}
-            </Button>
+            </RoleAwareButton>
           </CardFooter>
         </Card>
       )}
@@ -825,9 +826,9 @@ export default function CreateListingPage() {
             <Button variant="outline" onClick={() => setStep(2)}>
               Back
             </Button>
-            <Button onClick={saveOps} disabled={saving}>
+            <RoleAwareButton onClick={saveOps} disabled={saving}>
               {saving ? "Saving…" : "Save & Continue"}
-            </Button>
+            </RoleAwareButton>
           </CardFooter>
         </Card>
       )}
@@ -916,7 +917,7 @@ export default function CreateListingPage() {
             <Button variant="outline" onClick={() => setStep(3)}>
               Back
             </Button>
-            <Button onClick={() => setStep(5)}>Review</Button>
+            <RoleAwareButton onClick={() => setStep(5)}>Review</RoleAwareButton>
           </CardFooter>
         </Card>
       )}
@@ -956,9 +957,9 @@ export default function CreateListingPage() {
             <Button variant="outline" onClick={() => setStep(4)}>
               Back
             </Button>
-            <Button onClick={publish} disabled={publishing || !listingId}>
+            <RoleAwareButton onClick={publish} disabled={publishing || !listingId}>
               {publishing ? "Publishing…" : "Publish Listing"}
-            </Button>
+            </RoleAwareButton>
           </CardFooter>
         </Card>
       )}

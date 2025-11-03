@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, FileText, Clock, Check, X, MoreVertical, DollarSign, AlertCircle, Filter, Eye } from 'lucide-react';
@@ -148,10 +149,10 @@ export default function OffersPage() {
                   ? "You haven't made any offers yet."
                   : `You don't have any ${activeTab} offers.`}
               </p>
-              <Button>
+              <RoleAwareButton>
                 <DollarSign className="mr-2 h-4 w-4" />
                 Make an Offer
-              </Button>
+              </RoleAwareButton>
             </div>
           ) : (
             <Table>

@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, List, LayoutGrid, Eye, Star, Folder, PieChart, ArrowRight } from 'lucide-react';
@@ -103,12 +104,12 @@ export default function MyDealsPage() {
                         <div className="text-center">
                             <h3 className="text-base font-semibold text-foreground/90">Nothing in your pipeline just yet</h3>
                             <p className="text-muted-foreground text-sm mt-1 max-w-sm">When you request access to startups you&apos;re interested in, they&apos;ll appear here.</p>
-                             <Button asChild className="mt-4">
+                             <RoleAwareButton asChild className="mt-4">
                                 <Link href="/">
                                     Browse Listings
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Link>
-                            </Button>
+                            </RoleAwareButton>
                         </div>
                     </Card>
                 </div>

@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Lock, FileText } from 'lucide-react';
@@ -32,9 +32,9 @@ function LockedContent({ title, description, ctaText, ctaLink }: { title: string
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10 p-4">
           <Lock className="h-8 w-8 text-muted-foreground mb-4" />
           <p className="text-sm text-center text-muted-foreground mb-4 max-w-xs">{description}</p>
-          <Button asChild>
+          <RoleAwareButton asChild>
             <Link href={ctaLink}>{ctaText}</Link>
-          </Button>
+          </RoleAwareButton>
         </div>
         {/* Placeholder content to maintain layout */}
         <div className="space-y-4 blur-sm">
@@ -68,10 +68,10 @@ function NdaAgreement() {
             <Checkbox id="terms" checked={agreed} onCheckedChange={(checked) => setAgreed(!!checked)} />
             <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground">I have read and agree to the terms of the NDA.</Label>
           </div>
-          <Button className="w-full" disabled={!agreed}>
+          <RoleAwareButton className="w-full" disabled={!agreed}>
             <FileText className="mr-2 h-4 w-4" />
             Sign NDA & View Details
-          </Button>
+          </RoleAwareButton>
         </CardContent>
       </Card>
     );

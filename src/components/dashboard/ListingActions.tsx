@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { RoleAwareButton } from "@/components/dashboard/RoleAwareButton";
 import { Plus, RefreshCw } from "lucide-react";
 
 interface ListingActionsProps {
@@ -33,10 +36,10 @@ export function ListingActions({
           {isRefreshing ? "Refreshing..." : "Refresh"}
         </Button>
       )}
-      <Button size="sm" onClick={onCreateNewListing}>
+      <RoleAwareButton size="sm" onClick={onCreateNewListing}>
         <Plus className="mr-2 h-4 w-4" />
         New Listing
-      </Button>
+      </RoleAwareButton>
     </div>
   );
 }

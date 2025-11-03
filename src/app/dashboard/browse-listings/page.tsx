@@ -9,6 +9,7 @@ import { LazyAdvancedFilters, LazyDashboardCollections } from '@/lib/lazy-compon
 import { PageHeader } from '@/components/page-header';
 import type { Listing } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -291,7 +292,7 @@ export default function BrowseListingsPage() {
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleSaveCurrentSearch}>Save</Button>
+                    <RoleAwareButton onClick={handleSaveCurrentSearch}>Save</RoleAwareButton>
                   </div>
                 </div>
               </DialogContent>
@@ -337,7 +338,7 @@ export default function BrowseListingsPage() {
           ) : error ? (
             <div className="col-span-3 flex flex-col items-center justify-center gap-4 py-16 text-center">
               <p className="text-muted-foreground">We couldn&apos;t load listings right now.</p>
-              <Button onClick={() => refetch()}>Try again</Button>
+              <RoleAwareButton onClick={() => refetch()}>Try again</RoleAwareButton>
             </div>
           ) : sortedListings.length > 0 ? (
             <>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Heart, Filter, FileText, Clock, X, MoreVertical, Share2, MessageSquare } from 'lucide-react';
@@ -56,10 +57,10 @@ export default function SavedListingsPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 Save listings you&apos;re interested in to view them here later.
               </p>
-              <Button onClick={() => {}}>
+              <RoleAwareButton onClick={() => {}}>
                 <Search className="mr-2 h-4 w-4" />
                 Browse Listings
-              </Button>
+              </RoleAwareButton>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

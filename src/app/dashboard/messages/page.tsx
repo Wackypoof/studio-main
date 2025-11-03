@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -167,9 +168,9 @@ export default function MessagesPage() {
                     {searchTerm ? 'No conversations match your search.' : 'You have no messages yet.'}
                   </p>
                   <div className="mt-4">
-                    <Button asChild size="sm">
+                    <RoleAwareButton asChild size="sm">
                       <Link href="/dashboard/leads">Start new conversation</Link>
-                    </Button>
+                    </RoleAwareButton>
                   </div>
                 </div>
               ) : (
@@ -313,10 +314,10 @@ export default function MessagesPage() {
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Smile className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" className="h-8" onClick={handleSendMessage} disabled={!newMessage.trim() || sendMessageMutation.isPending}>
+                  <RoleAwareButton size="sm" className="h-8" onClick={handleSendMessage} disabled={!newMessage.trim() || sendMessageMutation.isPending}>
                     <Send className="h-4 w-4 mr-2" />
                     Send
-                  </Button>
+                  </RoleAwareButton>
                 </div>
               </div>
             </div>

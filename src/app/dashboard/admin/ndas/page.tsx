@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { RoleAwareButton } from "@/components/dashboard/RoleAwareButton";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -471,7 +472,7 @@ export default function AdminNdasPage() {
                   <div className="flex flex-wrap gap-2">
                     {selectedRequest.status === "pending" && (
                       <>
-                        <Button
+                        <RoleAwareButton
                           size="sm"
                           disabled={isDeciding && decisionTarget === selectedRequest.id}
                           onClick={() => void recordDecision(selectedRequest.id, "approved")}
@@ -482,7 +483,7 @@ export default function AdminNdasPage() {
                             <ThumbsUp className="mr-2 h-4 w-4" />
                           )}
                           Approve & notify
-                        </Button>
+                        </RoleAwareButton>
                         <Button
                           size="sm"
                           variant="outline"
