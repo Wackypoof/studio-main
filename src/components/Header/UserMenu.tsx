@@ -34,8 +34,11 @@ export const UserMenu = React.memo(() => {
           variant="ghost"
           size="sm"
           onClick={async () => {
-            await signOut();
-            window.location.href = '/';
+            const { error } = await signOut();
+            if (error) {
+              return;
+            }
+            window.location.href = '/landing';
           }}
           className="rounded-full bg-white/10 text-white transition hover:bg-white/20"
         >

@@ -132,9 +132,6 @@ export function useAuthOperations(
       }
 
       await syncSession(null);
-      router.push('/login');
-      router.refresh();
-
       return { error: null };
     } catch (err) {
       console.error('Sign out error:', err);
@@ -145,7 +142,7 @@ export function useAuthOperations(
       toast.error(authError.message);
       return { error: authError };
     }
-  }, [router, supabase, syncSession]);
+  }, [supabase, syncSession]);
 
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>) => {

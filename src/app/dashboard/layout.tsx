@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import {
   Sidebar,
@@ -32,11 +32,9 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
 import { useAuth } from '@/context/AuthProvider';
-import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Header/Logo';
 
 export default function DashboardLayout({
@@ -45,12 +43,22 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  
-  const { role, isBuyer } = useRole();
-  const { signOut } = useAuth();
   const router = useRouter();
-  
-  const { user } = useAuth();
+
+  const { isBuyer } = useRole();
+  const { user, signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = useCallback(async () => {
+    setIsLoggingOut(true);
+    const { error } = await signOut();
+    if (error) {
+      setIsLoggingOut(false);
+      return;
+    }
+    router.replace('/landing');
+    router.refresh();
+  }, [router, signOut]);
 
   const gradientOverlay = isBuyer
     ? 'radial-gradient(140% 140% at 0% 0%, rgba(37,99,235,0.32), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(56,189,248,0.22), transparent 65%)'
@@ -160,10 +168,9 @@ export default function DashboardLayout({
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       tooltip="Log out" 
-                      onClick={async () => {
-                        await signOut();
-                        router.push('/login');
-                      }}
+                      type="button"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
                       className="w-full text-left"
                     >
                       <LogOut className="h-4 w-4" />

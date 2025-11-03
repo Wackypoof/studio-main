@@ -71,9 +71,12 @@ export const MobileMenu = React.memo(() => {
                   </SheetClose>
                   <button
                     onClick={async () => {
-                      await signOut();
+                      const { error } = await signOut();
+                      if (error) {
+                        return;
+                      }
                       setIsSheetOpen(false);
-                      window.location.href = '/';
+                      window.location.href = '/landing';
                     }}
                     className="flex items-center gap-2 text-destructive py-2"
                   >
