@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import React, { type ComponentProps, type ReactElement } from 'react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { SellerDashboard } from '../SellerDashboard';
 import { Listing } from '@/lib/types';
@@ -8,11 +8,7 @@ import {
   mockRecentListings, 
   mockListingStats 
 } from '../__mocks__';
-
-// Clear all mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+import { RoleProvider } from '@/contexts/role-context';
 
 // Mock data for listings
 const mockListings: Listing[] = [
@@ -167,15 +163,23 @@ describe('SellerDashboard', () => {
     jest.clearAllMocks();
   });
 
+  const renderWithRoleProvider = (ui: ReactElement) =>
+    render(ui, {
+      wrapper: ({ children }) => <RoleProvider>{children}</RoleProvider>,
+    });
+
+  const defaultProps: ComponentProps<typeof SellerDashboard> = {
+    listings: mockListings,
+    onViewListing: mockOnViewListing,
+    onCreateNewListing: mockOnCreateNewListing,
+    onRefresh: mockOnRefresh,
+  };
+
+  const renderDashboard = (props: Partial<ComponentProps<typeof SellerDashboard>> = {}) =>
+    renderWithRoleProvider(<SellerDashboard {...defaultProps} {...props} />);
+
   it('renders the dashboard with listings', () => {
-    render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    renderDashboard();
 
     // Check if the dashboard title is rendered
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
@@ -194,14 +198,7 @@ describe('SellerDashboard', () => {
   });
 
   it('calls onViewListing when a listing is clicked', async () => {
-    render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    renderDashboard();
 
     // Find and click on the first listing
     const listingHeadline = screen.getByText(mockListings[0].headline);
@@ -221,14 +218,7 @@ describe('SellerDashboard', () => {
   });
 
   it('calls onCreateNewListing when the new listing button is clicked', async () => {
-    render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    renderDashboard();
 
     // Find all new listing buttons and click the first one
     const newListingButtons = screen.getAllByRole('button', { name: /new listing/i });
@@ -242,15 +232,10 @@ describe('SellerDashboard', () => {
 
   it('shows a loading state when isLoading is true', () => {
     // Render the component with isLoading true
-    render(
-      <SellerDashboard
-        listings={[]}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-        isLoading={true}
-      />
-    );
+    renderDashboard({
+      listings: [],
+      isLoading: true,
+    });
 
     // Check if loading indicators are shown in the stats cards
     const loadingIndicators = document.querySelectorAll('[class*="animate-pulse"]');
@@ -268,14 +253,7 @@ describe('SellerDashboard', () => {
     mockOnRefresh.mockImplementationOnce(() => refreshPromise);
 
     // Render the component
-    const { rerender } = render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    const { rerender } = renderDashboard();
 
     // Find and click the refresh button
     const refreshButton = screen.getByRole('button', { name: /refresh/i });
@@ -304,14 +282,7 @@ describe('SellerDashboard', () => {
     mockOnRefresh.mockImplementationOnce(() => refreshPromise);
 
     // Render the component
-    const { rerender } = render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    const { rerender } = renderDashboard();
 
     // Find the refresh button
     const refreshButton = screen.getByRole('button', { name: /refresh/i });
@@ -327,14 +298,7 @@ describe('SellerDashboard', () => {
     });
     
     // Re-render to get the latest state
-    rerender(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    rerender(<SellerDashboard {...defaultProps} />);
     
     // The button should be disabled while refreshing
     const updatedRefreshButton = screen.getByRole('button', { name: /refresh/i });
@@ -347,14 +311,7 @@ describe('SellerDashboard', () => {
     });
     
     // Re-render to get the latest state
-    rerender(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    rerender(<SellerDashboard {...defaultProps} />);
     
     // Should be enabled again after refresh completes
     const finalRefreshButton = screen.getByRole('button', { name: /refresh/i });
@@ -362,14 +319,7 @@ describe('SellerDashboard', () => {
   });
 
   it('displays a message when there are no listings', () => {
-    render(
-      <SellerDashboard
-        listings={[]}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-        onRefresh={mockOnRefresh}
-      />
-    );
+    renderDashboard({ listings: [] });
 
     // Check if the "No listings" message is shown
     expect(screen.getByText('No listings yet')).toBeInTheDocument();
@@ -377,13 +327,7 @@ describe('SellerDashboard', () => {
   });
 
   it('does not show refresh button when onRefresh is not provided', () => {
-    render(
-      <SellerDashboard
-        listings={mockListings}
-        onViewListing={mockOnViewListing}
-        onCreateNewListing={mockOnCreateNewListing}
-      />
-    );
+    renderDashboard({ onRefresh: undefined });
 
     // Check that the refresh button is not in the document
     expect(screen.queryByRole('button', { name: /refresh/i })).not.toBeInTheDocument();

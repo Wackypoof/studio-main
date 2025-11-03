@@ -18,6 +18,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { handleError } from '@/lib/error-handler';
+import { useAuth } from '@/context/AuthProvider';
 
 interface DashboardData {
   stats: {
@@ -41,13 +42,33 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const router = useRouter();
   const { isBuyer, role } = useRole();
+  const { user: authUser } = useAuth();
   
-  // In a real app, this would come from auth context
-  const user = useMemo(() => {
+  // Fallback to mock data when authenticated user context is unavailable
+  const mockUser = useMemo(() => {
     if (isBuyer) return mockData.testUsers.buyer;
     // Default to seller1 for demo purposes
     return mockData.testUsers.seller1;
   }, [isBuyer]);
+
+  const buyerGreetingName = useMemo(() => {
+    if (!isBuyer) return '';
+
+    const rawFullName =
+      typeof authUser?.user_metadata?.full_name === 'string'
+        ? authUser.user_metadata.full_name.trim()
+        : '';
+
+    if (rawFullName) {
+      const firstSegment = rawFullName.split(/\s+/)[0];
+      if (firstSegment) return firstSegment;
+    }
+
+    const emailHandle = authUser?.email?.split('@')[0];
+    if (emailHandle) return emailHandle;
+
+    return 'Buyer';
+  }, [authUser, isBuyer]);
   
   const handleViewListing = (id: string) => {
     router.push(`/dashboard/listings/${id}?from=dashboard`);
@@ -259,7 +280,7 @@ export default function DashboardPage() {
   // If user is a seller, render the SellerDashboard
   if (!isBuyer) {
     const sellerListings = mockData.listings.filter(listing => 
-      listing.userId === user.id
+      listing.userId === (authUser?.id ?? mockUser.id)
     );
     
     return (
@@ -279,7 +300,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-8">
         <PageHeader
           title="Buyer Dashboard"
-          description={`Welcome back, ${user.fullName.split(' ')[0]}! Here are your saved listings and recent activity.`}
+          description={`Welcome back, ${buyerGreetingName}! Here are your saved listings and recent activity.`}
         />
 
         {data.needsVerification && (

@@ -227,6 +227,62 @@ export function useMessagingSubscription(conversationId: string | null) {
   }, [conversationId, queryClient]);
 }
 
+// Hook for keeping the conversation list in sync across tabs and new messages
+export function useConversationsSubscription(userId?: string) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const messagesChannel = supabase
+      .channel(`messaging:user:${userId}:messages`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        }
+      )
+      .subscribe();
+
+    const participantsChannel = supabase
+      .channel(`messaging:user:${userId}:participants`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'conversation_participants',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(participantsChannel);
+    };
+  }, [queryClient, userId]);
+}
+
 // Hook for marking messages as read
 export function useMarkAsRead(conversationId: string) {
   const queryClient = useQueryClient();

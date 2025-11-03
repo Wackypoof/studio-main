@@ -3,22 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Search, MessageSquare, Paperclip, Send, Smile, Check, CheckCheck,
-  ArrowLeft, Phone as PhoneIcon, Video, User, Mail as MailIcon, MoreVertical, Trash2
+  Search, MessageSquare, Send, Check, CheckCheck,
+  ArrowLeft
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import { PageHeader } from '@/components/page-header';
 import Link from 'next/link';
@@ -28,6 +20,7 @@ import {
   useMessages,
   useSendMessage,
   useMessagingSubscription,
+  useConversationsSubscription,
   useMarkAsRead,
   type Conversation,
   type Message,
@@ -64,6 +57,7 @@ export default function MessagesPage() {
   const { mutate: markAsRead } = useMarkAsRead(selectedConversation || '');
 
   useMessagingSubscription(selectedConversation);
+  useConversationsSubscription(currentUserId);
 
   const conversations = useMemo(() => {
     return (conversationsData?.conversations || []) as Conversation[];
@@ -140,7 +134,7 @@ export default function MessagesPage() {
                 />
               </div>
               <Tabs defaultValue="all" className="w-full" onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="unread">
                     <div className="flex items-center">
@@ -152,7 +146,6 @@ export default function MessagesPage() {
                       )}
                     </div>
                   </TabsTrigger>
-                  <TabsTrigger value="archived">Archived</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -234,37 +227,6 @@ export default function MessagesPage() {
                   <p className="text-xs text-muted-foreground">{currentConversation?.title ? 'Group conversation' : 'Direct message'}</p>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <PhoneIcon className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Video className="h-4 w-4" />
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>View Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <MailIcon className="mr-2 h-4 w-4" />
-                      <span>Send Email</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete Conversation</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
             </div>
 
             {/* Messages */}
@@ -291,15 +253,9 @@ export default function MessagesPage() {
             {/* Message Input */}
             <div className="border-t p-4">
               <div className="relative">
-                <div className="absolute left-3 top-3">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Paperclip className="h-4 w-4" />
-                  </Button>
-                </div>
-
                 <Textarea
                   placeholder={`Message ${otherParticipant.name}...`}
-                  className="min-h-[60px] max-h-[200px] resize-y pl-12 pr-20 py-3"
+                  className="min-h-[60px] max-h-[200px] resize-y pr-20 py-3"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => {
@@ -311,9 +267,6 @@ export default function MessagesPage() {
                 />
 
                 <div className="absolute right-3 top-3 flex items-center space-x-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Smile className="h-4 w-4" />
-                  </Button>
                   <RoleAwareButton size="sm" className="h-8" onClick={handleSendMessage} disabled={!newMessage.trim() || sendMessageMutation.isPending}>
                     <Send className="h-4 w-4 mr-2" />
                     Send

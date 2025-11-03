@@ -33,38 +33,18 @@ export async function GET(request: NextRequest) {
       return new Response('Conversation not found or access denied', { status: 404 });
     }
 
-    // Set up real-time subscription for new messages in this conversation
-    const channel = supabase
-      .channel(`conversation:${conversationId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
+    return new Response(
+      JSON.stringify({
+        error: 'Real-time streaming is handled client-side via Supabase subscriptions',
+      }),
+      {
+        status: 501,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
-        (payload) => {
-          // This would be handled by the client-side subscription
-          console.log('New message received:', payload);
-        }
-      )
-      .subscribe();
-
-    // For Server-Sent Events (SSE) approach, you could return a stream here
-    // But typically, real-time messaging is handled client-side with Supabase's real-time features
-
-    return new Response(JSON.stringify({
-      success: true,
-      subscription_id: channel,
-      message: 'Real-time subscription established'
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
       }
-    });
+    );
 
   } catch (error) {
     console.error('Error in real-time subscription API:', error);
@@ -89,31 +69,18 @@ export async function POST(request: NextRequest) {
       return new Response('Conversation ID required', { status: 400 });
     }
 
-    // Verify user is a participant
-    const { data: participant } = await supabase
-      .from('conversation_participants')
-      .select('user_id')
-      .eq('conversation_id', conversation_id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (!participant) {
-      return new Response('Conversation not found or access denied', { status: 404 });
-    }
-
-    // For SSE, we would typically return a ReadableStream
-    // But in practice, you'd implement this with proper streaming
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Real-time connection established',
-      timestamp: new Date().toISOString()
-    }), {
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
+    return new Response(
+      JSON.stringify({
+        error: 'Server-side real-time bridge not implemented; use client Supabase SDK',
+      }),
+      {
+        status: 501,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
       }
-    });
+    );
 
   } catch (error) {
     console.error('Error in SSE API:', error);

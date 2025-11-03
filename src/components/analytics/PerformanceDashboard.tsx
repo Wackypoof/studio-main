@@ -16,6 +16,7 @@ interface PerformanceData {
 export function PerformanceDashboard() {
   const [metrics, setMetrics] = useState<PerformanceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const monitoringEnabled = process.env.NEXT_PUBLIC_ENABLE_MONITORING === 'true';
   
   // Mock data for the dashboard
   const mockMetrics = useMemo<PerformanceData[]>(
@@ -47,6 +48,12 @@ export function PerformanceDashboard() {
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      if (!monitoringEnabled) {
+        setMetrics([]);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         // In a real app, you would fetch this from your analytics backend
         // For now, we'll use mock data
@@ -66,10 +73,21 @@ export function PerformanceDashboard() {
     };
 
     fetchMetrics();
-  }, [mockMetrics]);
+  }, [mockMetrics, monitoringEnabled]);
 
   if (isLoading) {
     return <div>Loading performance data...</div>;
+  }
+
+  if (!monitoringEnabled) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Performance Metrics</h2>
+        <div className="rounded-md border border-dashed bg-muted/50 p-6 text-sm text-muted-foreground">
+          Real-time performance monitoring is disabled. Set NEXT_PUBLIC_ENABLE_MONITORING to true and configure analytics ingestion to populate this dashboard.
+        </div>
+      </div>
+    );
   }
 
   // Process data for charts

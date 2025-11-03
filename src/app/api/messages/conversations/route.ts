@@ -67,7 +67,14 @@ export async function GET(request: NextRequest) {
 
     // Get all unique conversation IDs to fetch participants
     const conversationIds = (conversationDetails || []).map((c: ConversationDetail) => c.conversation_id);
-    
+
+    if (!conversationIds.length) {
+      return NextResponse.json({
+        conversations: [],
+        has_more: false,
+      });
+    }
+
     // Fetch participants for all conversations in one query
     const { data: allParticipants, error: participantsError } = await supabase
       .from('conversation_participants')

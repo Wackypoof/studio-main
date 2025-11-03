@@ -2,14 +2,8 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  BarChart2, LineChart, PieChart, Eye, Download, Calendar, Filter, 
-  ArrowUp, ArrowDown, Users, DollarSign, BarChart3, TrendingUp, Activity, Clock
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, Download, Users, BarChart3, Clock } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 
 interface AnalyticsClientProps {
@@ -23,33 +17,30 @@ interface AnalyticsClientProps {
 }
 
 export function AnalyticsClient({ initialData, searchParams }: AnalyticsClientProps) {
+  const analyticsEnabled = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'true';
   const [timeRange, setTimeRange] = useState('30d');
   const [selectedListing, setSelectedListing] = useState<string | null>(searchParams.listing || null);
   
-  const { viewsData, leadsData, userListings, currentUser } = initialData;
-  
-  // Filter listings if a specific one is selected
-  const filteredListings = selectedListing
-    ? userListings.filter(listing => listing.id === selectedListing)
-    : userListings;
+  const { viewsData, leadsData, userListings } = initialData;
+
+  if (!analyticsEnabled) {
+    return (
+      <div className="w-full space-y-6">
+        <PageHeader
+          title="Analytics Dashboard"
+          description="Analytics are currently disabled. Enable NEXT_PUBLIC_ANALYTICS_ENABLED to view live metrics."
+        />
+        <div className="rounded-md border border-dashed bg-muted/50 p-6 text-sm text-muted-foreground">
+          We’re finishing the analytics pipeline. Once connected, you’ll see listing performance summaries, conversion metrics, and export tools here.
+        </div>
+      </div>
+    );
+  }
   
   // Calculate totals
   const totalViews = viewsData.reduce((sum, day) => sum + day.views, 0);
-  const totalClicks = viewsData.reduce((sum, day) => sum + day.clicks, 0);
   const totalLeads = leadsData.reduce((sum, source) => sum + source.value, 0);
   const conversionRate = totalViews > 0 ? Math.round((totalLeads / totalViews) * 100) : 0;
-  
-  // Calculate performance metrics
-  const performanceMetrics = filteredListings.map(listing => ({
-    id: listing.id,
-    title: listing.headline,
-    views: totalViews,
-    clicks: totalClicks,
-    leads: totalLeads,
-    conversionRate: conversionRate,
-    revenue: listing.revenue,
-    status: listing.status,
-  }));
   
   // Calculate percentage changes based on fixed values
   const getPercentageChange = (value: number) => {
