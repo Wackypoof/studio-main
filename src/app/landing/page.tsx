@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle2, PlayCircle, Search, BarChart3, Users, Shield, Star, TrendingUp, Briefcase } from 'lucide-react';
 import { SiteContainer } from '@/components/site-container';
-import { LazyFeaturedListings, LazyProcessFlow, LazyAnimatedStats, LazyTestimonials } from '@/lib/lazy-components';
+import { LazyFeaturedListings, LazyProcessFlow, LazyAnimatedStats } from '@/lib/lazy-components';
 import { LazyMotion, domAnimation, m, type Variants } from 'framer-motion';
 import { ReactNode, Suspense } from 'react';
 import Link from 'next/link';
@@ -228,12 +228,90 @@ export default function LandingPage() {
         </SiteContainer>
       </section>
 
+      {/* Platform Advantages */}
+      <section className="bg-gradient-to-b from-white via-white to-amber-50/30 py-20">
+        <SiteContainer>
+          <m.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="mb-16 flex flex-col gap-10 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left"
+          >
+            <div className="space-y-4">
+              <m.p variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-gradient-to-r from-blue-50/70 via-white to-amber-50/60 px-4 py-1 text-sm font-medium text-blue-700">
+                <span className="flex h-2 w-2 rounded-full bg-blue-500" />
+                Platform advantages
+              </m.p>
+              <m.h2 variants={fadeInUp} className="text-3xl font-bold text-slate-900 md:text-4xl">
+                Built for succession outcomes, not generic M&amp;A.
+              </m.h2>
+              <m.p variants={fadeInUp} className="text-lg text-slate-600 md:max-w-xl">
+                Mandate strategists, live buyer intelligence, and operator enablement live in one workspace so the handover keeps its momentum. See how the full mandate runs below.
+              </m.p>
+            </div>
+            <m.div variants={fadeInUp} className="flex justify-center gap-6 text-sm text-slate-500">
+              <div>
+                <span className="text-2xl font-semibold text-slate-900">78%</span>
+                <span className="block text-xs uppercase tracking-[0.3em]">close rate</span>
+                <span className="mt-1 block text-[0.7rem] text-slate-400">for mandates we shepherded to escrow</span>
+              </div>
+              <div className="hidden h-10 w-px bg-slate-200 lg:block" />
+              <div>
+                <span className="text-2xl font-semibold text-slate-900">11 days</span>
+                <span className="block text-xs uppercase tracking-[0.3em]">avg diligence</span>
+                <span className="mt-1 block text-[0.7rem] text-slate-400">from shortlist to signed LOI</span>
+              </div>
+            </m.div>
+          </m.div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard
+              icon={<Briefcase className="h-6 w-6" />}
+              title="Succession Playbooks"
+              description="Founder-to-operator transition plans built from 200+ closed mandates and tailored to Asian markets."
+              delay={0}
+            />
+            <FeatureCard
+              icon={<BarChart3 className="h-6 w-6" />}
+              title="Buyer Intelligence"
+              description="Understand every buyer’s track record with live appetite scores, proof-of-funds, and operator theses."
+              delay={1}
+            />
+            <FeatureCard
+              icon={<Shield className="h-6 w-6" />}
+              title="Escrow & Transition Desk"
+              description="Dedicated legal, escrow, and HR partners to secure assets and people through the handover period."
+              delay={2}
+            />
+            <FeatureCard
+              icon={<Users className="h-6 w-6" />}
+              title="Dedicated Strategists"
+              description="Regional deal teams surface the right matches and stay embedded until your succession plan is delivered."
+              delay={3}
+            />
+            <FeatureCard
+              icon={<TrendingUp className="h-6 w-6" />}
+              title="Growth Continuity"
+              description="Operator enablement sprints cover marketing, finance, and product so revenue momentum never slips."
+              delay={4}
+            />
+            <FeatureCard
+              icon={<Search className="h-6 w-6" />}
+              title="Valuation Benchmarks"
+              description="Benchmark multiples against real-time comps from Asia Pacific, with quarterly audited adjustments."
+              delay={5}
+            />
+          </div>
+        </SiteContainer>
+      </section>
+
       {/* Process Flow */}
-      <Suspense fallback={<div className="h-64" />}> 
+      <Suspense fallback={<div className="h-64" />}>
         <LazyProcessFlow />
       </Suspense>
 
-      {/* Stats Section */}
+      {/* Outcomes Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#052c55] to-[#0f172a] py-20 text-white">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.18),transparent_65%)]" />
         <SiteContainer className="relative z-10">
@@ -242,10 +320,10 @@ export default function LandingPage() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="mx-auto max-w-screen-xl"
+            className="mx-auto"
           >
             <m.div variants={fadeInUp} className="text-center">
-              <h2 className="text-3xl font-bold md:text-4xl">Succession results you can measure.</h2>
+              <h2 className="text-3xl font-bold md:text-4xl">Proof the succession model works.</h2>
               <p className="mt-4 text-lg text-blue-100 md:text-xl">
                 Audited outcomes from founders and buyers navigating generational transitions across SaaS, eCommerce, and services in Asia Pacific.
               </p>
@@ -295,87 +373,6 @@ export default function LandingPage() {
               </m.div>
             </div>
           </m.div>
-        </SiteContainer>
-      </section>
-
-      {/* Testimonials Section */}
-      <Suspense fallback={<div className="h-40" />}>
-        <LazyTestimonials />
-      </Suspense>
-
-      {/* Features Section */}
-      <section className="bg-gradient-to-b from-white via-white to-amber-50/30 py-20">
-        <SiteContainer>
-          <m.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="mb-16 flex flex-col gap-10 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left"
-          >
-            <div className="space-y-4">
-              <m.p variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-gradient-to-r from-blue-50/70 via-white to-amber-50/60 px-4 py-1 text-sm font-medium text-blue-700">
-                <span className="flex h-2 w-2 rounded-full bg-blue-500" />
-                Platform advantages
-              </m.p>
-              <m.h2 variants={fadeInUp} className="text-3xl font-bold text-slate-900 md:text-4xl">
-                Everything you need from first intro to final wire.
-              </m.h2>
-              <m.p variants={fadeInUp} className="text-lg text-slate-600 md:max-w-xl">
-                Succession Asia weaves deal rooms, valuation tools, escrow workflows, and research-backed playbooks so you spend less time chasing paperwork and more time charting the next chapter.
-              </m.p>
-            </div>
-            <m.div variants={fadeInUp} className="flex justify-center gap-6 text-sm text-slate-500">
-              <div>
-                <span className="text-slate-900">78%</span>
-                <span className="block text-xs uppercase tracking-[0.3em]">close rate</span>
-              </div>
-              <div className="hidden h-10 w-px bg-slate-200 lg:block" />
-              <div>
-                <span className="text-slate-900">11 day</span>
-                <span className="block text-xs uppercase tracking-[0.3em]">avg diligence</span>
-              </div>
-            </m.div>
-          </m.div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon={<Briefcase className="h-6 w-6" />}
-              title="Succession Playbooks"
-              description="Founder-to-operator transition plans built from 200+ closed mandates and tailored to Asian markets."
-              delay={0}
-            />
-            <FeatureCard
-              icon={<BarChart3 className="h-6 w-6" />}
-              title="Buyer Intelligence"
-              description="Understand every buyer’s track record with live appetite scores, proof-of-funds, and operator theses."
-              delay={1}
-            />
-            <FeatureCard
-              icon={<Shield className="h-6 w-6" />}
-              title="Escrow & Transition Desk"
-              description="Dedicated legal, escrow, and HR partners to secure assets and people through the handover period."
-              delay={2}
-            />
-            <FeatureCard
-              icon={<Users className="h-6 w-6" />}
-              title="Dedicated Strategists"
-              description="Regional deal teams surface the right matches and stay embedded until your succession plan is delivered."
-              delay={3}
-            />
-            <FeatureCard
-              icon={<TrendingUp className="h-6 w-6" />}
-              title="Growth Continuity"
-              description="Operator enablement sprints cover marketing, finance, and product so revenue momentum never slips."
-              delay={4}
-            />
-            <FeatureCard
-              icon={<Search className="h-6 w-6" />}
-              title="Valuation Benchmarks"
-              description="Benchmark multiples against real-time comps from Asia Pacific, with quarterly audited adjustments."
-              delay={5}
-            />
-          </div>
         </SiteContainer>
       </section>
 

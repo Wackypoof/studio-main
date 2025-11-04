@@ -3,6 +3,7 @@
 import { CheckCircle2, Search, FileText, Handshake, Users, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import { SiteContainer } from '@/components/site-container';
 
 interface ProcessStepProps {
   number: number;
@@ -10,9 +11,11 @@ interface ProcessStepProps {
   description: string;
   icon: React.ReactNode;
   delay: number;
+  stepNumberClass: string;
+  iconClass: string;
 }
 
-const ProcessStep = ({ number, title, description, icon, delay }: ProcessStepProps) => (
+const ProcessStep = ({ number, title, description, icon, delay, stepNumberClass, iconClass }: ProcessStepProps) => (
   <motion.li
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -20,12 +23,14 @@ const ProcessStep = ({ number, title, description, icon, delay }: ProcessStepPro
     transition={{ duration: 0.5, delay: delay * 0.08 }}
     className="relative flex gap-6 pl-14"
   >
-    <div className="absolute left-0 top-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 via-sky-400 to-amber-300 font-semibold text-slate-900 shadow-lg shadow-blue-500/20">
+    <div
+      className={`absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full font-semibold ${stepNumberClass}`}
+    >
       {number.toString().padStart(2, '0')}
     </div>
     <div className="flex-1 rounded-2xl border border-slate-200/60 bg-white/90 p-6 shadow-sm backdrop-blur">
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 via-blue-400/10 to-amber-200/20 text-blue-600">
+      <div className="flex items-center gap-4">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClass}`}>
           {icon}
         </div>
         <div className="space-y-2">
@@ -37,12 +42,58 @@ const ProcessStep = ({ number, title, description, icon, delay }: ProcessStepPro
   </motion.li>
 );
 
-type TabType = 'buyer' | 'seller';
+type TabType = 'buy' | 'sell';
+
+const themeConfig: Record<
+  TabType,
+  {
+    eyebrowBorder: string;
+    eyebrowText: string;
+    toggleActive: string;
+    toggleBorder: string;
+    stepNumber: string;
+    iconBg: string;
+    bulletGradient: string;
+    connectorGradient: string;
+    sectionBackground: string;
+    primaryGlow: string;
+    secondaryGlow: string;
+  }
+> = {
+  buy: {
+    eyebrowBorder: 'border-blue-200',
+    eyebrowText: 'text-blue-600',
+    toggleActive: 'bg-gradient-to-r from-blue-500 via-blue-400 to-sky-300 text-slate-950 shadow',
+    toggleBorder: 'border-blue-200/60',
+    stepNumber: 'bg-gradient-to-br from-blue-500 via-blue-400 to-sky-300 text-slate-950 shadow-lg shadow-blue-500/30',
+    iconBg: 'bg-gradient-to-br from-blue-500/15 via-blue-400/10 to-sky-300/20 text-blue-600',
+    bulletGradient: 'from-blue-500 via-blue-400 to-sky-300',
+    connectorGradient: 'from-blue-200 via-blue-100 to-sky-200',
+    sectionBackground: 'bg-gradient-to-b from-white via-blue-50/40 to-sky-50/40',
+    primaryGlow: 'bg-blue-400/20',
+    secondaryGlow: 'bg-sky-300/25',
+  },
+  sell: {
+    eyebrowBorder: 'border-amber-300/80',
+    eyebrowText: 'text-amber-600',
+    toggleActive: 'bg-gradient-to-r from-amber-400 via-orange-400 to-rose-300 text-slate-950 shadow',
+    toggleBorder: 'border-amber-200/60',
+    stepNumber: 'bg-gradient-to-br from-amber-400 via-orange-400 to-rose-300 text-slate-950 shadow-lg shadow-amber-400/40',
+    iconBg: 'bg-gradient-to-br from-amber-400/15 via-orange-400/10 to-rose-300/20 text-amber-600',
+    bulletGradient: 'from-amber-400 via-orange-400 to-rose-300',
+    connectorGradient: 'from-amber-200 via-orange-100 to-rose-200',
+    sectionBackground: 'bg-gradient-to-b from-white via-amber-50/40 to-rose-50/40',
+    primaryGlow: 'bg-amber-400/20',
+    secondaryGlow: 'bg-rose-300/20',
+  },
+};
 
 export function ProcessFlow() {
-  const [activeTab, setActiveTab] = useState<TabType>('buyer');
+  const [activeTab, setActiveTab] = useState<TabType>('buy');
 
-  const buyerSteps = [
+  const theme = themeConfig[activeTab];
+
+  const buySteps = [
     {
       title: 'Define your mandate',
       description:
@@ -63,19 +114,19 @@ export function ProcessFlow() {
     },
   ];
 
-  const buyerHighlights = [
+  const buyHighlights = [
     'Diligence scorecards aligned to investor approvals',
     'Escrow, legal, and tax partners ready to plug in',
     'Operator onboarding playbooks for the first 90 days',
   ];
 
-  const sellerHighlights = [
+  const sellHighlights = [
     'Founder-friendly valuation benchmarks and comps',
     'Cultural alignment interviews with shortlisted operators',
     'Detailed transition plan mapping people, tech, and capital',
   ];
 
-  const sellerSteps = [
+  const sellSteps = [
     {
       title: 'Prep your succession brief',
       description:
@@ -97,13 +148,13 @@ export function ProcessFlow() {
   ];
 
   const headingCopy: Record<TabType, { eyebrow: string; title: string; body: string }> = {
-    buyer: {
+    buy: {
       eyebrow: 'For buyers',
       title: 'Your buying journey, orchestrated.',
       body:
         'Lean on our acquisition specialists at every milestone—no more spreadsheets or scattered email threads. We keep momentum from mandate to LOI.',
     },
-    seller: {
+    sell: {
       eyebrow: 'For sellers',
       title: 'Succession without the scramble.',
       body:
@@ -111,18 +162,21 @@ export function ProcessFlow() {
     },
   };
 
-  const steps = activeTab === 'buyer' ? buyerSteps : sellerSteps;
+  const steps = activeTab === 'buy' ? buySteps : sellSteps;
+  const highlights = activeTab === 'buy' ? buyHighlights : sellHighlights;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-amber-50/30 py-24">
-      <div className="absolute left-[-180px] top-[-120px] h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
-      <div className="absolute right-[-160px] top-1/3 h-96 w-96 rounded-full bg-amber-400/15 blur-3xl" />
+    <section className={`relative overflow-hidden py-24 min-h-[720px] md:min-h-[680px] lg:min-h-[620px] ${theme.sectionBackground}`}>
+      <div className={`absolute left-[-180px] top-[-120px] h-80 w-80 rounded-full blur-3xl ${theme.primaryGlow}`} />
+      <div className={`absolute right-[-160px] top-1/3 h-96 w-96 rounded-full blur-3xl ${theme.secondaryGlow}`} />
       <div className="absolute inset-0 bg-gradient-to-br from-white via-white/70 to-transparent" />
 
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-6">
+      <SiteContainer className="relative">
+        <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <span className="inline-flex items-center rounded-full border border-blue-200 bg-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-blue-600">
+            <span
+              className={`inline-flex items-center rounded-full border bg-white/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.4em] ${theme.eyebrowBorder} ${theme.eyebrowText}`}
+            >
               {headingCopy[activeTab].eyebrow}
             </span>
             <h2 className="mt-4 text-3xl font-semibold text-slate-900 md:text-4xl">
@@ -131,26 +185,22 @@ export function ProcessFlow() {
             <p className="mt-4 max-w-xl text-base text-slate-600 md:text-lg">{headingCopy[activeTab].body}</p>
           </div>
 
-          <div className="inline-flex items-center rounded-full border border-blue-200/60 bg-white/80 p-1 text-sm font-medium shadow-sm backdrop-blur">
+          <div className={`inline-flex items-center rounded-full border bg-white/80 p-1 text-sm font-medium shadow-sm backdrop-blur ${theme.toggleBorder} self-start`}>
             <button
-              onClick={() => setActiveTab('buyer')}
+              onClick={() => setActiveTab('buy')}
               className={`rounded-full px-5 py-2 transition-all ${
-                activeTab === 'buyer'
-                  ? 'bg-gradient-to-r from-blue-500 via-sky-400 to-amber-300 text-slate-900 shadow'
-                  : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'buy' ? theme.toggleActive : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              Buying journey
+              Buy
             </button>
             <button
-              onClick={() => setActiveTab('seller')}
+              onClick={() => setActiveTab('sell')}
               className={`rounded-full px-5 py-2 transition-all ${
-                activeTab === 'seller'
-                  ? 'bg-gradient-to-r from-blue-500 via-sky-400 to-amber-300 text-slate-900 shadow'
-                  : 'text-slate-500 hover:text-slate-900'
+                activeTab === 'sell' ? theme.toggleActive : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              Succession path
+              Sell
             </button>
           </div>
         </div>
@@ -165,9 +215,9 @@ export function ProcessFlow() {
           >
             <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-500">What to expect</p>
             <ul className="mt-6 space-y-4 text-sm text-slate-600">
-              {(activeTab === 'buyer' ? buyerHighlights : sellerHighlights).map((item) => (
+              {highlights.map((item) => (
                 <li key={item} className="flex items-start gap-3">
-                  <span className="mt-1 inline-flex h-1.5 w-1.5 flex-none rounded-full bg-gradient-to-br from-blue-500 via-sky-400 to-amber-300" />
+                  <span className={`mt-1 inline-flex h-1.5 w-1.5 flex-none rounded-full bg-gradient-to-br ${theme.bulletGradient}`} />
                   <span>{item}</span>
                 </li>
               ))}
@@ -175,7 +225,7 @@ export function ProcessFlow() {
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-5 top-0 hidden h-full w-px bg-gradient-to-b from-blue-200 via-blue-100 to-amber-200 md:block" />
+            <div className={`absolute left-5 top-0 hidden h-full w-px bg-gradient-to-b ${theme.connectorGradient} md:block`} />
             <AnimatePresence mode="wait">
               <motion.ul
                 key={activeTab}
@@ -193,13 +243,15 @@ export function ProcessFlow() {
                     description={step.description}
                     icon={step.icon}
                     delay={index}
+                    stepNumberClass={theme.stepNumber}
+                    iconClass={theme.iconBg}
                   />
                 ))}
               </motion.ul>
             </AnimatePresence>
           </div>
         </div>
-      </div>
+      </SiteContainer>
     </section>
   );
 }

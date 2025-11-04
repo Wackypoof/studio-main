@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+import { SiteContainer } from '@/components/site-container';
 import { Button } from './ui/button';
 
 type Listing = {
@@ -64,7 +65,7 @@ const featuredListings: Listing[] = [
 export function FeaturedListings() {
   return (
     <section className="bg-slate-50 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <SiteContainer>
         <div className="mb-12 flex flex-col gap-6 text-center lg:flex-row lg:items-end lg:justify-between lg:text-left">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">Featured inventory</p>
@@ -167,7 +168,7 @@ export function FeaturedListings() {
             </Link>
           </Button>
         </div>
-      </div>
+      </SiteContainer>
     </section>
   );
 }
