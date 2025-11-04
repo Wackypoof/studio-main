@@ -39,8 +39,9 @@ const renderDashboard = async () => {
 
 describe('Dashboard Page', () => {
   it('renders loading state initially', async () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    const env = process.env as NodeJS.ProcessEnv & { NODE_ENV?: string };
+    const originalEnv = env.NODE_ENV;
+    env.NODE_ENV = 'development';
     jest.useFakeTimers();
 
     try {
@@ -55,7 +56,7 @@ describe('Dashboard Page', () => {
 
       await screen.findByText(/welcome back/i);
     } finally {
-      process.env.NODE_ENV = originalEnv;
+      env.NODE_ENV = originalEnv ?? 'development';
       jest.useRealTimers();
     }
   });

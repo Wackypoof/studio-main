@@ -51,3 +51,10 @@ export interface NdaApprovalRequestSummary {
   notes?: string | null;
   auditTrail: NdaAuditEvent[];
 }
+
+export type {
+  NdaStatus,
+  NdaRequestStatus,
+  NdaRiskLevel,
+  NdaAuditEventType,
+};

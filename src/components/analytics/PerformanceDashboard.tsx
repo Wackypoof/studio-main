@@ -16,7 +16,7 @@ interface PerformanceData {
 export function PerformanceDashboard() {
   const [metrics, setMetrics] = useState<PerformanceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const monitoringEnabled = process.env.NEXT_PUBLIC_ENABLE_MONITORING === 'true';
+  const monitoringEnabled = `${process.env.NEXT_PUBLIC_ENABLE_MONITORING}` === 'true';
   
   // Mock data for the dashboard
   const mockMetrics = useMemo<PerformanceData[]>(

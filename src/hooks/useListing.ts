@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { notFound } from 'next/navigation';
-import type { Listing } from '@/lib/types';
+import type { ListingDetails, ListingFinancialSnapshot } from '@/lib/types';
 
 interface UseListingOptions {
   /** Whether to enable automatic data fetching */
   enabled?: boolean;
   /** Callback for successful fetch */
-  onSuccess?: (listing: Listing) => void;
+  onSuccess?: (listing: ListingDetails) => void;
   /** Callback for error handling */
   onError?: (error: Error) => void;
 }
 
 interface UseListingReturn {
   /** The fetched listing data */
-  listing: Listing | null;
+  listing: ListingDetails | null;
   /** Whether the data is currently being fetched */
   isLoading: boolean;
   /** Any error that occurred during fetching */
@@ -33,7 +33,7 @@ export function useListing(
   options: UseListingOptions = {}
 ): UseListingReturn {
   const { enabled = true, onSuccess, onError } = options;
-  const [listing, setListing] = useState<Listing | null>(null);
+  const [listing, setListing] = useState<ListingDetails | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -76,7 +76,7 @@ export function useListing(
       }
 
       const data = await response.json();
-      const listingData = data?.listing as Listing | undefined;
+      const listingData = data?.listing as ListingDetails | undefined;
 
       if (!controller.signal.aborted) {
         if (!listingData) {
@@ -114,23 +114,38 @@ export function useListing(
     refetch: fetchListing
   };
 }
-
 interface ListingMetrics {
   /** Profit margin as a percentage (0-100) */
   profitMargin: number;
   /** Multiple of profit to asking price (as string for display) */
   multiple: string;
-  /** Historical and projected revenue data */
+  /** Historical revenue data */
   revenueData: Array<{ year: string; revenue: number }>;
   /** Combined profit and revenue data */
   profitRevenueData: Array<{ year: string; revenue: number; profit: number }>;
+  /** Latest year-over-year revenue growth percentage (rounded) */
+  yearOverYearGrowth: number | null;
+  /** Latest financial snapshot used for calculations */
+  latestFinancial: ListingFinancialSnapshot | null;
 }
 
 const EMPTY_METRICS: ListingMetrics = {
   profitMargin: 0,
   multiple: 'N/A',
   revenueData: [],
-  profitRevenueData: []
+  profitRevenueData: [],
+  yearOverYearGrowth: null,
+  latestFinancial: null,
+};
+
+const formatYearLabel = (
+  fiscalYear: number | null | undefined,
+  index: number
+): string => {
+  if (typeof fiscalYear === 'number' && Number.isFinite(fiscalYear)) {
+    return `FY ${fiscalYear}`;
+  }
+  return `Period ${index + 1}`;
 };
 
 /**
@@ -138,55 +153,110 @@ const EMPTY_METRICS: ListingMetrics = {
  * @param listing - The listing to calculate metrics for
  * @returns Memoized object containing calculated metrics
  */
-export function useListingMetrics(listing: Listing | null): ListingMetrics {
+export function useListingMetrics(
+  listing: ListingDetails | null
+): ListingMetrics {
   return useMemo(() => {
     if (!listing) return EMPTY_METRICS;
 
-    const profitMargin = listing.revenue_t12m > 0 
-      ? Math.round((listing.profit_t12m / listing.revenue_t12m) * 100)
-      : 0;
+    const history: ListingFinancialSnapshot[] = Array.isArray(
+      listing.financialHistory
+    )
+      ? [...listing.financialHistory]
+      : [];
 
-    const multiple = listing.profit_t12m > 0 
-      ? (listing.asking_price / listing.profit_t12m).toFixed(1)
-      : 'N/A';
+    if (history.length === 0 && listing.financials) {
+      history.push(listing.financials);
+    }
 
-    const baseYear = new Date().getFullYear();
-    
-    const revenueData = [
-      { year: String(baseYear - 3), revenue: listing.revenue_t12m * 0.6 },
-      { year: String(baseYear - 2), revenue: listing.revenue_t12m * 0.8 },
-      { year: String(baseYear - 1), revenue: listing.revenue_t12m },
-      { year: String(baseYear), revenue: listing.revenue_t12m * 1.2 }
-    ];
-
-    const profitRevenueData = [
-      { 
-        year: String(baseYear - 3),
-        revenue: listing.revenue_t12m * 0.6,
-        profit: (listing.revenue_t12m * 0.6 * profitMargin/100) * 0.9
-      },
-      { 
-        year: String(baseYear - 2),
-        revenue: listing.revenue_t12m * 0.8,
-        profit: (listing.revenue_t12m * 0.8 * profitMargin/100) * 0.95
-      },
-      { 
-        year: String(baseYear - 1),
+    if (history.length === 0) {
+      history.push({
+        fiscalYear: new Date(listing.createdAt).getFullYear(),
+        currency: listing.financials?.currency ?? null,
         revenue: listing.revenue_t12m,
-        profit: listing.profit_t12m
-      },
-      { 
-        year: String(baseYear),
-        revenue: listing.revenue_t12m * 1.2,
-        profit: (listing.revenue_t12m * 1.2 * profitMargin/100) * 1.05
-      }
-    ];
+        profit: listing.profit_t12m,
+        assets: listing.financials?.assets ?? null,
+        askingPrice: listing.asking_price,
+        valuationMultiple: listing.financials?.valuationMultiple ?? null,
+        growthRate: listing.financials?.growthRate ?? null,
+      });
+    }
+
+    const sortedHistory = history.sort((a, b) => {
+      const aYear = a.fiscalYear ?? Number.MIN_SAFE_INTEGER;
+      const bYear = b.fiscalYear ?? Number.MIN_SAFE_INTEGER;
+      return aYear - bYear;
+    });
+
+    const latest = sortedHistory[sortedHistory.length - 1] ?? null;
+    const previous =
+      sortedHistory.length > 1
+        ? sortedHistory[sortedHistory.length - 2]
+        : null;
+
+    const revenueData = sortedHistory.map((row, index) => ({
+      year: formatYearLabel(row.fiscalYear, index),
+      revenue: row.revenue ?? 0,
+    }));
+
+    const profitRevenueData = sortedHistory.map((row, index) => ({
+      year: formatYearLabel(row.fiscalYear, index),
+      revenue: row.revenue ?? 0,
+      profit: row.profit ?? 0,
+    }));
+
+    const latestRevenue =
+      (typeof latest?.revenue === 'number' ? latest.revenue : null) ??
+      listing.revenue_t12m ??
+      0;
+    const latestProfit =
+      (typeof latest?.profit === 'number' ? latest.profit : null) ??
+      listing.profit_t12m ??
+      0;
+
+    const profitMargin =
+      latestRevenue > 0
+        ? Math.round((latestProfit / latestRevenue) * 100)
+        : 0;
+
+    let multiple = 'N/A';
+    const valuationMultiple =
+      (typeof latest?.valuationMultiple === 'number'
+        ? latest.valuationMultiple
+        : null) ??
+      (typeof listing.financials?.valuationMultiple === 'number'
+        ? listing.financials.valuationMultiple
+        : null);
+
+    if (
+      typeof valuationMultiple === 'number' &&
+      Number.isFinite(valuationMultiple) &&
+      valuationMultiple > 0
+    ) {
+      multiple = valuationMultiple.toFixed(1);
+    } else if (latestProfit > 0 && listing.asking_price > 0) {
+      multiple = (listing.asking_price / latestProfit).toFixed(1);
+    }
+
+    let yearOverYearGrowth: number | null = null;
+    if (previous && typeof previous.revenue === 'number' && previous.revenue > 0) {
+      yearOverYearGrowth = Math.round(
+        ((latestRevenue - previous.revenue) / previous.revenue) * 100
+      );
+    } else if (
+      typeof latest?.growthRate === 'number' &&
+      Number.isFinite(latest.growthRate)
+    ) {
+      yearOverYearGrowth = Math.round(latest.growthRate);
+    }
 
     return {
       profitMargin,
       multiple,
       revenueData,
-      profitRevenueData
+      profitRevenueData,
+      yearOverYearGrowth,
+      latestFinancial: latest,
     };
-  }, [listing]); // Close useMemo with dependency array
+  }, [listing]);
 }

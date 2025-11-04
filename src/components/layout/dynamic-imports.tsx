@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -21,8 +22,11 @@ export const SignUp = dynamic(
   { ssr: false }
 );
 
-export const ListingDetail = dynamic(
-  () => import('@/app/listings/[id]/page').then((mod) => mod.default),
+export const ListingDetail = dynamic<ComponentType<any>>(
+  () =>
+    import('@/app/listings/[id]/page').then(
+      (mod) => mod.default as unknown as ComponentType<any>
+    ),
   { 
     loading: () => <Skeleton className="h-[80vh] w-full" />,
     ssr: true 

@@ -1,11 +1,19 @@
 import { z } from 'zod';
 import type { Database } from '@/types/db';
-import type { Listing, ListingStatus } from '@/lib/types';
+import type {
+  Listing,
+  ListingStatus,
+  ListingMeta,
+  ListingFinancialSnapshot,
+  ListingDetails,
+} from '@/lib/types';
 
 type ListingRow = Database['public']['Tables']['listings']['Row'];
 type ListingStatusDb = Database['public']['Enums']['listing_status'];
 type ListingFinancialRow =
   Database['public']['Views']['listing_latest_financials']['Row'];
+type ListingFinancialHistoryRow =
+  Database['public']['Tables']['listing_financials']['Row'];
 
 const dbToAppStatus: Record<ListingStatusDb, ListingStatus> = {
   draft: 'draft',
@@ -26,24 +34,6 @@ const appToDbStatus: Record<ListingStatus, ListingStatusDb> = {
   closed: 'sold',
 };
 
-export type ListingMeta = {
-  teaser?: string | null;
-  vertical?: string | null;
-  location_area?: string | null;
-  asking_price_reasoning?: string | null;
-  assets_summary?: string | null;
-  licences_summary?: string | null;
-  lease_summary?: string | null;
-  hours_per_week?: number | null;
-  market?: string | null;
-  verified?: boolean | null;
-  avg_response_time_hours?: number | null;
-  sellingReason?: Listing['sellingReason'];
-  established?: string | null;
-  revenue_last_month?: number | string | null;
-  profit_last_month?: number | string | null;
-};
-
 const isRecord = (value: unknown): value is Record<string, any> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
@@ -54,13 +44,37 @@ const toNumber = (value: number | string | null | undefined): number => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const toNullableNumber = (
+export const toNullableNumber = (
   value: number | string | null | undefined
 ): number | null => {
   if (value == null) return null;
   if (typeof value === 'number') return value;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+type FinancialLikeRow = ListingFinancialRow | ListingFinancialHistoryRow;
+
+export const toFinancialSnapshot = (
+  financial: FinancialLikeRow | null | undefined
+): ListingFinancialSnapshot | null => {
+  if (!financial) return null;
+
+  return {
+    fiscalYear:
+      typeof financial.fiscal_year === 'number'
+        ? financial.fiscal_year
+        : financial.fiscal_year != null
+        ? Number(financial.fiscal_year)
+        : null,
+    currency: financial.currency ?? null,
+    revenue: toNullableNumber(financial.revenue),
+    profit: toNullableNumber(financial.profit),
+    assets: toNullableNumber(financial.assets),
+    askingPrice: toNullableNumber(financial.asking_price),
+    valuationMultiple: toNullableNumber(financial.valuation_multiple),
+    growthRate: toNullableNumber(financial.growth_rate),
+  };
 };
 
 const normalizeStatus = (status: ListingStatusDb | null | undefined): ListingStatus => {
@@ -91,7 +105,7 @@ const deriveEstablished = (row: ListingRow, meta: ListingMeta): string => {
   return row.created_at;
 };
 
-const parseMeta = (meta: ListingRow['meta']): ListingMeta => {
+export const parseListingMeta = (meta: ListingRow['meta']): ListingMeta => {
   if (!isRecord(meta)) return {};
   return meta as ListingMeta;
 };
@@ -180,7 +194,7 @@ export const mapListingRowToListing = (
   row: ListingRow,
   financial: ListingFinancialRow | null | undefined
 ): Listing => {
-  const meta = parseMeta(row.meta);
+  const meta = parseListingMeta(row.meta);
   const revenue = toNumber(financial?.revenue);
   const profit = toNumber(financial?.profit);
   const askingPrice = toNumber(financial?.asking_price);
@@ -222,22 +236,7 @@ export const mapListingRowToListing = (
   };
 };
 
-export type ListingFinancialSnapshot = {
-  fiscal_year: number | null;
-  currency: string | null;
-  revenue: number | null;
-  profit: number | null;
-  assets: number | null;
-  asking_price: number | null;
-  valuation_multiple: number | null;
-  growth_rate: number | null;
-};
-
-export type ListingWithDetails = Listing & {
-  raw_status: ListingStatusDb;
-  financials: ListingFinancialSnapshot | null;
-  meta: ListingMeta;
-};
+export type ListingWithDetails = ListingDetails;
 
 export const mapListingToResponse = (
   row: ListingRow,
@@ -247,19 +246,15 @@ export const mapListingToResponse = (
   const serialized: ListingWithDetails = {
     ...listing,
     raw_status: row.status,
-    financials: financial
-      ? {
-          fiscal_year: financial.fiscal_year,
-          currency: financial.currency,
-          revenue: toNullableNumber(financial.revenue),
-          profit: toNullableNumber(financial.profit),
-          assets: toNullableNumber(financial.assets),
-          asking_price: toNullableNumber(financial.asking_price),
-          valuation_multiple: toNullableNumber(financial.valuation_multiple),
-          growth_rate: toNullableNumber(financial.growth_rate),
-        }
-      : null,
-    meta: parseMeta(row.meta),
+    financials: toFinancialSnapshot(financial),
+    meta: parseListingMeta(row.meta),
+    financialHistory: [],
+    documents: [],
+    traffic: {
+      history: [],
+      sources: [],
+      summary: {},
+    },
   };
   return serialized;
 };

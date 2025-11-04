@@ -15,16 +15,26 @@ export const formatCurrency = (amount: number): string => {
 
 /**
  * Format date string to a readable format
- * @param dateString - ISO date string
+ * @param dateString - ISO date string (optional)
+ * @param fallback - Value to return when the date is missing or invalid
  * @returns Formatted date string (e.g., "January 1, 2023")
  */
-export const formatDate = (dateString: string): string => {
-  const options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+export const formatDate = (
+  dateString?: string | null,
+  fallback = '—'
+): string => {
+  if (!dateString) return fallback;
+
+  const parsed = new Date(dateString);
+  if (Number.isNaN(parsed.getTime())) return fallback;
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
   };
-  return new Date(dateString).toLocaleDateString('en-US', options);
+
+  return parsed.toLocaleDateString('en-US', options);
 };
 
 /**

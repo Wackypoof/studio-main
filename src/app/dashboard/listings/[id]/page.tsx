@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { notFound, useSearchParams } from 'next/navigation';
 import { formatCurrency, formatDate } from '@/lib/utils/format';
 import { KeyHighlights, AcquisitionDetails } from '@/components/listing/KeyHighlights';
-import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, FileText, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, MessageSquare, Share2, TrendingUp, TrendingDown, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useListing, useListingMetrics } from '@/hooks/useListing';
@@ -51,7 +50,7 @@ function ListingDetailsContent({ id }: { id: string }) {
   const from = searchParams.get('from');
   const [activeTab, setActiveTab] = useState('overview');
   const { listing, isLoading, error, refetch } = useListing(id);
-  const { profitMargin, multiple, revenueData, profitRevenueData } = useListingMetrics(listing);
+  const metrics = useListingMetrics(listing);
 
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
@@ -90,39 +89,165 @@ function ListingDetailsContent({ id }: { id: string }) {
     return null;
   }
 
+  const formatSessionDuration = (minutes?: number | null) => {
+    if (minutes == null || !Number.isFinite(minutes) || minutes <= 0) {
+      return '—';
+    }
+    const totalSeconds = Math.round(minutes * 60);
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  const toNumeric = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
   const statusInfo = STATUS_STYLES[listing.status] ?? {
     label: listing.status,
   };
   const location = listing.location_area || 'Location not specified';
+  const latestFinancial = metrics.latestFinancial;
+  const latestRevenue =
+    (typeof latestFinancial?.revenue === 'number'
+      ? latestFinancial.revenue
+      : null) ?? listing.revenue_t12m ?? 0;
+  const latestProfit =
+    (typeof latestFinancial?.profit === 'number'
+      ? latestFinancial.profit
+      : null) ?? listing.profit_t12m ?? 0;
   const revenueMultiple =
-    listing.revenue_t12m > 0
-      ? (listing.asking_price / listing.revenue_t12m).toFixed(1)
+    latestRevenue > 0 && listing.asking_price > 0
+      ? (listing.asking_price / latestRevenue).toFixed(1)
       : 'N/A';
   const paybackPeriod =
-    listing.profit_t12m > 0
-      ? (listing.asking_price / listing.profit_t12m).toFixed(1)
+    latestProfit > 0 && listing.asking_price > 0
+      ? (listing.asking_price / latestProfit).toFixed(1)
       : 'N/A';
-  const monthlyProfit =
-    listing.profit_t12m > 0 ? listing.profit_t12m / 12 : 0;
+  const monthlyProfit = latestProfit > 0 ? latestProfit / 12 : 0;
   const profitMarginLabel =
-    listing.revenue_t12m > 0 ? `${profitMargin}% Margin` : 'Margin unavailable';
+    latestRevenue > 0 ? `${metrics.profitMargin}% Margin` : 'Margin unavailable';
+  const yearOverYearGrowth = metrics.yearOverYearGrowth;
+  const yoyGrowthLabel =
+    yearOverYearGrowth != null
+      ? `${yearOverYearGrowth >= 0 ? '+' : ''}${yearOverYearGrowth}% YoY`
+      : null;
+  const yoyGrowthClass =
+    yearOverYearGrowth != null
+      ? yearOverYearGrowth >= 0
+        ? 'text-green-600'
+        : 'text-red-600'
+      : 'text-muted-foreground';
+  const businessSummary =
+    (typeof listing.meta?.business_summary === 'string' &&
+    listing.meta.business_summary.trim()
+      ? listing.meta.business_summary
+      : typeof listing.meta?.businessSummary === 'string' &&
+        listing.meta.businessSummary.trim()
+      ? listing.meta.businessSummary
+      : listing.teaser) || 'Seller has not provided a summary yet.';
 
-  const trafficData = [
-    { month: 'Jan', visitors: 12500 },
-    { month: 'Feb', visitors: 13800 },
-    { month: 'Mar', visitors: 14500 },
-    { month: 'Apr', visitors: 16200 },
-    { month: 'May', visitors: 17800 },
-    { month: 'Jun', visitors: 19500 }
-  ];
-  
-  const trafficSources = [
-    { name: 'Organic', value: 45 },
-    { name: 'Direct', value: 25 },
-    { name: 'Social', value: 15 },
-    { name: 'Referral', value: 10 },
-    { name: 'Email', value: 5 }
-  ];
+  const trafficHistory = listing.traffic?.history ?? [];
+  const trafficChartData = trafficHistory
+    .map((point, index) => ({
+      month: point.period || `Period ${index + 1}`,
+      visitors:
+        typeof point.visitors === 'number'
+          ? point.visitors
+          : Number(point.visitors) || 0,
+    }))
+    .filter((point) => Number.isFinite(point.visitors));
+  const hasTrafficHistory = trafficChartData.length > 0;
+
+  const trafficSourcesData = (listing.traffic?.sources ?? [])
+    .map((source) => {
+      const sourceRecord = source as Record<string, unknown>;
+      const resolvedName =
+        source.source ||
+        (typeof sourceRecord.name === 'string' ? sourceRecord.name : undefined) ||
+        'Other';
+      const resolvedValue =
+        typeof source.value === 'number'
+          ? source.value
+          : toNumeric(sourceRecord.value) ?? 0;
+      return {
+        name: resolvedName,
+        value: resolvedValue,
+      };
+    })
+    .filter((source) => Number.isFinite(source.value) && source.value >= 0);
+  const hasTrafficSources = trafficSourcesData.length > 0;
+
+  const trafficSummary = listing.traffic?.summary ?? {};
+  const numberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }),
+    []
+  );
+  const totalVisitorsValue = toNumeric(
+    (trafficSummary as { totalVisitors?: unknown }).totalVisitors
+  );
+  const pagesPerVisitValue = toNumeric(
+    (trafficSummary as { pagesPerVisit?: unknown }).pagesPerVisit
+  );
+  const avgSessionDurationValue = toNumeric(
+    (trafficSummary as { avgSessionDurationMinutes?: unknown })
+      .avgSessionDurationMinutes
+  );
+  const totalVisitorsLabel =
+    totalVisitorsValue != null
+      ? numberFormatter.format(totalVisitorsValue)
+      : '—';
+  const pagesPerVisitLabel =
+    pagesPerVisitValue != null ? pagesPerVisitValue.toFixed(1) : '—';
+  const avgSessionDurationLabel = formatSessionDuration(avgSessionDurationValue);
+
+  const documents = listing.documents ?? [];
+  const hasDocuments = documents.length > 0;
+  const formatDocumentType = (docType?: string | null) => {
+    if (!docType) return 'Document';
+    const map: Record<string, string> = {
+      financial_statement: 'Financial Statement',
+      legal_doc: 'Legal Document',
+      tax_return: 'Tax Return',
+      photo: 'Photo',
+      other: 'Other',
+    };
+    const normalized = docType.toLowerCase();
+    if (map[normalized]) return map[normalized];
+    return normalized
+      .split(/[_\s]/g)
+      .filter(Boolean)
+      .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
+      .join(' ');
+  };
+  const formatDocumentStatus = (status?: string | null) => {
+    if (!status) return 'Unknown';
+    return status
+      .split(/[_\s]/g)
+      .filter(Boolean)
+      .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
+      .join(' ');
+  };
+  const formatFileSize = (size?: number | null) => {
+    if (size == null || !Number.isFinite(size) || size <= 0) return '';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let value = size;
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit += 1;
+    }
+    const decimals = value >= 10 || unit === 0 ? 0 : 1;
+    return `${value.toFixed(decimals)} ${units[unit]}`;
+  };
   
   return (
     <div className="w-full py-6 md:py-8">
@@ -191,7 +316,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                       <div className="space-y-2">
                         <h3 className="font-semibold">Business Summary</h3>
                         <p className="text-muted-foreground">
-                          {listing.teaser || 'Seller has not provided a summary yet.'}
+                          {businessSummary}
                         </p>
                       </div>
                       
@@ -208,15 +333,23 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <CardContent className="space-y-4">
                           <div>
                             <p className="text-sm text-muted-foreground">Annual Revenue</p>
-                            <p className="text-lg font-semibold">{formatCurrency(listing.revenue_t12m)}</p>
-                            <p className="text-xs text-green-600 flex items-center">
-                              <TrendingUp className="h-3 w-3 mr-1" />
-                              18% YoY Growth
-                            </p>
+                            <p className="text-lg font-semibold">{formatCurrency(latestRevenue)}</p>
+                            {yoyGrowthLabel ? (
+                              <p className={`text-xs flex items-center ${yoyGrowthClass}`}>
+                                {yearOverYearGrowth != null && yearOverYearGrowth < 0 ? (
+                                  <TrendingDown className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <TrendingUp className="h-3 w-3 mr-1" />
+                                )}
+                                {yoyGrowthLabel}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">YoY data unavailable</p>
+                            )}
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Annual Profit</p>
-                            <p className="text-lg font-semibold">{formatCurrency(listing.profit_t12m)}</p>
+                            <p className="text-lg font-semibold">{formatCurrency(latestProfit)}</p>
                             <p className="text-xs text-green-600">{profitMarginLabel}</p>
                           </div>
                           <div>
@@ -240,7 +373,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">Profit Multiple</span>
                             <span className="font-medium">
-                              {multiple === 'N/A' ? 'N/A' : `${multiple}x`}
+                              {metrics.multiple === 'N/A' ? 'N/A' : `${metrics.multiple}x`}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -265,7 +398,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <h4 className="font-medium">Annual Revenue</h4>
                       </CardHeader>
                       <CardContent>
-                        <RevenueChart data={revenueData} />
+                        <RevenueChart data={metrics.revenueData} />
                       </CardContent>
                     </Card>
                     
@@ -274,7 +407,7 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <h4 className="font-medium">Profit & Revenue</h4>
                       </CardHeader>
                       <CardContent>
-                        <ProfitRevenueChart data={profitRevenueData} />
+                        <ProfitRevenueChart data={metrics.profitRevenueData} />
                       </CardContent>
                     </Card>
                     
@@ -295,19 +428,35 @@ function ListingDetailsContent({ id }: { id: string }) {
                               </tr>
                             </thead>
                             <tbody>
-                              {profitRevenueData.map((row, index) => (
+                              {metrics.profitRevenueData.map((row, index) => {
+                                const previousRow =
+                                  index > 0 ? metrics.profitRevenueData[index - 1] : null;
+                                const growthValue =
+                                  previousRow && previousRow.revenue > 0
+                                    ? Math.round(
+                                        ((row.revenue - previousRow.revenue) /
+                                          previousRow.revenue) *
+                                          100
+                                      )
+                                    : null;
+                                const marginPct =
+                                  row.revenue > 0
+                                    ? Math.round((row.profit / row.revenue) * 100)
+                                    : null;
+                                return (
                                 <tr key={row.year} className="border-b hover:bg-muted/50">
                                   <td className="py-2">{row.year}</td>
                                   <td className="text-right">{formatCurrency(row.revenue)}</td>
                                   <td className="text-right">{formatCurrency(row.profit)}</td>
-                                  <td className="text-right">{Math.round((row.profit / row.revenue) * 100)}%</td>
                                   <td className="text-right">
-                                    {index > 0 ? 
-                                      `${Math.round(((row.revenue - profitRevenueData[index-1].revenue) / profitRevenueData[index-1].revenue) * 100)}%` : 
-                                      'N/A'}
+                                    {marginPct != null ? `${marginPct}%` : 'N/A'}
+                                  </td>
+                                  <td className="text-right">
+                                    {growthValue != null ? `${growthValue}%` : 'N/A'}
                                   </td>
                                 </tr>
-                              ))}
+                                );
+                              })}
                             </tbody>
                           </table>
                         </div>
@@ -326,7 +475,13 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <h4 className="font-medium">Monthly Visitors (Last 6 Months)</h4>
                       </CardHeader>
                       <CardContent>
-                        <TrafficChart data={trafficData} />
+                        {hasTrafficHistory ? (
+                          <TrafficChart data={trafficChartData} />
+                        ) : (
+                          <div className="py-8 text-center text-sm text-muted-foreground">
+                            Traffic history has not been provided yet.
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                     
@@ -335,7 +490,13 @@ function ListingDetailsContent({ id }: { id: string }) {
                         <h4 className="font-medium">Traffic Sources</h4>
                       </CardHeader>
                       <CardContent>
-                        <TrafficSourcesChart data={trafficSources} />
+                        {hasTrafficSources ? (
+                          <TrafficSourcesChart data={trafficSourcesData} />
+                        ) : (
+                          <div className="py-8 text-center text-sm text-muted-foreground">
+                            Traffic source breakdown unavailable.
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                     
@@ -346,15 +507,15 @@ function ListingDetailsContent({ id }: { id: string }) {
                       <CardContent>
                         <div className="grid md:grid-cols-3 gap-6">
                           <div className="text-center">
-                            <p className="text-2xl font-bold">2.4m</p>
+                            <p className="text-2xl font-bold">{totalVisitorsLabel}</p>
                             <p className="text-sm text-muted-foreground">Total Visitors</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-2xl font-bold">3.2</p>
+                            <p className="text-2xl font-bold">{pagesPerVisitLabel}</p>
                             <p className="text-sm text-muted-foreground">Avg. Pages/Visit</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-2xl font-bold">2:45</p>
+                            <p className="text-2xl font-bold">{avgSessionDurationLabel}</p>
                             <p className="text-sm text-muted-foreground">Avg. Session Duration</p>
                           </div>
                         </div>
@@ -367,33 +528,50 @@ function ListingDetailsContent({ id }: { id: string }) {
               <TabsContent value="documents" className="flex-1 w-full">
                 <div className="space-y-6 w-full">
                   <h3 className="font-semibold">Business Documents</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {[
-                      { name: 'Financial Statements 2023', type: 'PDF', size: '2.4 MB' },
-                      { name: 'Tax Returns 2023', type: 'PDF', size: '1.8 MB' },
-                      { name: 'Traffic Analytics Report', type: 'PDF', size: '3.1 MB' },
-                      { name: 'Customer Demographics', type: 'XLSX', size: '1.2 MB' },
-                    ].map((doc, i) => (
-                      <div key={i} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer">
-                        <div className="flex items-start gap-3">
-                          <div className="bg-muted p-2 rounded">
-                            <FileText className="h-5 w-5" />
+                  {hasDocuments ? (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {documents.map((doc) => {
+                        const fileSizeLabel = formatFileSize(doc.fileSize);
+                        const metaParts = [formatDocumentType(doc.docType)];
+                        if (fileSizeLabel) {
+                          metaParts.push(fileSizeLabel);
+                        }
+                        return (
+                          <div
+                            key={doc.id}
+                            className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="bg-muted p-2 rounded">
+                                <FileText className="h-5 w-5" />
+                              </div>
+                              <div className="flex-1 min-w-0 space-y-1">
+                                <p className="font-medium truncate">
+                                  {doc.fileName || formatDocumentType(doc.docType)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {metaParts.join(' • ')}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  Updated {formatDate(doc.updatedAt)}
+                                </p>
+                              </div>
+                              <Badge
+                                variant={doc.status === 'verified' ? 'default' : 'outline'}
+                                className="uppercase"
+                              >
+                                {formatDocumentStatus(doc.status)}
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{doc.name}</p>
-                            <p className="text-xs text-muted-foreground">{doc.type} • {doc.size}</p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                              <polyline points="7 10 12 15 17 10"></polyline>
-                              <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="border rounded-lg p-6 text-center text-sm text-muted-foreground">
+                      No documents have been shared for this listing yet.
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

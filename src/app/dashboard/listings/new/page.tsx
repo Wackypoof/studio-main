@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import type { Database } from "@/types/supabase";
+import type { Database } from "@/types/db";
 import {
   Card,
   CardContent,

@@ -45,10 +45,10 @@ const statusCopy: Record<NdaStatus, { label: string; badgeVariant: 'default' | '
   },
 };
 
-const formatDate = (value?: string) => {
-  if (!value) return 'N/A';
+const formatDate = (value?: string | null) => {
+  if (!value) return '—';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'N/A';
+  if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -56,7 +56,7 @@ const formatDate = (value?: string) => {
   });
 };
 
-const formatRelative = (value?: string) => {
+const formatRelative = (value?: string | null) => {
   if (!value) return '—';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '—';

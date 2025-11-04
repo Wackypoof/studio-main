@@ -4,7 +4,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-const enabled = process.env.NEXT_PUBLIC_ENABLE_MONITORING === 'true';
+const enabled = `${process.env.NEXT_PUBLIC_ENABLE_MONITORING}` === 'true';
 const isProd = process.env.NODE_ENV === 'production';
 const tracesSampleRate = process.env.SENTRY_TRACES_SAMPLE_RATE
   ? Number(process.env.SENTRY_TRACES_SAMPLE_RATE)

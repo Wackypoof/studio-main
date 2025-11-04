@@ -90,13 +90,14 @@ describe('POST /api/admin/nda-requests/[id]/decision', () => {
     };
 
     const auditInsert = jest.fn().mockResolvedValue({ error: null });
+    let requestCallCount = 0;
 
     const fromMock = jest.fn().mockImplementation((table: string) => {
       if (table === 'nda_requests') {
-        fromMock.calls = (fromMock.calls || 0) + 1;
-        if (fromMock.calls === 1) return makeInitialBuilder(baseRow);
-        if (fromMock.calls === 2) return makeUpdateBuilder(updatedRow);
-        if (fromMock.calls === 3) return makeFinalBuilder(finalRow);
+        requestCallCount += 1;
+        if (requestCallCount === 1) return makeInitialBuilder(baseRow);
+        if (requestCallCount === 2) return makeUpdateBuilder(updatedRow);
+        if (requestCallCount === 3) return makeFinalBuilder(finalRow);
       }
       if (table === 'nda_audit_events') {
         return { insert: auditInsert };
