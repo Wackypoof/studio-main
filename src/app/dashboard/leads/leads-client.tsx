@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,23 +22,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageHeader } from '@/components/page-header';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useBuyerLeads } from '@/hooks/useBuyerLeads';
 
 interface LeadsClientProps {
-  initialData: {
-    leads: Array<{
-      id: string;
-      name: string;
-      email: string;
-      phone: string;
-      company: string;
-      position: string;
-      status: string;
-      source: string;
-      interest: string;
-      lastContact: string;
-    }>;
-    statusCounts: Record<string, number>;
-  };
   searchParams: { listing?: string };
 }
 
@@ -61,37 +48,46 @@ const sourceConfig = {
   phone: { label: 'Phone', icon: <Phone className="h-3 w-3" /> },
 };
 
-export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
+export function LeadsClient({ searchParams }: LeadsClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [sortConfig, setSortConfig] = useState({ key: 'lastContact', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'lastContactedAt', direction: 'desc' });
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
-  
-  const { leads: initialLeads, statusCounts } = initialData;
+
+  const { data, isLoading, error, refetch } = useBuyerLeads({
+    listingId: searchParams.listing,
+  });
+
+  const leads = useMemo(() => data?.leads ?? [], [data?.leads]);
+  const statusCounts = data?.statusCounts ?? {};
+  const totalLeads = data?.count ?? leads.length;
   
   // Filter and sort leads
   const filteredLeads = useMemo(() => {
-    return initialLeads
+    return leads
       .filter(lead => {
         const matchesSearch = 
-          lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.email.toLowerCase().includes(searchTerm.toLowerCase());
+          (lead.name ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (lead.company ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (lead.listingName ?? '').toLowerCase().includes(searchTerm.toLowerCase());
           
         const matchesStatus = activeTab === 'all' || lead.status === activeTab;
-        const matchesListing = !searchParams.listing || lead.interest === searchParams.listing;
+        const matchesListing = !searchParams.listing || lead.listingId === searchParams.listing;
         
         return matchesSearch && matchesStatus && matchesListing;
       })
       .sort((a, b) => {
-        if (sortConfig.key === 'lastContact') {
+        if (sortConfig.key === 'lastContactedAt') {
           return sortConfig.direction === 'asc' 
-            ? new Date(a.lastContact).getTime() - new Date(b.lastContact).getTime()
-            : new Date(b.lastContact).getTime() - new Date(a.lastContact).getTime();
+            ? new Date(a.lastContactedAt ?? 0).getTime() - new Date(b.lastContactedAt ?? 0).getTime()
+            : new Date(b.lastContactedAt ?? 0).getTime() - new Date(a.lastContactedAt ?? 0).getTime();
         }
         return 0;
       });
-  }, [initialLeads, searchTerm, activeTab, searchParams.listing, sortConfig]);
+  }, [leads, searchTerm, activeTab, searchParams.listing, sortConfig]);
+
+  const showEmptyState = !isLoading && !error && filteredLeads.length === 0;
   
   const toggleSelectAll = () => {
     if (selectedLeads.length === filteredLeads.length) {
@@ -151,7 +147,7 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{initialLeads.length}</div>
+            <div className="text-2xl font-bold">{totalLeads}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+12.5%</span> from last month
             </p>
@@ -195,7 +191,7 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {((statusCounts['closed_won'] || 0) / (initialLeads.length || 1) * 100).toFixed(1)}%
+              {((statusCounts['closed_won'] || 0) / (totalLeads || 1) * 100).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-500">+2.1%</span> from last month
@@ -213,7 +209,7 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
           >
             <TabsList className="grid w-full grid-cols-4 sm:flex">
               <TabsTrigger value="all" className="text-xs sm:text-sm">
-                All <span className="ml-1 text-muted-foreground">({initialLeads.length})</span>
+                All <span className="ml-1 text-muted-foreground">({totalLeads})</span>
               </TabsTrigger>
               <TabsTrigger value="new" className="text-xs sm:text-sm">
                 New <span className="ml-1 text-muted-foreground">({getStatusCount('new')})</span>
@@ -239,6 +235,22 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
           </div>
         </div>
         
+        {error && (
+          <div className="px-4 py-3">
+            <Alert variant="destructive">
+              <AlertTitle>Unable to load leads</AlertTitle>
+              <AlertDescription>
+                {error.message || 'An unexpected error occurred while fetching leads.'}
+              </AlertDescription>
+              <div className="mt-3">
+                <Button size="sm" onClick={() => refetch()}>
+                  Retry
+                </Button>
+              </div>
+            </Alert>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -269,11 +281,11 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
                 <th className="p-3 text-left text-sm font-medium text-muted-foreground">Interested In</th>
                 <th 
                   className="p-3 text-left text-sm font-medium text-muted-foreground cursor-pointer"
-                  onClick={() => handleSort('lastContact')}
+                  onClick={() => handleSort('lastContactedAt')}
                 >
                   <div className="flex items-center">
                     Last Contact
-                    {sortConfig.key === 'lastContact' && (
+                    {sortConfig.key === 'lastContactedAt' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUp className="ml-1 h-4 w-4" /> 
                         : <ChevronDown className="ml-1 h-4 w-4" />
@@ -284,7 +296,45 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {filteredLeads.length === 0 ? (
+              {error ? (
+                <tr>
+                  <td colSpan={7} className="p-6 text-center text-sm text-muted-foreground">
+                    Unable to load leads. Please try again.
+                  </td>
+                </tr>
+              ) : isLoading ? (
+                [...Array(4)].map((_, index) => (
+                  <tr key={`lead-skeleton-${index}`} className="animate-pulse">
+                    <td className="p-3">
+                      <Skeleton className="h-4 w-4 rounded" />
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-9 w-9 rounded-full" />
+                        <div className="space-y-2 w-full">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+                    <td className="p-3">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="p-3">
+                      <Skeleton className="h-4 w-32" />
+                    </td>
+                    <td className="p-3">
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+                    <td className="p-3 text-right">
+                      <Skeleton className="h-4 w-16 ml-auto" />
+                    </td>
+                  </tr>
+                ))
+              ) : showEmptyState ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center">
                     <div className="text-muted-foreground">
@@ -316,12 +366,19 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
                     <td className="p-3">
                       <div className="flex items-center">
                         <Avatar className="h-9 w-9 mr-3">
-                          <AvatarImage src={`https://i.pravatar.cc/150?u=${lead.id}`} alt={lead.name} />
-                          <AvatarFallback>{lead.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          <AvatarImage src={lead.buyerAvatar ?? undefined} alt={lead.name ?? 'Buyer'} />
+                          <AvatarFallback>
+                            {(lead.name ?? 'Buyer')
+                              .split(' ')
+                              .filter(Boolean)
+                              .map(part => part[0]?.toUpperCase())
+                              .join('')
+                              .slice(0, 2) || 'B'}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{lead.name}</div>
-                          <div className="text-sm text-muted-foreground">{lead.company}</div>
+                          <div className="font-medium">{lead.name ?? 'Buyer'}</div>
+                          <div className="text-sm text-muted-foreground">{lead.company ?? '—'}</div>
                         </div>
                       </div>
                     </td>
@@ -340,9 +397,11 @@ export function LeadsClient({ initialData, searchParams }: LeadsClientProps) {
                         {sourceConfig[lead.source as keyof typeof sourceConfig]?.label || lead.source}
                       </div>
                     </td>
-                    <td className="p-3 text-sm">{lead.interest}</td>
+                    <td className="p-3 text-sm">{lead.listingName ?? '—'}</td>
                     <td className="p-3 text-sm text-muted-foreground">
-                      {new Date(lead.lastContact).toISOString().split('T')[0].split('-').reverse().join('/')}
+                      {lead.lastContactedAt
+                        ? new Date(lead.lastContactedAt).toLocaleDateString()
+                        : '—'}
                     </td>
                     <td className="p-3 text-right">
                       <DropdownMenu>

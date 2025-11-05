@@ -5,6 +5,27 @@ import Page from '../page';
 
 const mockToggleRole = jest.fn();
 
+jest.mock('@/context/AuthProvider', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'test-user-id',
+      email: 'buyer@example.com',
+      user_metadata: { full_name: 'Test Buyer' },
+    },
+    session: null,
+    isLoading: false,
+    isAuthenticating: false,
+    isInitialized: true,
+    error: null,
+    clearError: jest.fn(),
+    signIn: jest.fn(),
+    signInWithProvider: jest.fn(),
+    signUp: jest.fn(),
+    signOut: jest.fn(),
+    updateProfile: jest.fn(),
+  }),
+}));
+
 jest.mock('@/contexts/role-context', () => ({
   useRole: () => ({
     role: 'buyer',

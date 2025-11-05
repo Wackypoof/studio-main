@@ -6,7 +6,7 @@ create type nda_audit_event_type as enum ('requested', 'approved', 'declined', '
 
 -- Table storing active NDA agreements between buyers and sellers
 create table nda_agreements (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   listing_id uuid not null references listings(id) on delete cascade,
   buyer_id uuid not null references profiles(id) on delete cascade,
   seller_id uuid not null references profiles(id) on delete cascade,
@@ -23,7 +23,7 @@ create table nda_agreements (
 
 -- Requests waiting for admin review or in-progress
 create table nda_requests (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   listing_id uuid not null references listings(id) on delete cascade,
   buyer_id uuid not null references profiles(id) on delete cascade,
   seller_id uuid not null references profiles(id) on delete cascade,
@@ -43,7 +43,7 @@ create table nda_requests (
 
 -- Audit log for NDA request activity
 create table nda_audit_events (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   request_id uuid references nda_requests(id) on delete cascade,
   agreement_id uuid references nda_agreements(id) on delete cascade,
   event_type nda_audit_event_type not null,

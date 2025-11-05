@@ -33,6 +33,9 @@ export type ListingDocument = Tables<'listing_documents'>;
 export type ListingPhoto = Tables<'listing_photos'>;
 export type NdaRequest = Tables<'nda_requests'>;
 export type NdaAgreement = Tables<'nda_agreements'>;
+export type Offer = Tables<'offers'>;
+export type BuyerLead = Tables<'buyer_leads'>;
+export type BuyerSavedListing = Tables<'buyer_saved_listings'>;
 
 // Enum types
 export type UserRole = Enums<'user_role'>;

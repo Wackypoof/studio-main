@@ -39,6 +39,138 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
+    const dbStatuses = statusParams
+      .flatMap((value) => value.split(','))
+      .map((value) => parseStatusInput(value))
+      .filter(
+        (value): value is Database['public']['Enums']['listing_status'] =>
+          Boolean(value)
+      );
+
+    if (scope === 'saved') {
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      const { data: savedRows, error: savedError } = await supabase
+        .from('buyer_saved_listings')
+        .select('listing_id, created_at')
+        .eq('buyer_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (savedError) {
+        console.error('Failed to fetch saved listings:', savedError);
+        return NextResponse.json(
+          { error: 'Failed to fetch saved listings' },
+          { status: 500 }
+        );
+      }
+
+      const savedIds = (savedRows ?? [])
+        .map((row) => row.listing_id)
+        .filter((value): value is string => Boolean(value));
+
+      if (savedIds.length === 0) {
+        return NextResponse.json({
+          listings: [],
+          count: 0,
+          hasMore: false,
+        });
+      }
+
+      let listingsQuery = supabase
+        .from('listings')
+        .select('*')
+        .in('id', savedIds);
+
+      if (dbStatuses.length > 0) {
+        listingsQuery = listingsQuery.in('status', dbStatuses);
+      }
+
+      if (searchTerm) {
+        const sanitized = sanitizeSearch(searchTerm);
+        listingsQuery = listingsQuery.or(
+          [
+            `name.ilike.%${sanitized}%`,
+            `industry.ilike.%${sanitized}%`,
+            `city.ilike.%${sanitized}%`,
+            `region.ilike.%${sanitized}%`,
+          ].join(',')
+        );
+      }
+
+      const { data: savedListingRows, error: listingsError } = await listingsQuery;
+
+      if (listingsError) {
+        console.error('Failed to fetch listings for saved scope:', listingsError);
+        return NextResponse.json(
+          { error: 'Failed to fetch saved listings' },
+          { status: 500 }
+        );
+      }
+
+      if (!savedListingRows || savedListingRows.length === 0) {
+        return NextResponse.json({
+          listings: [],
+          count: 0,
+          hasMore: false,
+        });
+      }
+
+      const savedDateMap = new Map(
+        (savedRows ?? []).map((row) => [row.listing_id, row.created_at])
+      );
+
+      const orderMap = new Map(
+        (savedRows ?? []).map((row, index) => [row.listing_id, index])
+      );
+
+      const sortedListings = savedListingRows
+        .filter((row) => savedDateMap.has(row.id))
+        .sort((a, b) => {
+          const aOrder = orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+          const bOrder = orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER;
+          return aOrder - bOrder;
+        });
+
+      const total = sortedListings.length;
+      const paginatedListings = sortedListings.slice(offset, offset + limit);
+      const paginatedIds = paginatedListings.map((row) => row.id);
+
+      let financialMap = new Map<string, any>();
+
+      if (paginatedIds.length > 0) {
+        const { data: financialRows, error: financialError } = await supabase
+          .from('listing_latest_financials')
+          .select('*')
+          .in('listing_id', paginatedIds);
+
+        if (financialError) {
+          console.error('Failed to fetch financials for saved listings:', financialError);
+          return NextResponse.json(
+            { error: 'Failed to fetch saved listings' },
+            { status: 500 }
+          );
+        }
+
+        financialMap = new Map(
+          (financialRows ?? []).map((row) => [row.listing_id ?? '', row])
+        );
+      }
+
+      const listings = paginatedListings.map((row) => {
+        const listing = mapListingToResponse(row, financialMap.get(row.id));
+        return {
+          ...listing,
+          savedAt: savedDateMap.get(row.id) ?? null,
+        };
+      });
+
+      const hasMore = offset + listings.length < total;
+
+      return NextResponse.json({ listings, count: total, hasMore });
+    }
+
     let query = supabase
       .from('listings')
       .select('*', { count: 'exact' })
@@ -50,14 +182,6 @@ export async function GET(request: NextRequest) {
       }
       query = query.eq('owner_id', user.id);
     }
-
-    const dbStatuses = statusParams
-      .flatMap((value) => value.split(','))
-      .map((value) => parseStatusInput(value))
-      .filter(
-        (value): value is Database['public']['Enums']['listing_status'] =>
-          Boolean(value)
-      );
 
     if (dbStatuses.length > 0) {
       query = query.in('status', dbStatuses);

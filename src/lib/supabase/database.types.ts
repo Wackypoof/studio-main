@@ -9,6 +9,110 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      buyer_leads: {
+        Row: {
+          buyer_company: string | null;
+          buyer_email: string;
+          buyer_id: string | null;
+          buyer_phone: string | null;
+          buyer_position: string | null;
+          created_at: string;
+          id: string;
+          last_contacted_at: string | null;
+          listing_id: string | null;
+          notes: string | null;
+          seller_id: string;
+          source: Database["public"]["Enums"]["buyer_lead_source"];
+          status: Database["public"]["Enums"]["buyer_lead_status"];
+          updated_at: string;
+        };
+        Insert: {
+          buyer_company?: string | null;
+          buyer_email: string;
+          buyer_id?: string | null;
+          buyer_phone?: string | null;
+          buyer_position?: string | null;
+          created_at?: string;
+          id?: string;
+          last_contacted_at?: string | null;
+          listing_id?: string | null;
+          notes?: string | null;
+          seller_id: string;
+          source?: Database["public"]["Enums"]["buyer_lead_source"];
+          status?: Database["public"]["Enums"]["buyer_lead_status"];
+          updated_at?: string;
+        };
+        Update: {
+          buyer_company?: string | null;
+          buyer_email?: string;
+          buyer_id?: string | null;
+          buyer_phone?: string | null;
+          buyer_position?: string | null;
+          created_at?: string;
+          id?: string;
+          last_contacted_at?: string | null;
+          listing_id?: string | null;
+          notes?: string | null;
+          seller_id?: string;
+          source?: Database["public"]["Enums"]["buyer_lead_source"];
+          status?: Database["public"]["Enums"]["buyer_lead_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "buyer_leads_buyer_id_fkey";
+            columns: ["buyer_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "buyer_leads_listing_id_fkey";
+            columns: ["listing_id"];
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "buyer_leads_seller_id_fkey";
+            columns: ["seller_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      buyer_saved_listings: {
+        Row: {
+          buyer_id: string;
+          created_at: string;
+          id: string;
+          listing_id: string;
+        };
+        Insert: {
+          buyer_id: string;
+          created_at?: string;
+          id?: string;
+          listing_id: string;
+        };
+        Update: {
+          buyer_id?: string;
+          created_at?: string;
+          id?: string;
+          listing_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "buyer_saved_listings_buyer_id_fkey";
+            columns: ["buyer_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "buyer_saved_listings_listing_id_fkey";
+            columns: ["listing_id"];
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       listings: {
         Row: {
           city: string | null;
@@ -77,6 +181,67 @@ export interface Database {
           {
             foreignKeyName: "listings_owner_id_fkey";
             columns: ["owner_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      offers: {
+        Row: {
+          buyer_id: string;
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          listing_id: string;
+          listing_price: number | null;
+          message: string | null;
+          offer_amount: number;
+          seller_id: string;
+          status: Database["public"]["Enums"]["offer_status"];
+          updated_at: string;
+        };
+        Insert: {
+          buyer_id: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          listing_id: string;
+          listing_price?: number | null;
+          message?: string | null;
+          offer_amount: number;
+          seller_id: string;
+          status?: Database["public"]["Enums"]["offer_status"];
+          updated_at?: string;
+        };
+        Update: {
+          buyer_id?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          listing_id?: string;
+          listing_price?: number | null;
+          message?: string | null;
+          offer_amount?: number;
+          seller_id?: string;
+          status?: Database["public"]["Enums"]["offer_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "offers_buyer_id_fkey";
+            columns: ["buyer_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offers_listing_id_fkey";
+            columns: ["listing_id"];
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offers_seller_id_fkey";
+            columns: ["seller_id"];
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
@@ -513,6 +678,28 @@ export interface Database {
         | "expired";
       nda_risk_level: "low" | "medium" | "high";
       nda_status: "pending" | "signed" | "expired" | "declined";
+      offer_status:
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "expired"
+        | "withdrawn";
+      buyer_lead_status:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "proposal_sent"
+        | "negotiation"
+        | "closed_won"
+        | "closed_lost";
+      buyer_lead_source:
+        | "website"
+        | "referral"
+        | "social_media"
+        | "email"
+        | "phone"
+        | "event"
+        | "other";
     };
     CompositeTypes: {
       [_ in never]: never;

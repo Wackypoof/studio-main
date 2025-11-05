@@ -1,5 +1,4 @@
--- Create conversations table
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT,
   listing_id UUID, -- Reference to business listings (if you have them)
@@ -7,8 +6,29 @@ CREATE TABLE public.conversations (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+ALTER TABLE public.conversations
+  ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+ALTER TABLE public.conversations
+  ADD COLUMN IF NOT EXISTS title TEXT;
+
+ALTER TABLE public.conversations
+  ADD COLUMN IF NOT EXISTS listing_id UUID;
+
+ALTER TABLE public.conversations
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.conversations
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.conversations
+  ALTER COLUMN created_at SET DEFAULT NOW();
+
+ALTER TABLE public.conversations
+  ALTER COLUMN updated_at SET DEFAULT NOW();
+
 -- Create conversation_participants table
-CREATE TABLE public.conversation_participants (
+CREATE TABLE IF NOT EXISTS public.conversation_participants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -20,8 +40,86 @@ CREATE TABLE public.conversation_participants (
   UNIQUE(conversation_id, user_id)
 );
 
+ALTER TABLE public.conversation_participants
+  ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS conversation_id UUID;
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS user_id UUID;
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'participant';
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS last_read_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.conversation_participants
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.conversation_participants
+  ALTER COLUMN joined_at SET DEFAULT NOW();
+
+ALTER TABLE public.conversation_participants
+  ALTER COLUMN created_at SET DEFAULT NOW();
+
+ALTER TABLE public.conversation_participants
+  ALTER COLUMN updated_at SET DEFAULT NOW();
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'conversation_participants_conversation_id_user_id_key'
+  ) THEN
+    ALTER TABLE public.conversation_participants
+      ADD CONSTRAINT conversation_participants_conversation_id_user_id_key UNIQUE (conversation_id, user_id);
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'conversation_participants_conversation_id_fkey'
+  ) THEN
+    ALTER TABLE public.conversation_participants
+      ADD CONSTRAINT conversation_participants_conversation_id_fkey
+      FOREIGN KEY (conversation_id)
+      REFERENCES public.conversations(id)
+      ON DELETE CASCADE;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'conversation_participants_user_id_fkey'
+  ) THEN
+    ALTER TABLE public.conversation_participants
+      ADD CONSTRAINT conversation_participants_user_id_fkey
+      FOREIGN KEY (user_id)
+      REFERENCES public.profiles(id)
+      ON DELETE CASCADE;
+  END IF;
+END;
+$$;
+
 -- Create messages table
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -35,6 +133,86 @@ CREATE TABLE public.messages (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+ALTER TABLE public.messages
+  ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS conversation_id UUID;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS sender_id UUID;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS content TEXT;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS message_type TEXT DEFAULT 'text';
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS file_url TEXT;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS file_name TEXT;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS file_size INTEGER;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS is_read BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.messages
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+ALTER TABLE public.messages
+  ALTER COLUMN message_type SET DEFAULT 'text';
+
+ALTER TABLE public.messages
+  ALTER COLUMN is_read SET DEFAULT FALSE;
+
+ALTER TABLE public.messages
+  ALTER COLUMN created_at SET DEFAULT NOW();
+
+ALTER TABLE public.messages
+  ALTER COLUMN updated_at SET DEFAULT NOW();
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'messages_conversation_id_fkey'
+  ) THEN
+    ALTER TABLE public.messages
+      ADD CONSTRAINT messages_conversation_id_fkey
+      FOREIGN KEY (conversation_id)
+      REFERENCES public.conversations(id)
+      ON DELETE CASCADE;
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'messages_sender_id_fkey'
+  ) THEN
+    ALTER TABLE public.messages
+      ADD CONSTRAINT messages_sender_id_fkey
+      FOREIGN KEY (sender_id)
+      REFERENCES public.profiles(id)
+      ON DELETE CASCADE;
+  END IF;
+END;
+$$;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS conversations_created_at_idx ON public.conversations (created_at DESC);
@@ -52,6 +230,7 @@ ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- Conversations policies
+DROP POLICY IF EXISTS "Users can view conversations they participate in" ON public.conversations;
 CREATE POLICY "Users can view conversations they participate in"
   ON public.conversations
   FOR SELECT
@@ -63,11 +242,13 @@ CREATE POLICY "Users can view conversations they participate in"
     )
   );
 
+DROP POLICY IF EXISTS "Users can create conversations" ON public.conversations;
 CREATE POLICY "Users can create conversations"
   ON public.conversations
   FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can update conversations they participate in" ON public.conversations;
 CREATE POLICY "Users can update conversations they participate in"
   ON public.conversations
   FOR UPDATE
@@ -80,6 +261,7 @@ CREATE POLICY "Users can update conversations they participate in"
   );
 
 -- Conversation participants policies
+DROP POLICY IF EXISTS "Users can view participants of conversations they are in" ON public.conversation_participants;
 CREATE POLICY "Users can view participants of conversations they are in"
   ON public.conversation_participants
   FOR SELECT
@@ -91,22 +273,26 @@ CREATE POLICY "Users can view participants of conversations they are in"
     )
   );
 
+DROP POLICY IF EXISTS "Users can join conversations" ON public.conversation_participants;
 CREATE POLICY "Users can join conversations"
   ON public.conversation_participants
   FOR INSERT
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update their own participation" ON public.conversation_participants;
 CREATE POLICY "Users can update their own participation"
   ON public.conversation_participants
   FOR UPDATE
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can leave conversations" ON public.conversation_participants;
 CREATE POLICY "Users can leave conversations"
   ON public.conversation_participants
   FOR DELETE
   USING (user_id = auth.uid());
 
 -- Messages policies
+DROP POLICY IF EXISTS "Users can view messages in conversations they participate in" ON public.messages;
 CREATE POLICY "Users can view messages in conversations they participate in"
   ON public.messages
   FOR SELECT
@@ -118,6 +304,7 @@ CREATE POLICY "Users can view messages in conversations they participate in"
     )
   );
 
+DROP POLICY IF EXISTS "Users can send messages to conversations they participate in" ON public.messages;
 CREATE POLICY "Users can send messages to conversations they participate in"
   ON public.messages
   FOR INSERT
@@ -130,6 +317,7 @@ CREATE POLICY "Users can send messages to conversations they participate in"
     )
   );
 
+DROP POLICY IF EXISTS "Users can update messages they sent" ON public.messages;
 CREATE POLICY "Users can update messages they sent"
   ON public.messages
   FOR UPDATE
@@ -145,16 +333,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations;
 CREATE TRIGGER update_conversations_updated_at
   BEFORE UPDATE ON public.conversations
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_conversation_participants_updated_at ON public.conversation_participants;
 CREATE TRIGGER update_conversation_participants_updated_at
   BEFORE UPDATE ON public.conversation_participants
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_messages_updated_at ON public.messages;
 CREATE TRIGGER update_messages_updated_at
   BEFORE UPDATE ON public.messages
   FOR EACH ROW
@@ -173,6 +364,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger to add creator as participant
+DROP TRIGGER IF EXISTS add_conversation_creator_trigger ON public.conversations;
 CREATE TRIGGER add_conversation_creator_trigger
   AFTER INSERT ON public.conversations
   FOR EACH ROW
@@ -194,6 +386,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create trigger to mark messages as read when user reads conversation
+DROP TRIGGER IF EXISTS mark_messages_as_read_trigger ON public.conversation_participants;
 CREATE TRIGGER mark_messages_as_read_trigger
   AFTER UPDATE OF last_read_at ON public.conversation_participants
   FOR EACH ROW

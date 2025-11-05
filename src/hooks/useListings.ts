@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Listing } from '@/lib/types';
 
 interface UseListingsOptions {
-  scope?: 'mine' | 'public';
+  scope?: 'mine' | 'public' | 'saved';
   status?: string;
   search?: string;
   enabled?: boolean;
