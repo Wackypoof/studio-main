@@ -2,18 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Menu, User, LogOut, Briefcase } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import { Logo } from './Logo';
 import { cn } from '@/lib/utils';
+import { clearAuthRedirect, setAuthRedirect } from '@/lib/auth-redirect';
 
 export const MobileMenu = React.memo(() => {
   const { user, signOut } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isSellerPage = pathname?.startsWith('/sellers') ?? false;
 
   return (
@@ -71,12 +73,15 @@ export const MobileMenu = React.memo(() => {
                   </SheetClose>
                   <button
                     onClick={async () => {
+                      setAuthRedirect('/landing');
                       const { error } = await signOut();
                       if (error) {
+                        clearAuthRedirect();
                         return;
                       }
                       setIsSheetOpen(false);
-                      window.location.href = '/landing';
+                      router.replace('/landing');
+                      router.refresh();
                     }}
                     className="flex items-center gap-2 text-destructive py-2"
                   >

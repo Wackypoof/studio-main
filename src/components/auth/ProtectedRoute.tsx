@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthProvider';
+import { consumeAuthRedirect } from '@/lib/auth-redirect';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -10,7 +11,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.push('/login');
+      router.replace(consumeAuthRedirect());
     }
   }, [user, isLoading, router]);
 

@@ -2,15 +2,17 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthProvider';
 import { cn } from '@/lib/utils';
+import { clearAuthRedirect, setAuthRedirect } from '@/lib/auth-redirect';
 
 export const UserMenu = React.memo(() => {
   const { user, isLoading, signOut } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const isSellerPage = pathname?.startsWith('/sellers') ?? false;
 
   if (isLoading) {
@@ -34,11 +36,14 @@ export const UserMenu = React.memo(() => {
           variant="ghost"
           size="sm"
           onClick={async () => {
+            setAuthRedirect('/landing');
             const { error } = await signOut();
             if (error) {
+              clearAuthRedirect();
               return;
             }
-            window.location.href = '/landing';
+            router.replace('/landing');
+            router.refresh();
           }}
           className="rounded-full bg-white/10 text-white transition hover:bg-white/20"
         >

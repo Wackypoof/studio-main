@@ -36,6 +36,7 @@ import { useRole } from '@/contexts/role-context';
 import { RoleToggle } from '@/components/role-toggle';
 import { useAuth } from '@/context/AuthProvider';
 import { Logo } from '@/components/Header/Logo';
+import { clearAuthRedirect, setAuthRedirect } from '@/lib/auth-redirect';
 
 export default function DashboardLayout({
   children,
@@ -51,8 +52,10 @@ export default function DashboardLayout({
 
   const handleLogout = useCallback(async () => {
     setIsLoggingOut(true);
+    setAuthRedirect('/landing');
     const { error } = await signOut();
     if (error) {
+      clearAuthRedirect();
       setIsLoggingOut(false);
       return;
     }

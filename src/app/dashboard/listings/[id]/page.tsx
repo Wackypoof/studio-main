@@ -55,6 +55,14 @@ function ListingDetailsContent({ id }: { id: string }) {
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
   }, []);
+  const numberFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }),
+    []
+  );
 
   if (isLoading) {
     return (
@@ -183,14 +191,6 @@ function ListingDetailsContent({ id }: { id: string }) {
   const hasTrafficSources = trafficSourcesData.length > 0;
 
   const trafficSummary = listing.traffic?.summary ?? {};
-  const numberFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat('en-US', {
-        notation: 'compact',
-        maximumFractionDigits: 1,
-      }),
-    []
-  );
   const totalVisitorsValue = toNumeric(
     (trafficSummary as { totalVisitors?: unknown }).totalVisitors
   );
