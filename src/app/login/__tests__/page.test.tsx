@@ -21,6 +21,8 @@ jest.mock('@/context/AuthProvider', () => ({
     signInWithProvider: mockSignInWithProvider,
     clearError: mockClearError,
     isLoading: false,
+    isAuthenticating: false,
+    isInitialized: true,
   }),
 }));
 

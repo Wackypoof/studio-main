@@ -1,13 +1,12 @@
 -- Add NOT NULL constraints to essential columns in the profiles table
 ALTER TABLE public.profiles 
   ALTER COLUMN full_name SET NOT NULL,
-  ALTER COLUMN email SET NOT NULL,
   ALTER COLUMN created_at SET NOT NULL,
   ALTER COLUMN updated_at SET NOT NULL;
 
 -- Add a comment explaining the constraints
 COMMENT ON COLUMN public.profiles.full_name IS 'User''s full name (required)';
-COMMENT ON COLUMN public.profiles.email IS 'User''s email address (required, must be unique)';
+-- Email is stored in auth.users, not in profiles
 COMMENT ON COLUMN public.profiles.created_at IS 'Timestamp when the profile was created (required)';
 COMMENT ON COLUMN public.profiles.updated_at IS 'Timestamp when the profile was last updated (required)';
 
@@ -20,20 +19,21 @@ AS $$
 BEGIN
   INSERT INTO public.profiles (
     id, 
-    email, 
     full_name,
+    avatar_url,
     created_at, 
     updated_at
   )
   VALUES (
     NEW.id, 
-    COALESCE(NEW.email, ''), -- Ensure email is never null
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''), -- Default to empty string if not provided
+    COALESCE(NEW.raw_user_meta_data->>'avatar_url', ''),
     COALESCE(NEW.created_at, NOW()),
     COALESCE(NEW.updated_at, NOW())
   )
   ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name,
+    avatar_url = EXCLUDED.avatar_url,
     updated_at = NOW();
   RETURN NEW;
 END;

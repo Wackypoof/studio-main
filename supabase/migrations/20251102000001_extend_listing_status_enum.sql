@@ -38,9 +38,9 @@ END $$;
 -- This is a best-effort migration; records without distinguishing metadata will stay as 'withdrawn'
 UPDATE public.listings
 SET status = CASE
-  WHEN meta->>'app_status' = 'pending' THEN 'pending'::listing_status
-  WHEN meta->>'app_status' = 'paused' THEN 'paused'::listing_status
-  WHEN meta->>'app_status' = 'under_offer' THEN 'under_offer'::listing_status
+  WHEN meta->>'app_status' = 'pending' THEN (meta->>'app_status')::public.listing_status
+  WHEN meta->>'app_status' = 'paused' THEN (meta->>'app_status')::public.listing_status
+  WHEN meta->>'app_status' = 'under_offer' THEN (meta->>'app_status')::public.listing_status
   ELSE status
 END
 WHERE status = 'withdrawn' 

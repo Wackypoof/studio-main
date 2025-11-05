@@ -18,7 +18,13 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { signUp, signInWithProvider, error: authError, isLoading, clearError } = useAuth();
+  const {
+    signUp,
+    signInWithProvider,
+    error: authError,
+    isAuthenticating,
+    clearError,
+  } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -128,9 +134,8 @@ export default function SignUpPage() {
         title="Create your seller profile"
         description="We'll guide you through valuations, buyer outreach, and diligence setup right after this step."
         onGoogleSignIn={handleProviderSignIn}
-        isLoading={isLoading}
+        isLoading={isAuthenticating}
       >
-
         {error && (
           <div
             role="alert"
@@ -152,7 +157,7 @@ export default function SignUpPage() {
               required
               value={fullName}
               onChange={handleFullNameChange}
-              disabled={isLoading}
+              disabled={isAuthenticating}
               className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
             />
           </div>
@@ -169,7 +174,7 @@ export default function SignUpPage() {
               required
               value={email}
               onChange={handleEmailChange}
-              disabled={isLoading}
+              disabled={isAuthenticating}
               className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
             />
           </div>
@@ -186,7 +191,7 @@ export default function SignUpPage() {
               required
               value={password}
               onChange={handlePasswordChange}
-              disabled={isLoading}
+              disabled={isAuthenticating}
               className="border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60"
             />
           </div>
@@ -203,7 +208,7 @@ export default function SignUpPage() {
               required
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
-              disabled={isLoading}
+              disabled={isAuthenticating}
               className={cn(
                 'border-white/20 bg-white/10 text-white placeholder:text-blue-100/70 focus-visible:border-sky-300 focus-visible:ring-sky-400 disabled:opacity-60',
                 error === 'Passwords do not match' &&
@@ -212,7 +217,7 @@ export default function SignUpPage() {
             />
           </div>
 
-          <AuthSubmitButton isLoading={isLoading ?? false} loadingText="Creating account...">
+          <AuthSubmitButton isLoading={isAuthenticating ?? false} loadingText="Creating account...">
             Create account
           </AuthSubmitButton>
 

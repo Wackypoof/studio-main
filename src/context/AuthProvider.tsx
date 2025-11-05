@@ -20,6 +20,8 @@ interface AuthContextType {
   user: AuthUser | null;
   session: Session | null;
   isLoading: boolean;
+  isAuthenticating: boolean;
+  isInitialized: boolean;
   error: AuthError | null;
   clearError: () => void;
   signIn: (credentials: SignInCredentials) => Promise<AuthResponse<{ user: AuthUser; session: Session | null }>>;
@@ -39,6 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     user,
     session,
     isLoading,
+    isAuthenticating,
+    isInitializing,
     error,
     clearError,
     setUser,
@@ -55,8 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     setUser,
     setSession,
     supabase,
-    syncSession
+    syncSession,
+    setIsAuthenticating
   );
+
+  const isInitialized = !isInitializing;
 
   const signInWithProvider = useCallback(async (provider: 'google' | 'github' | 'discord', nextPath?: string) => {
     setIsAuthenticating(true);
@@ -106,6 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       user,
       session,
       isLoading,
+      isAuthenticating,
+      isInitialized,
       error,
       clearError,
       signIn,
@@ -114,7 +123,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       signOut,
       updateProfile,
     }),
-    [user, session, isLoading, error, clearError, signIn, signInWithProvider, signUp, signOut, updateProfile]
+    [
+      user,
+      session,
+      isLoading,
+      isAuthenticating,
+      isInitialized,
+      error,
+      clearError,
+      signIn,
+      signInWithProvider,
+      signUp,
+      signOut,
+      updateProfile,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

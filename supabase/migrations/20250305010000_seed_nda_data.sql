@@ -1,3 +1,56 @@
+-- Ensure sample auth users exist so profile foreign keys resolve
+insert into auth.users (
+  id,
+  instance_id,
+  email,
+  raw_user_meta_data,
+  email_confirmed_at,
+  created_at,
+  updated_at
+)
+values
+  (
+    '11111111-aaaa-aaaa-aaaa-111111111111',
+    '00000000-0000-0000-0000-000000000000',
+    'olivia.chen@example.com',
+    jsonb_build_object('full_name', 'Olivia Chen'),
+    now(),
+    now(),
+    now()
+  ),
+  (
+    '22222222-bbbb-bbbb-bbbb-222222222222',
+    '00000000-0000-0000-0000-000000000000',
+    'seller.acme@example.com',
+    jsonb_build_object('full_name', 'Acme Inc. Seller'),
+    now(),
+    now(),
+    now()
+  ),
+  (
+    '33333333-cccc-cccc-cccc-333333333333',
+    '00000000-0000-0000-0000-000000000000',
+    'marcus.lee@example.com',
+    jsonb_build_object('full_name', 'Marcus Lee'),
+    now(),
+    now(),
+    now()
+  ),
+  (
+    '44444444-dddd-dddd-dddd-444444444444',
+    '00000000-0000-0000-0000-000000000000',
+    'seller.nova@example.com',
+    jsonb_build_object('full_name', 'Nova Systems Seller'),
+    now(),
+    now(),
+    now()
+  )
+on conflict (id) do update set
+  email = excluded.email,
+  raw_user_meta_data = excluded.raw_user_meta_data,
+  email_confirmed_at = excluded.email_confirmed_at,
+  updated_at = excluded.updated_at;
+
 -- Seed sample profiles for NDA scenarios
 insert into profiles (id, full_name, created_at, updated_at)
 values

@@ -15,11 +15,11 @@ import { cn } from '@/lib/utils';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, signInWithProvider, clearError, isLoading } = useAuth();
+  const { signIn, signInWithProvider, clearError, isAuthenticating } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const isLoadingState = isLoading ?? false;
+  const isLoadingState = isAuthenticating ?? false;
 
   const { errors, validateForm, clearFieldError } = useFormValidation();
 

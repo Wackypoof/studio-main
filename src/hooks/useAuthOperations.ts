@@ -14,12 +14,14 @@ export function useAuthOperations(
   setUser: (user: AuthUser | null) => void,
   setSession: (session: Session | null) => void,
   supabase: SupabaseClient<Database>,
-  syncSession: (incomingSession: Session | null) => Promise<AuthUser | null>
+  syncSession: (incomingSession: Session | null) => Promise<AuthUser | null>,
+  setIsAuthenticating: (value: boolean) => void
 ) {
   const router = useRouter();
 
   const signIn = useCallback(
     async (credentials: SignInCredentials) => {
+      setIsAuthenticating(true);
       try {
         const { data, error: signInError } = await supabase.auth.signInWithPassword(credentials);
 
@@ -60,13 +62,16 @@ export function useAuthOperations(
         );
         toast.error(authError.message);
         return { data: null, error: authError };
+      } finally {
+        setIsAuthenticating(false);
       }
     },
-    [router, supabase, syncSession]
+    [router, supabase, syncSession, setIsAuthenticating]
   );
 
   const signUp = useCallback(
     async (email: string, password: string, options?: SignUpOptions) => {
+      setIsAuthenticating(true);
       try {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -113,12 +118,15 @@ export function useAuthOperations(
         );
         toast.error(authError.message);
         return { data: null, error: authError };
+      } finally {
+        setIsAuthenticating(false);
       }
     },
-    [supabase, syncSession, setSession, setUser]
+    [supabase, syncSession, setSession, setUser, setIsAuthenticating]
   );
 
   const signOut = useCallback(async () => {
+    setIsAuthenticating(true);
     try {
       const { error: signOutError } = await supabase.auth.signOut();
 
@@ -141,8 +149,10 @@ export function useAuthOperations(
       );
       toast.error(authError.message);
       return { error: authError };
+    } finally {
+      setIsAuthenticating(false);
     }
-  }, [supabase, syncSession]);
+  }, [supabase, syncSession, setIsAuthenticating]);
 
   const updateProfile = useCallback(
     async (updates: Partial<UserProfile>) => {

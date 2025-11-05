@@ -115,6 +115,8 @@ export function useAuthState() {
     user,
     session,
     isLoading,
+    isAuthenticating,
+    isInitializing,
     error,
     clearError,
     setUser,
