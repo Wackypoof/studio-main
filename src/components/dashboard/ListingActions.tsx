@@ -26,7 +26,7 @@ export function ListingActions({
           onClick={onRefresh}
           disabled={isRefreshing}
           aria-label="Refresh dashboard"
-          className="mr-2"
+          className="mr-2 rounded-full border-slate-200 px-4 py-2 text-sm font-medium"
         >
           <RefreshCw
             className={`mr-2 h-4 w-4 ${
@@ -36,7 +36,11 @@ export function ListingActions({
           {isRefreshing ? "Refreshing..." : "Refresh"}
         </Button>
       )}
-      <RoleAwareButton size="sm" onClick={onCreateNewListing}>
+      <RoleAwareButton
+        size="sm"
+        onClick={onCreateNewListing}
+        className="rounded-full px-5 py-2 text-sm font-semibold shadow-md"
+      >
         <Plus className="mr-2 h-4 w-4" />
         New Listing
       </RoleAwareButton>

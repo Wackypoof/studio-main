@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { mockData } from '@/lib/data';
 import { 
   Eye, Clock, AlertCircle, FileSignature, 
@@ -19,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { handleError } from '@/lib/error-handler';
 import { useAuth } from '@/context/AuthProvider';
+import { DashboardMetricCard } from '@/components/dashboard/metric-card';
 
 interface DashboardData {
   stats: {
@@ -304,44 +304,52 @@ export default function DashboardPage() {
         />
 
         {data.needsVerification && (
-          <Card className="border border-yellow-200 bg-yellow-50/80">
-            <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-yellow-700" />
-                <h3 className="text-base font-medium text-yellow-900">Verification required</h3>
+          <div className="relative overflow-hidden rounded-3xl border border-blue-500/40 bg-gradient-to-br from-slate-950 via-[#082b56] to-[#0f172a] p-6 text-white shadow-lg shadow-blue-900/30">
+            <div className="pointer-events-none absolute -left-28 top-0 h-48 w-48 rounded-full bg-blue-500/35 blur-3xl" />
+            <div className="pointer-events-none absolute right-[-56px] top-12 h-52 w-52 rounded-full bg-sky-400/25 blur-3xl" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-80" />
+            <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+                <span className="inline-flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-white/10 text-blue-200 shadow-sm shadow-blue-900/30">
+                  <AlertCircle className="h-5 w-5" />
+                </span>
+                <div className="space-y-3">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.45em] text-blue-100">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-300" />
+                    Verification desk
+                  </span>
+                  <h3 className="text-xl font-semibold text-white">Complete your profile verification</h3>
+                  <p className="text-sm text-blue-100/80">
+                    Upload proof-of-funds and identity documents to unlock deeper deal access and signal trust to sellers.
+                  </p>
+                </div>
               </div>
-              <Badge variant="secondary" className="bg-white/70 text-xs text-yellow-800">
-                Recommended
-              </Badge>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="mb-4 text-sm text-yellow-800">
-                Complete your profile verification to access all features and increase trust with {isBuyer ? 'sellers' : 'buyers'}.
-              </p>
-              <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-800 hover:bg-yellow-100">
+              <Button
+                size="lg"
+                className="h-auto rounded-full bg-gradient-to-r from-blue-500 via-sky-400 to-blue-300 px-6 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-blue-900/40 transition duration-300 hover:from-blue-400 hover:via-sky-300 hover:to-blue-200"
+              >
                 Start Verification
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {data.stats.map((stat, index) => (
-            <Card key={index} className="border-border/60">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <h3 className="text-sm font-medium text-muted-foreground">{stat.label}</h3>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
-              </CardContent>
-            </Card>
+            <DashboardMetricCard
+              key={index}
+              label={stat.label}
+              value={stat.value}
+              description={stat.description}
+              icon={stat.icon}
+              tone="buyer"
+              className="h-full"
+            />
           ))}
         </section>
 
         <section className="grid gap-6 xl:grid-cols-12">
-          <Card className="xl:col-span-8 border-border/60">
+          <Card className="xl:col-span-8 overflow-hidden rounded-3xl border border-slate-200/70 bg-white/85 shadow-sm shadow-slate-900/5 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-lg">Recent Activity</CardTitle>
             </CardHeader>
@@ -365,33 +373,42 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="xl:col-span-4 border-border/60">
+          <Card className="xl:col-span-4 rounded-3xl border border-slate-200/70 bg-white/85 shadow-sm shadow-slate-900/5 backdrop-blur">
             <CardHeader>
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <Button variant="outline" className="justify-start">
+              <Button
+                variant="outline"
+                className="justify-start rounded-full border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white"
+              >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 View Messages
               </Button>
-              <Button variant="outline" className="justify-start">
+              <Button
+                variant="outline"
+                className="justify-start rounded-full border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white"
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 {isBuyer ? 'Saved Listings' : 'My Listings'}
               </Button>
-              <Button variant="outline" className="justify-start">
+              <RoleAwareButton className="justify-start rounded-full px-5 py-2 text-sm font-semibold shadow-md">
                 <BarChart className="mr-2 h-4 w-4" />
                 View Analytics
-              </Button>
+              </RoleAwareButton>
               {isBuyer ? (
-                <Button variant="outline" className="justify-start">
+                <RoleAwareButton className="justify-start rounded-full px-5 py-2 text-sm font-semibold shadow-md">
                   <Search className="mr-2 h-4 w-4" />
                   Browse Listings
-                </Button>
+                </RoleAwareButton>
               ) : (
-                <Button variant="outline" className="justify-start" onClick={handleCreateNewListing}>
+                <RoleAwareButton
+                  className="justify-start rounded-full px-5 py-2 text-sm font-semibold shadow-md"
+                  onClick={handleCreateNewListing}
+                >
                   <Briefcase className="mr-2 h-4 w-4" />
                   Create New Listing
-                </Button>
+                </RoleAwareButton>
               )}
             </CardContent>
           </Card>

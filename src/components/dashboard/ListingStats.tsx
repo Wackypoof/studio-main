@@ -1,67 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { Briefcase, Eye, Users, Clock } from "lucide-react";
-
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  change?: number;
-  icon: React.ReactNode;
-  isLoading?: boolean;
-  className?: string;
-}
-
-export function StatCard({
-  title,
-  value,
-  change,
-  icon,
-  isLoading = false,
-  className,
-}: StatCardProps) {
-  if (isLoading) {
-    return (
-      <Card className={className}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-6 w-6 rounded-full" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-8 w-3/4" />
-          {change !== undefined && <Skeleton className="mt-2 h-4 w-16" />}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {title}
-        </CardTitle>
-        <div className="text-muted-foreground">
-          {icon}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {change !== undefined && (
-          <p
-            className={cn(
-              "text-xs mt-1",
-              change >= 0 ? "text-green-500" : "text-red-500"
-            )}
-          >
-            {change >= 0 ? "+" : ""}
-            {change}% from last month
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardMetricCard } from '@/components/dashboard/metric-card';
+import { Briefcase, Eye, Users, Clock } from 'lucide-react';
 
 interface ListingStatsProps {
   listings: any[];
@@ -74,55 +13,67 @@ interface ListingStatsProps {
 export function ListingStats({
   listings = [],
   isLoading = false,
-  lastUpdated = new Date(),
-  onRefresh,
-  isRefreshing = false,
 }: ListingStatsProps) {
-  // Calculate metrics
-  const totalListings = listings.length;
-  const activeListings = listings.filter(
-    (listing) => listing.status === "live"
-  ).length;
-  const totalValue = listings.reduce(
-    (sum, listing) => sum + listing.asking_price,
-    0
-  );
-  const averageProfitMargin =
-    listings.length > 0
-      ? (listings.reduce(
-          (sum, listing) => sum + listing.profit_t12m / listing.revenue_t12m,
-          0
-        ) /
-          listings.length) *
-        100
-      : 0;
+  const metrics = [
+    {
+      label: 'Active Listings',
+      value: listings.filter((listing) => listing.status === 'live').length,
+      icon: Briefcase,
+      description: 'Currently visible to verified buyers',
+    },
+    {
+      label: 'Total Views',
+      value: listings.reduce((sum, listing) => sum + (listing.views || 0), 0),
+      icon: Eye,
+      description: 'Combined traffic across all mandates',
+    },
+    {
+      label: 'Buyer Leads',
+      value: listings.reduce((sum, listing) => sum + (listing.leads || 0), 0),
+      icon: Users,
+      description: 'Qualified operator interest this month',
+    },
+    {
+      label: 'Avg. Response Time',
+      value: '2.5h',
+      icon: Clock,
+      description: 'Median time to first follow-up',
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-sm"
+          >
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200 opacity-20" />
+            <Skeleton className="mb-5 h-12 w-12 rounded-xl" />
+            <div className="space-y-3">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <StatCard
-        title="Active Listings"
-        value={activeListings}
-        icon={<Briefcase className="h-4 w-4" />}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Total Views"
-        value={listings.reduce((sum, l) => sum + (l.views || 0), 0)}
-        icon={<Eye className="h-4 w-4" />}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Buyer Leads"
-        value={listings.reduce((sum, l) => sum + (l.leads || 0), 0)}
-        icon={<Users className="h-4 w-4" />}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Avg. Response Time"
-        value="2.5h"
-        icon={<Clock className="h-4 w-4" />}
-        isLoading={isLoading}
-      />
+      {metrics.map((metric) => (
+        <DashboardMetricCard
+          key={metric.label}
+          label={metric.label}
+          value={metric.value}
+          description={metric.description}
+          icon={metric.icon}
+          tone="seller"
+        />
+      ))}
     </div>
   );
 }

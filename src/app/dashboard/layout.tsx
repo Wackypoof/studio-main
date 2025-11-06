@@ -37,6 +37,7 @@ import { RoleToggle } from '@/components/role-toggle';
 import { useAuth } from '@/context/AuthProvider';
 import { Logo } from '@/components/Header/Logo';
 import { clearAuthRedirect, setAuthRedirect } from '@/lib/auth-redirect';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
   children,
@@ -63,9 +64,29 @@ export default function DashboardLayout({
     router.refresh();
   }, [router, signOut]);
 
-  const gradientOverlay = isBuyer
-    ? 'radial-gradient(140% 140% at 0% 0%, rgba(37,99,235,0.32), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(56,189,248,0.22), transparent 65%)'
-    : 'radial-gradient(140% 140% at 0% 0%, rgba(251,191,36,0.3), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(249,115,22,0.22), transparent 65%)';
+  const theme = isBuyer
+    ? {
+        overlay:
+          'radial-gradient(140% 140% at 0% 0%, rgba(37,99,235,0.35), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(14,165,233,0.18), transparent 60%), radial-gradient(120% 160% at 50% 100%, rgba(14,116,144,0.12), transparent 75%)',
+        orbOne: 'bg-blue-500/25',
+        orbTwo: 'bg-sky-400/25',
+        orbThree: 'bg-indigo-500/15',
+        chipGradient: 'bg-gradient-to-r from-blue-500/20 via-sky-400/15 to-emerald-400/20',
+        chipBorder: 'border-blue-200/40',
+        chipDot: 'bg-emerald-300/80',
+        helper: 'text-blue-900/70',
+      }
+    : {
+        overlay:
+          'radial-gradient(140% 140% at 0% 0%, rgba(251,191,36,0.32), transparent 60%), radial-gradient(120% 120% at 100% 0%, rgba(249,115,22,0.2), transparent 60%), radial-gradient(120% 160% at 50% 100%, rgba(190,24,93,0.14), transparent 75%)',
+        orbOne: 'bg-amber-400/25',
+        orbTwo: 'bg-orange-500/20',
+        orbThree: 'bg-rose-400/15',
+        chipGradient: 'bg-gradient-to-r from-amber-400/20 via-orange-400/15 to-rose-400/20',
+        chipBorder: 'border-amber-200/40',
+        chipDot: 'bg-rose-200/80',
+        helper: 'text-amber-900/70',
+      };
 
   const modeLabel = isBuyer ? 'Buyer workspace' : 'Seller workspace';
   const modeHelper = isBuyer
@@ -196,18 +217,31 @@ export default function DashboardLayout({
               </SidebarFooter>
             </Sidebar>
           <SidebarInset className="relative m-0 flex-1 overflow-hidden bg-white">
-            <div
-              className="pointer-events-none absolute inset-0 -z-10 opacity-90"
-              style={{ background: gradientOverlay }}
-              aria-hidden="true"
-            />
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+          <div className="absolute inset-0 opacity-90" style={{ background: theme.overlay }} />
+          <div className={cn('absolute -top-32 -left-24 h-72 w-72 rounded-full blur-3xl', theme.orbOne)} />
+          <div className={cn('absolute -bottom-28 right-[-6rem] h-80 w-80 rounded-full blur-3xl', theme.orbTwo)} />
+          <div className={cn('absolute bottom-10 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full blur-3xl', theme.orbThree)} />
+        </div>
             <div className="flex h-full w-full flex-1 flex-col">
-              <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-sm md:px-6 lg:px-8">
-                <SidebarTrigger className="md:hidden text-slate-500 transition-colors hover:text-slate-900" />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">
-                  {modeLabel}
-                </span>
-              </header>
+          <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-slate-200/60 bg-white/85 px-4 py-3 backdrop-blur md:px-6 lg:px-8">
+            <SidebarTrigger className="text-slate-500 transition-colors hover:text-slate-900 md:hidden" />
+            <div className="flex flex-1 flex-wrap items-center gap-3">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full border px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-900/80 shadow-sm shadow-slate-900/5 backdrop-blur-sm',
+                  theme.chipGradient,
+                  theme.chipBorder,
+                )}
+              >
+                <span className={cn('h-2 w-2 rounded-full', theme.chipDot)} />
+                {modeLabel}
+              </span>
+              <span className={cn('text-xs font-medium', theme.helper)}>
+                {modeHelper}
+              </span>
+            </div>
+          </header>
               <main className="flex-1 w-full overflow-y-auto">
                 <div className="flex w-full flex-col gap-8 px-4 py-6 md:px-6 lg:px-10 lg:py-10">
                   {children}
