@@ -4,6 +4,17 @@ import '@testing-library/jest-dom';
 import Page from '../page';
 
 const mockToggleRole = jest.fn();
+const mockRefetch = jest.fn();
+const mockDashboardData = {
+  stats: {
+    savedListings: 0,
+    activeNdas: 0,
+    activeOffers: 0,
+    unreadMessages: 0,
+  },
+  recentActivity: [],
+  verificationStatus: 'unverified' as const,
+};
 
 jest.mock('@/context/AuthProvider', () => ({
   useAuth: () => ({
@@ -32,6 +43,16 @@ jest.mock('@/contexts/role-context', () => ({
     isBuyer: true,
     isSeller: false,
     toggleRole: mockToggleRole,
+  }),
+}));
+
+jest.mock('@/hooks/useBuyerDashboardSummary', () => ({
+  useBuyerDashboardSummary: () => ({
+    data: mockDashboardData,
+    isLoading: false,
+    isRefetching: false,
+    error: null,
+    refetch: mockRefetch,
   }),
 }));
 

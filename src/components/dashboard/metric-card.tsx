@@ -1,4 +1,5 @@
-import type { ComponentType } from 'react';
+import Link from 'next/link';
+import type { ComponentType, MouseEventHandler } from 'react';
 import { cn } from '@/lib/utils';
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -12,6 +13,8 @@ interface DashboardMetricCardProps {
   icon: IconComponent;
   tone?: MetricTone;
   className?: string;
+  href?: string;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 const toneStyles: Record<MetricTone, { hairline: string; iconBg: string; iconText: string }> = {
@@ -39,10 +42,14 @@ export function DashboardMetricCard({
   icon: Icon,
   tone = 'neutral',
   className = '',
+  href,
+  onClick,
 }: DashboardMetricCardProps) {
   const palette = toneStyles[tone];
+  const focusClasses =
+    'rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
 
-  return (
+  const cardContent = (
     <div
       className={cn(
         'group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl',
@@ -70,4 +77,31 @@ export function DashboardMetricCard({
       </div>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn('block h-full', focusClasses)}
+        aria-label={`${label} details`}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn('block h-full text-left', focusClasses)}
+        aria-label={`${label} details`}
+      >
+        {cardContent}
+      </button>
+    );
+  }
+
+  return cardContent;
 }
