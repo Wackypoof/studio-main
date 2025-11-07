@@ -1,24 +1,33 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { RoleAwareButton } from '@/components/dashboard/RoleAwareButton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { mockData } from '@/lib/data';
-import { 
-  Eye, Clock, AlertCircle, FileSignature, 
-  MessageSquare, Briefcase, BarChart, TrendingUp, Users, FileText, Handshake, Search 
-} from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { useRole } from '@/contexts/role-context';
+import { useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import {
+  Eye,
+  Clock,
+  AlertCircle,
+  FileSignature,
+  MessageSquare,
+  Briefcase,
+  BarChart,
+  TrendingUp,
+  Users,
+  FileText,
+  Handshake,
+  Search,
+} from 'lucide-react';
+
+import { PageHeader } from '@/components/page-header';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
-import { handleError } from '@/lib/error-handler';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useRole } from '@/contexts/role-context';
 import { useAuth } from '@/context/AuthProvider';
+import { mockData } from '@/lib/data';
+import type { AuthUser } from '@/types/auth';
 
 interface DashboardData {
   stats: {
@@ -36,256 +45,165 @@ interface DashboardData {
   }[];
 }
 
+const BUYER_DASHBOARD_DATA: DashboardData = {
+  stats: [
+    {
+      label: 'Saved Listings',
+      value: '12',
+      icon: FileText,
+      description: "Properties you're interested in",
+    },
+    {
+      label: 'Active NDAs',
+      value: '3',
+      icon: FileSignature,
+      description: 'Signed confidentiality agreements',
+    },
+    {
+      label: 'Offers Made',
+      value: '2',
+      icon: Handshake,
+      description: 'Your active offers',
+    },
+    {
+      label: 'Unread Messages',
+      value: '5',
+      icon: MessageSquare,
+      description: 'New messages waiting',
+    },
+  ],
+  needsVerification: true,
+  recentActivity: [
+    {
+      type: 'Viewing Scheduled',
+      title: 'Dental Clinic - Central',
+      date: 'Today, 2:30 PM',
+      icon: Eye,
+    },
+    {
+      type: 'Offer Submitted',
+      title: 'Boutique Fashion Store',
+      date: 'Yesterday',
+      icon: Handshake,
+    },
+    {
+      type: 'NDA Signed',
+      title: 'Tuition Center - East',
+      date: '2 days ago',
+      icon: FileSignature,
+    },
+  ],
+};
+
+const SELLER_DASHBOARD_DATA: DashboardData = {
+  stats: [
+    {
+      label: 'Active Listings',
+      value: '8',
+      icon: Briefcase,
+      description: 'Properties listed for sale',
+    },
+    {
+      label: 'Total Views',
+      value: '124',
+      icon: Eye,
+      description: 'Profile and listing views',
+    },
+    {
+      label: 'Buyer Leads',
+      value: '23',
+      icon: Users,
+      description: 'Interested buyers',
+    },
+    {
+      label: 'Avg. Response Time',
+      value: '2.5h',
+      icon: Clock,
+      description: 'Time to first response',
+    },
+  ],
+  needsVerification: false,
+  recentActivity: [
+    {
+      type: 'New Lead',
+      title: 'John D. viewed your listing',
+      date: '2 hours ago',
+      icon: Users,
+    },
+    {
+      type: 'Price Alert',
+      title: 'Competitor price drop nearby',
+      date: '5 hours ago',
+      icon: TrendingUp,
+    },
+    {
+      type: 'Market Update',
+      title: '3 new buyers in your area',
+      date: '1 day ago',
+      icon: BarChart,
+    },
+  ],
+};
+
+const SELLER_FALLBACK_USER_ID = mockData.testUsers.seller1.id;
+const BUYER_FALLBACK_USER_ID = mockData.testUsers.buyer.id;
+
+const errorFallbackElement = (
+  <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed">
+    <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+    <h2 className="mb-2 text-2xl font-bold">Something went wrong</h2>
+    <p className="mb-4 text-muted-foreground">We were unable to load your dashboard.</p>
+    <Button onClick={() => window.location.reload()}>Try Again</Button>
+  </div>
+);
+
+function getBuyerGreetingName(user: AuthUser | null): string {
+  const fullName = typeof user?.user_metadata?.full_name === 'string'
+    ? user.user_metadata.full_name.trim()
+    : '';
+
+  if (fullName) {
+    const firstSegment = fullName.split(/\s+/)[0];
+    if (firstSegment) return firstSegment;
+  }
+
+  const emailHandle = user?.email?.split('@')[0];
+  return emailHandle || 'Buyer';
+}
+
 export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<DashboardData | null>(null);
   const router = useRouter();
-  const { isBuyer, role } = useRole();
+  const { isBuyer } = useRole();
   const { user: authUser } = useAuth();
-  
-  // Fallback to mock data when authenticated user context is unavailable
-  const mockUser = useMemo(() => {
-    if (isBuyer) return mockData.testUsers.buyer;
-    // Default to seller1 for demo purposes
-    return mockData.testUsers.seller1;
-  }, [isBuyer]);
+  const fallbackUserId = isBuyer ? BUYER_FALLBACK_USER_ID : SELLER_FALLBACK_USER_ID;
+  const buyerGreetingName = isBuyer ? getBuyerGreetingName(authUser) : '';
+  const dashboardData = isBuyer ? BUYER_DASHBOARD_DATA : SELLER_DASHBOARD_DATA;
 
-  const buyerGreetingName = useMemo(() => {
-    if (!isBuyer) return '';
+  const handleViewListing = useCallback(
+    (id: string) => {
+      router.push(`/dashboard/listings/${id}?from=dashboard`);
+    },
+    [router],
+  );
 
-    const rawFullName =
-      typeof authUser?.user_metadata?.full_name === 'string'
-        ? authUser.user_metadata.full_name.trim()
-        : '';
+  const handleCreateNewListing = useCallback(() => {
+    router.push('/dashboard/listings/new');
+  }, [router]);
 
-    if (rawFullName) {
-      const firstSegment = rawFullName.split(/\s+/)[0];
-      if (firstSegment) return firstSegment;
+  const sellerListings = useMemo(() => {
+    if (isBuyer) {
+      return [];
     }
 
-    const emailHandle = authUser?.email?.split('@')[0];
-    if (emailHandle) return emailHandle;
-
-    return 'Buyer';
-  }, [authUser, isBuyer]);
-  
-  const handleViewListing = (id: string) => {
-    router.push(`/dashboard/listings/${id}?from=dashboard`);
-  };
-  
-  const handleCreateNewListing = () => {
-    router.push('/dashboard/listings/new');
-  };
-
-  const renderLoadingState = () => (
-    <div className="flex flex-col gap-8">
-      <div className="h-9 w-2/5 rounded bg-muted/50" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[...Array(4)].map((_, index) => (
-          <Card key={index} className="border-border/60">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-20" />
-              <Skeleton className="mt-2 h-3 w-32" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-6 xl:grid-cols-12">
-        <Card className="xl:col-span-8 border-border/60">
-          <CardHeader>
-            <Skeleton className="h-5 w-40" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[...Array(3)].map((_, index) => (
-              <Skeleton key={index} className="h-12 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-        <Card className="xl:col-span-4 border-border/60">
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[...Array(4)].map((_, index) => (
-              <Skeleton key={index} className="h-10 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  useEffect(() => {
-    // Reset loading state when role changes
-    setIsLoading(true);
-    setError(null);
-    
-    const fetchData = async () => {
-      try {
-        // Simulate API call (minimal in production)
-        const simulatedDelay = process.env.NODE_ENV === 'development' ? 300 : 0;
-        if (simulatedDelay > 0) {
-          await new Promise(resolve => setTimeout(resolve, simulatedDelay));
-        }
-        
-        if (isBuyer) {
-          // Buyer dashboard data
-          setData({
-            stats: [
-              {
-                label: 'Saved Listings',
-                value: '12',
-                icon: FileText,
-                description: 'Properties you\'re interested in'
-              },
-              {
-                label: 'Active NDAs',
-                value: '3',
-                icon: FileSignature,
-                description: 'Signed confidentiality agreements'
-              },
-              {
-                label: 'Offers Made',
-                value: '2',
-                icon: Handshake,
-                description: 'Your active offers'
-              },
-              {
-                label: 'Unread Messages',
-                value: '5',
-                icon: MessageSquare,
-                description: 'New messages waiting'
-              }
-            ],
-            needsVerification: true,
-            recentActivity: [
-              {
-                type: 'Viewing Scheduled',
-                title: 'Dental Clinic - Central',
-                date: 'Today, 2:30 PM',
-                icon: Eye
-              },
-              {
-                type: 'Offer Submitted',
-                title: 'Boutique Fashion Store',
-                date: 'Yesterday',
-                icon: Handshake
-              },
-              {
-                type: 'NDA Signed',
-                title: 'Tuition Center - East',
-                date: '2 days ago',
-                icon: FileSignature
-              }
-            ]
-          });
-        } else {
-          // Seller dashboard data
-          setData({
-            stats: [
-              {
-                label: 'Active Listings',
-                value: '8',
-                icon: Briefcase,
-                description: 'Properties listed for sale'
-              },
-              {
-                label: 'Total Views',
-                value: '124',
-                icon: Eye,
-                description: 'Profile and listing views'
-              },
-              {
-                label: 'Buyer Leads',
-                value: '23',
-                icon: Users,
-                description: 'Interested buyers'
-              },
-              {
-                label: 'Avg. Response Time',
-                value: '2.5h',
-                icon: Clock,
-                description: 'Time to first response'
-              }
-            ],
-            needsVerification: false,
-            recentActivity: [
-              {
-                type: 'New Lead',
-                title: 'John D. viewed your listing',
-                date: '2 hours ago',
-                icon: Users
-              },
-              {
-                type: 'Price Alert',
-                title: 'Competitor price drop nearby',
-                date: '5 hours ago',
-                icon: TrendingUp
-              },
-              {
-                type: 'Market Update',
-                title: '3 new buyers in your area',
-                date: '1 day ago',
-                icon: BarChart
-              }
-            ]
-          });
-        }
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to load dashboard data');
-        setError(error);
-        handleError(error, { componentStack: 'DashboardPage' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [isBuyer, role]);
-
-  if (isLoading) {
-    return renderLoadingState();
-  }
-
-  // Error boundary fallback component
-  interface ErrorFallbackProps {
-    error: Error | null;
-    reset: () => void;
-  }
-  
-  const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, reset }) => (
-    <div className="flex flex-col items-center justify-center h-64 rounded-lg border border-dashed">
-      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-      <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
-      <p className="text-muted-foreground mb-4">
-        {error?.message || 'Failed to load dashboard data'}
-      </p>
-      <RoleAwareButton onClick={reset}>Try Again</RoleAwareButton>
-    </div>
-  );
-  
-  // Error boundary fallback element
-  const errorFallbackElement = (
-    <ErrorFallback error={error} reset={() => window.location.reload()} />
-  );
-
-  if (error || !data) {
-    return <ErrorFallback error={error} reset={() => window.location.reload()} />;
-  }
+    const activeUserId = authUser?.id ?? fallbackUserId;
+    return mockData.listings.filter((listing) => listing.userId === activeUserId);
+  }, [authUser?.id, fallbackUserId, isBuyer]);
 
   // If user is a seller, render the SellerDashboard
   if (!isBuyer) {
-    const sellerListings = mockData.listings.filter(listing => 
-      listing.userId === (authUser?.id ?? mockUser.id)
-    );
-    
     return (
       <ErrorBoundary fallback={errorFallbackElement}>
-        <SellerDashboard 
+        <SellerDashboard
           listings={sellerListings}
           onViewListing={handleViewListing}
           onCreateNewListing={handleCreateNewListing}
@@ -303,7 +221,7 @@ export default function DashboardPage() {
           description={`Welcome back, ${buyerGreetingName}! Here are your saved listings and recent activity.`}
         />
 
-        {data.needsVerification && (
+        {dashboardData.needsVerification && (
           <Card className="border border-yellow-200 bg-yellow-50/80">
             <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
               <div className="flex items-center gap-2">
@@ -326,7 +244,7 @@ export default function DashboardPage() {
         )}
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {data.stats.map((stat, index) => (
+          {dashboardData.stats.map((stat, index) => (
             <Card key={index} className="border-border/60">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <h3 className="text-sm font-medium text-muted-foreground">{stat.label}</h3>
@@ -347,7 +265,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data.recentActivity?.map((activity, index) => (
+                {dashboardData.recentActivity?.map((activity, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <div className="rounded-full bg-muted p-2">
                       <activity.icon className="h-4 w-4" />
