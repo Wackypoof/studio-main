@@ -36,6 +36,168 @@ interface DashboardData {
   }[];
 }
 
+const DashboardLoadingState = () => (
+  <div className="flex flex-col gap-8">
+    <div className="h-9 w-2/5 rounded bg-muted/50" />
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {[...Array(4)].map((_, index) => (
+        <Card key={index} className="border-border/60">
+          <CardHeader className="pb-2">
+            <Skeleton className="h-4 w-24" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="mt-2 h-3 w-32" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+    <div className="grid gap-6 xl:grid-cols-12">
+      <Card className="xl:col-span-8 border-border/60">
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[...Array(3)].map((_, index) => (
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+      <Card className="xl:col-span-4 border-border/60">
+        <CardHeader>
+          <Skeleton className="h-5 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[...Array(4)].map((_, index) => (
+            <Skeleton key={index} className="h-10 w-full" />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+interface DashboardErrorFallbackProps {
+  error: Error | null;
+  onRetry: () => void;
+}
+
+const DashboardErrorFallback = ({ error, onRetry }: DashboardErrorFallbackProps) => (
+  <div className="flex h-64 flex-col items-center justify-center rounded-lg border border-dashed">
+    <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+    <h2 className="mb-2 text-2xl font-bold">Something went wrong</h2>
+    <p className="mb-4 text-muted-foreground">{error?.message || 'Failed to load dashboard data'}</p>
+    <RoleAwareButton onClick={onRetry}>Try Again</RoleAwareButton>
+  </div>
+);
+
+const DEV_SIMULATED_DELAY_MS = 300;
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const getSimulatedDelay = () =>
+  process.env.NODE_ENV === 'development' ? DEV_SIMULATED_DELAY_MS : 0;
+
+const createBuyerDashboardData = (): DashboardData => ({
+  stats: [
+    {
+      label: 'Saved Listings',
+      value: '12',
+      icon: FileText,
+      description: "Properties you're interested in",
+    },
+    {
+      label: 'Active NDAs',
+      value: '3',
+      icon: FileSignature,
+      description: 'Signed confidentiality agreements',
+    },
+    {
+      label: 'Offers Made',
+      value: '2',
+      icon: Handshake,
+      description: 'Your active offers',
+    },
+    {
+      label: 'Unread Messages',
+      value: '5',
+      icon: MessageSquare,
+      description: 'New messages waiting',
+    },
+  ],
+  needsVerification: true,
+  recentActivity: [
+    {
+      type: 'Viewing Scheduled',
+      title: 'Dental Clinic - Central',
+      date: 'Today, 2:30 PM',
+      icon: Eye,
+    },
+    {
+      type: 'Offer Submitted',
+      title: 'Boutique Fashion Store',
+      date: 'Yesterday',
+      icon: Handshake,
+    },
+    {
+      type: 'NDA Signed',
+      title: 'Tuition Center - East',
+      date: '2 days ago',
+      icon: FileSignature,
+    },
+  ],
+});
+
+const createSellerDashboardData = (): DashboardData => ({
+  stats: [
+    {
+      label: 'Active Listings',
+      value: '8',
+      icon: Briefcase,
+      description: 'Properties listed for sale',
+    },
+    {
+      label: 'Total Views',
+      value: '124',
+      icon: Eye,
+      description: 'Profile and listing views',
+    },
+    {
+      label: 'Buyer Leads',
+      value: '23',
+      icon: Users,
+      description: 'Interested buyers',
+    },
+    {
+      label: 'Avg. Response Time',
+      value: '2.5h',
+      icon: Clock,
+      description: 'Time to first response',
+    },
+  ],
+  needsVerification: false,
+  recentActivity: [
+    {
+      type: 'New Lead',
+      title: 'John D. viewed your listing',
+      date: '2 hours ago',
+      icon: Users,
+    },
+    {
+      type: 'Price Alert',
+      title: 'Competitor price drop nearby',
+      date: '5 hours ago',
+      icon: TrendingUp,
+    },
+    {
+      type: 'Market Update',
+      title: '3 new buyers in your area',
+      date: '1 day ago',
+      icon: BarChart,
+    },
+  ],
+});
+
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -78,203 +240,60 @@ export default function DashboardPage() {
     router.push('/dashboard/listings/new');
   };
 
-  const renderLoadingState = () => (
-    <div className="flex flex-col gap-8">
-      <div className="h-9 w-2/5 rounded bg-muted/50" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[...Array(4)].map((_, index) => (
-          <Card key={index} className="border-border/60">
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-20" />
-              <Skeleton className="mt-2 h-3 w-32" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-6 xl:grid-cols-12">
-        <Card className="xl:col-span-8 border-border/60">
-          <CardHeader>
-            <Skeleton className="h-5 w-40" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {[...Array(3)].map((_, index) => (
-              <Skeleton key={index} className="h-12 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-        <Card className="xl:col-span-4 border-border/60">
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[...Array(4)].map((_, index) => (
-              <Skeleton key={index} className="h-10 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
   useEffect(() => {
-    // Reset loading state when role changes
+    let isActive = true;
+
     setIsLoading(true);
     setError(null);
-    
+
     const fetchData = async () => {
       try {
-        // Simulate API call (minimal in production)
-        const simulatedDelay = process.env.NODE_ENV === 'development' ? 300 : 0;
-        if (simulatedDelay > 0) {
-          await new Promise(resolve => setTimeout(resolve, simulatedDelay));
+        const delay = getSimulatedDelay();
+        if (delay > 0) {
+          await wait(delay);
         }
-        
-        if (isBuyer) {
-          // Buyer dashboard data
-          setData({
-            stats: [
-              {
-                label: 'Saved Listings',
-                value: '12',
-                icon: FileText,
-                description: 'Properties you\'re interested in'
-              },
-              {
-                label: 'Active NDAs',
-                value: '3',
-                icon: FileSignature,
-                description: 'Signed confidentiality agreements'
-              },
-              {
-                label: 'Offers Made',
-                value: '2',
-                icon: Handshake,
-                description: 'Your active offers'
-              },
-              {
-                label: 'Unread Messages',
-                value: '5',
-                icon: MessageSquare,
-                description: 'New messages waiting'
-              }
-            ],
-            needsVerification: true,
-            recentActivity: [
-              {
-                type: 'Viewing Scheduled',
-                title: 'Dental Clinic - Central',
-                date: 'Today, 2:30 PM',
-                icon: Eye
-              },
-              {
-                type: 'Offer Submitted',
-                title: 'Boutique Fashion Store',
-                date: 'Yesterday',
-                icon: Handshake
-              },
-              {
-                type: 'NDA Signed',
-                title: 'Tuition Center - East',
-                date: '2 days ago',
-                icon: FileSignature
-              }
-            ]
-          });
-        } else {
-          // Seller dashboard data
-          setData({
-            stats: [
-              {
-                label: 'Active Listings',
-                value: '8',
-                icon: Briefcase,
-                description: 'Properties listed for sale'
-              },
-              {
-                label: 'Total Views',
-                value: '124',
-                icon: Eye,
-                description: 'Profile and listing views'
-              },
-              {
-                label: 'Buyer Leads',
-                value: '23',
-                icon: Users,
-                description: 'Interested buyers'
-              },
-              {
-                label: 'Avg. Response Time',
-                value: '2.5h',
-                icon: Clock,
-                description: 'Time to first response'
-              }
-            ],
-            needsVerification: false,
-            recentActivity: [
-              {
-                type: 'New Lead',
-                title: 'John D. viewed your listing',
-                date: '2 hours ago',
-                icon: Users
-              },
-              {
-                type: 'Price Alert',
-                title: 'Competitor price drop nearby',
-                date: '5 hours ago',
-                icon: TrendingUp
-              },
-              {
-                type: 'Market Update',
-                title: '3 new buyers in your area',
-                date: '1 day ago',
-                icon: BarChart
-              }
-            ]
-          });
+
+        const nextData = isBuyer ? createBuyerDashboardData() : createSellerDashboardData();
+
+        if (isActive) {
+          setData(nextData);
         }
       } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to load dashboard data');
-        setError(error);
-        handleError(error, { componentStack: 'DashboardPage' });
+        const errorInstance = err instanceof Error ? err : new Error('Failed to load dashboard data');
+        if (isActive) {
+          setError(errorInstance);
+        }
+        handleError(errorInstance, { componentStack: 'DashboardPage' });
       } finally {
-        setIsLoading(false);
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isActive = false;
+    };
   }, [isBuyer, role]);
 
   if (isLoading) {
-    return renderLoadingState();
+    return <DashboardLoadingState />;
   }
 
-  // Error boundary fallback component
-  interface ErrorFallbackProps {
-    error: Error | null;
-    reset: () => void;
-  }
-  
-  const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, reset }) => (
-    <div className="flex flex-col items-center justify-center h-64 rounded-lg border border-dashed">
-      <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-      <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
-      <p className="text-muted-foreground mb-4">
-        {error?.message || 'Failed to load dashboard data'}
-      </p>
-      <RoleAwareButton onClick={reset}>Try Again</RoleAwareButton>
-    </div>
-  );
-  
-  // Error boundary fallback element
+  const handleRetry = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
   const errorFallbackElement = (
-    <ErrorFallback error={error} reset={() => window.location.reload()} />
+    <DashboardErrorFallback error={error} onRetry={handleRetry} />
   );
 
   if (error || !data) {
-    return <ErrorFallback error={error} reset={() => window.location.reload()} />;
+    return <DashboardErrorFallback error={error} onRetry={handleRetry} />;
   }
 
   // If user is a seller, render the SellerDashboard

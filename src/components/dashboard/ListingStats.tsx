@@ -1,9 +1,17 @@
+import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardMetricCard } from '@/components/dashboard/metric-card';
 import { Briefcase, Eye, Users, Clock } from 'lucide-react';
+import type { Listing } from '@/lib/types';
+
+type ListingWithDashboardMeta = Listing & {
+  views?: number | null;
+  leads?: number | null;
+  avg_response_time_hours?: number | null;
+};
 
 interface ListingStatsProps {
-  listings: any[];
+  listings?: ListingWithDashboardMeta[];
   isLoading?: boolean;
   lastUpdated?: Date;
   onRefresh?: () => void;
@@ -14,32 +22,74 @@ export function ListingStats({
   listings = [],
   isLoading = false,
 }: ListingStatsProps) {
-  const metrics = [
-    {
-      label: 'Active Listings',
-      value: listings.filter((listing) => listing.status === 'live').length,
-      icon: Briefcase,
-      description: 'Currently visible to verified buyers',
-    },
-    {
-      label: 'Total Views',
-      value: listings.reduce((sum, listing) => sum + (listing.views || 0), 0),
-      icon: Eye,
-      description: 'Combined traffic across all mandates',
-    },
-    {
-      label: 'Buyer Leads',
-      value: listings.reduce((sum, listing) => sum + (listing.leads || 0), 0),
-      icon: Users,
-      description: 'Qualified operator interest this month',
-    },
-    {
-      label: 'Avg. Response Time',
-      value: '2.5h',
-      icon: Clock,
-      description: 'Median time to first follow-up',
-    },
-  ];
+  const metrics = useMemo(() => {
+    const summary = listings.reduce(
+      (acc, listing) => {
+        if (listing.status === 'live') {
+          acc.activeCount += 1;
+        }
+
+        const views = typeof listing.views === 'number' ? listing.views : 0;
+        const leads = typeof listing.leads === 'number' ? listing.leads : 0;
+        const responseTime =
+          typeof listing.avg_response_time_hours === 'number'
+            ? listing.avg_response_time_hours
+            : null;
+
+        acc.totalViews += views;
+        acc.totalLeads += leads;
+        if (responseTime !== null) {
+          acc.responseTimes.push(responseTime);
+        }
+
+        return acc;
+      },
+      {
+        activeCount: 0,
+        totalViews: 0,
+        totalLeads: 0,
+        responseTimes: [] as number[],
+      },
+    );
+
+    const avgResponseHours =
+      summary.responseTimes.length > 0
+        ? summary.responseTimes.reduce((sum, hours) => sum + hours, 0) /
+          summary.responseTimes.length
+        : 2.5;
+
+    const formattedResponseTime =
+      Number.isInteger(avgResponseHours) && avgResponseHours !== 0
+        ? `${avgResponseHours.toFixed(0)}h`
+        : `${avgResponseHours.toFixed(1)}h`;
+
+    return [
+      {
+        label: 'Active Listings',
+        value: summary.activeCount,
+        icon: Briefcase,
+        description: 'Currently visible to verified buyers',
+      },
+      {
+        label: 'Total Views',
+        value: summary.totalViews,
+        icon: Eye,
+        description: 'Combined traffic across all mandates',
+      },
+      {
+        label: 'Buyer Leads',
+        value: summary.totalLeads,
+        icon: Users,
+        description: 'Qualified operator interest this month',
+      },
+      {
+        label: 'Avg. Response Time',
+        value: formattedResponseTime,
+        icon: Clock,
+        description: 'Median time to first follow-up',
+      },
+    ];
+  }, [listings]);
 
   if (isLoading) {
     return (
