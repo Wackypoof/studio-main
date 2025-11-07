@@ -93,11 +93,12 @@ export function ListingStats({
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="listing-stats-skeleton">
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
             className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-sm"
+            data-testid="listing-stats-skeleton-card"
           >
             <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-amber-200 via-orange-200 to-rose-200 opacity-20" />
             <Skeleton className="mb-5 h-12 w-12 rounded-xl" />
@@ -113,7 +114,7 @@ export function ListingStats({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-testid="listing-stats">
       {metrics.map((metric) => (
         <DashboardMetricCard
           key={metric.label}
