@@ -107,28 +107,25 @@ CREATE INDEX IF NOT EXISTS offers_buyer_idx ON public.offers (buyer_id);
 CREATE INDEX IF NOT EXISTS offers_seller_idx ON public.offers (seller_id);
 CREATE INDEX IF NOT EXISTS offers_status_idx ON public.offers (status);
 
--- Reuse set_updated_at helper if it exists, fall back to local definition
-DO $$
+-- Fallback helper used when public.set_updated_at is unavailable
+CREATE OR REPLACE FUNCTION public.set_offer_updated_at()
+RETURNS TRIGGER AS $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'set_updated_at' AND pronamespace = 'public'::regnamespace
-  ) THEN
-    CREATE OR REPLACE FUNCTION public.set_offer_updated_at()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      NEW.updated_at = now();
-      RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-  END IF;
-END $$;
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Attach trigger (use existing set_updated_at if available, otherwise fallback)
 DO $$
 BEGIN
   DROP TRIGGER IF EXISTS trg_offers_updated_at ON public.offers;
   IF EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'set_updated_at' AND pronamespace = 'public'::regnamespace
+    SELECT 1
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE p.proname = 'set_updated_at'
+      AND n.nspname = 'public'
   ) THEN
     CREATE TRIGGER trg_offers_updated_at
       BEFORE UPDATE ON public.offers

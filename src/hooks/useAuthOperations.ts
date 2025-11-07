@@ -163,10 +163,17 @@ export function useAuthOperations(
       }
 
       try {
+        const now = new Date().toISOString();
+        const payload = {
+          id: user.id,
+          full_name: updates.full_name ?? user.user_metadata?.full_name ?? '',
+          avatar_url: updates.avatar_url ?? user.user_metadata?.avatar_url ?? null,
+          updated_at: now,
+        };
+
         const { data, error: updateError } = await supabase
           .from('profiles')
-          .update(updates)
-          .eq('id', user.id)
+          .upsert(payload, { onConflict: 'id' })
           .select()
           .single();
 

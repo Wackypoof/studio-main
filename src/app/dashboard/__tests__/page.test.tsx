@@ -91,6 +91,6 @@ describe('Dashboard Page', () => {
   it('shows verification alert when needed', async () => {
     await renderDashboard();
 
-    expect(await screen.findByText(/verification required/i)).toBeInTheDocument();
+    expect(await screen.findByText(/complete your profile verification/i)).toBeInTheDocument();
   });
 });

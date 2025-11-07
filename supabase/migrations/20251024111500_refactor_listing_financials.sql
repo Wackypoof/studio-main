@@ -37,17 +37,22 @@ INSERT INTO public.listing_financials (
 )
 SELECT l.id,
        EXTRACT(YEAR FROM l.created_at)::int AS fiscal_year,
-       l.currency,
-       l.revenue,
-       l.profit,
-       l.assets,
-       l.asking_price,
-       l.valuation_multiple,
-       l.growth_rate
+       COALESCE(NULLIF(l_data->>'currency', ''), 'USD')::CHAR(3) AS currency,
+       NULLIF(l_data->>'revenue', '')::NUMERIC(18,2) AS revenue,
+       NULLIF(l_data->>'profit', '')::NUMERIC(18,2) AS profit,
+       NULLIF(l_data->>'assets', '')::NUMERIC(18,2) AS assets,
+       NULLIF(l_data->>'asking_price', '')::NUMERIC(18,2) AS asking_price,
+       NULLIF(l_data->>'valuation_multiple', '')::NUMERIC(10,2) AS valuation_multiple,
+       NULLIF(l_data->>'growth_rate', '')::NUMERIC(6,2) AS growth_rate
 FROM public.listings l
+CROSS JOIN LATERAL to_jsonb(l) AS l_data
 WHERE (
-  l.revenue IS NOT NULL OR l.profit IS NOT NULL OR l.assets IS NOT NULL OR
-  l.asking_price IS NOT NULL OR l.valuation_multiple IS NOT NULL OR l.growth_rate IS NOT NULL
+  NULLIF(l_data->>'revenue', '') IS NOT NULL OR
+  NULLIF(l_data->>'profit', '') IS NOT NULL OR
+  NULLIF(l_data->>'assets', '') IS NOT NULL OR
+  NULLIF(l_data->>'asking_price', '') IS NOT NULL OR
+  NULLIF(l_data->>'valuation_multiple', '') IS NOT NULL OR
+  NULLIF(l_data->>'growth_rate', '') IS NOT NULL
 )
 AND NOT EXISTS (
   SELECT 1 FROM public.listing_financials f
@@ -106,4 +111,3 @@ CREATE POLICY "Owners can manage their listing financials"
       WHERE l.id = listing_financials.listing_id AND l.owner_id = auth.uid()
     )
   );
-
