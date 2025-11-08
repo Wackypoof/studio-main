@@ -25,7 +25,7 @@ export function ErrorBoundary({
       <p className="text-muted-foreground mb-6 max-w-md">
         We&apos;re having trouble loading your dashboard. Please try again or contact support if the problem persists.
       </p>
-      <Button
+      <Button shape="pill"
         onClick={() => reset()}
         variant="outline"
       >

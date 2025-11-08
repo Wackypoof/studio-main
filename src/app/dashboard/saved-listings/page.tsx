@@ -85,7 +85,7 @@ export default function SavedListingsPage() {
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
               {searchTerm && (
-                <Button
+                <Button shape="pill"
                   type="button"
                   size="icon"
                   variant="ghost"
@@ -97,7 +97,7 @@ export default function SavedListingsPage() {
               )}
             </div>
 
-            <Button variant="outline" size="sm" disabled>
+            <Button shape="pill" variant="outline" size="sm" disabled>
               <Filter className="mr-2 h-4 w-4" />
               Filters
             </Button>
@@ -118,7 +118,7 @@ export default function SavedListingsPage() {
               <Badge variant="secondary">
                 {filteredListings.length} saved
               </Badge>
-              <Button
+              <Button shape="pill"
                 type="button"
                 size="icon"
                 variant="ghost"

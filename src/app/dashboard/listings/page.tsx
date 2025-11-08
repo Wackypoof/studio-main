@@ -131,13 +131,13 @@ export default function ListingsPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button shape="pill" variant="outline" size="sm">
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button shape="pill" variant="outline" size="sm">
                     Sort by: Newest
                     <MoreVertical className="ml-2 h-4 w-4" />
                   </Button>
@@ -188,7 +188,7 @@ export default function ListingsPage() {
                   {error.message || 'Unable to load listings right now.'}
                 </p>
               </div>
-              <Button onClick={() => refetch()} variant="outline">
+              <Button shape="pill" onClick={() => refetch()} variant="outline">
                 Retry
               </Button>
             </div>
@@ -217,7 +217,7 @@ export default function ListingsPage() {
                   <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
+                        <Button shape="pill"
                           variant="outline"
                           size="icon"
                           className="h-8 w-8 bg-background/80 backdrop-blur-sm"
@@ -259,10 +259,10 @@ export default function ListingsPage() {
               <span className="font-medium">{totalCount || listings.length}</span> listings
             </p>
             <div className="space-x-2">
-              <Button variant="outline" size="sm" disabled>
+              <Button shape="pill" variant="outline" size="sm" disabled>
                 Previous
               </Button>
-              <Button variant="outline" size="sm" disabled>
+              <Button shape="pill" variant="outline" size="sm" disabled>
                 Next
               </Button>
             </div>
@@ -332,7 +332,7 @@ function OnboardingChecklist() {
             <CardTitle className="text-lg">Get set up to sell</CardTitle>
             <CardDescription>Complete these steps to build trust and start receiving leads</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => { try { localStorage.setItem('onboarding_hidden', '1'); } catch {}; setHidden(true); }}>Dismiss</Button>
+          <Button shape="pill" variant="ghost" size="sm" onClick={() => { try { localStorage.setItem('onboarding_hidden', '1'); } catch {}; setHidden(true); }}>Dismiss</Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -357,7 +357,7 @@ function OnboardingChecklist() {
           <RoleAwareButton asChild size="sm">
             <Link href="/dashboard/listings/new">{hasDraft ? 'Resume draft' : 'Create listing'}</Link>
           </RoleAwareButton>
-          <Button asChild size="sm" variant="outline">
+          <Button shape="pill" asChild size="sm" variant="outline">
             <Link href="/dashboard/verification">Verify identity</Link>
           </Button>
         </div>

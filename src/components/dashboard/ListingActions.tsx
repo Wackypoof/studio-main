@@ -20,7 +20,7 @@ export function ListingActions({
   return (
     <div className={className}>
       {onRefresh && (
-        <Button
+        <Button shape="pill"
           variant="outline"
           size="sm"
           onClick={onRefresh}

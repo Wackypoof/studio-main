@@ -224,11 +224,11 @@ export function LeadsClient({ searchParams }: LeadsClientProps) {
           </Tabs>
           
           <div className="mt-4 sm:mt-0 flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button shape="pill" variant="outline" size="sm">
               <Filter className="mr-2 h-4 w-4" />
               Filter
             </Button>
-            <Button variant="outline" size="sm">
+            <Button shape="pill" variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
@@ -243,7 +243,7 @@ export function LeadsClient({ searchParams }: LeadsClientProps) {
                 {error.message || 'An unexpected error occurred while fetching leads.'}
               </AlertDescription>
               <div className="mt-3">
-                <Button size="sm" onClick={() => refetch()}>
+                <Button shape="pill" size="sm" onClick={() => refetch()}>
                   Retry
                 </Button>
               </div>
@@ -342,7 +342,7 @@ export function LeadsClient({ searchParams }: LeadsClientProps) {
                       <p className="text-sm mt-1">Try adjusting filters or add a new lead.</p>
                     </div>
                     <div className="flex items-center justify-center gap-2 mt-4">
-                      <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setActiveTab('all'); }}>
+                      <Button shape="pill" variant="outline" size="sm" onClick={() => { setSearchTerm(''); setActiveTab('all'); }}>
                         Reset filters
                       </Button>
                       <RoleAwareButton size="sm">
@@ -406,7 +406,7 @@ export function LeadsClient({ searchParams }: LeadsClientProps) {
                     <td className="p-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button shape="pill" variant="ghost" size="icon" className="h-8 w-8">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -444,19 +444,19 @@ export function LeadsClient({ searchParams }: LeadsClientProps) {
           <span className="text-sm text-muted-foreground">
             {selectedLeads.length} selected
           </span>
-          <Button variant="outline" size="sm" className="justify-start">
+          <Button shape="pill" variant="outline" size="sm" className="justify-start">
             <MailIcon className="mr-2 h-4 w-4" />
             Email All
           </Button>
-          <Button variant="outline" size="sm" className="justify-start">
+          <Button shape="pill" variant="outline" size="sm" className="justify-start">
             <MessageIcon className="mr-2 h-4 w-4" />
             Message All
           </Button>
-          <Button variant="outline" size="sm" className="justify-start">
+          <Button shape="pill" variant="outline" size="sm" className="justify-start">
             <UserPlus className="mr-2 h-4 w-4" />
             Add Lead
           </Button>
-          <Button variant="outline" size="sm" className="justify-start">
+          <Button shape="pill" variant="outline" size="sm" className="justify-start">
             <X className="mr-2 h-4 w-4" />
             Clear
           </Button>

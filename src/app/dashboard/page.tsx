@@ -343,7 +343,7 @@ function BuyerDashboardContent({ greetingName }: BuyerDashboardContentProps) {
                 <p className="text-sm text-blue-100/80">{bannerCopy.description}</p>
               </div>
             </div>
-            <Button
+            <Button shape="pill"
               size="lg"
               className="h-auto rounded-full bg-gradient-to-r from-blue-500 via-sky-400 to-blue-300 px-6 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-blue-900/40 transition duration-300 hover:from-blue-400 hover:via-sky-300 hover:to-blue-200"
               onClick={() => goTo('/dashboard/verification')}
@@ -414,7 +414,7 @@ function BuyerDashboardContent({ greetingName }: BuyerDashboardContentProps) {
             <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
-            <Button
+            <Button shape="pill"
               type="button"
               variant="outline"
               className={quickActionClasses}
@@ -423,7 +423,7 @@ function BuyerDashboardContent({ greetingName }: BuyerDashboardContentProps) {
               <MessageSquare className="mr-2 h-4 w-4" />
               View Messages
             </Button>
-            <Button
+            <Button shape="pill"
               type="button"
               variant="outline"
               className={quickActionClasses}
@@ -432,7 +432,7 @@ function BuyerDashboardContent({ greetingName }: BuyerDashboardContentProps) {
               <FileText className="mr-2 h-4 w-4" />
               Saved Listings
             </Button>
-            <Button
+            <Button shape="pill"
               type="button"
               variant="outline"
               className={quickActionClasses}
@@ -441,7 +441,7 @@ function BuyerDashboardContent({ greetingName }: BuyerDashboardContentProps) {
               <BarChart className="mr-2 h-4 w-4" />
               View Analytics
             </Button>
-            <Button
+            <Button shape="pill"
               type="button"
               variant="outline"
               className={quickActionClasses}

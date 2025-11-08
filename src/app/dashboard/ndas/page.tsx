@@ -215,7 +215,7 @@ export default function NDAsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                <Button variant="outline" size="sm">
+                <Button shape="pill" variant="outline" size="sm">
                   <Filter className="mr-2 h-4 w-4" />
                   Saved filters
                 </Button>
@@ -300,7 +300,7 @@ export default function NDAsPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button shape="pill" variant="ghost" size="icon" className="h-8 w-8">
                                 <MoreVertical className="h-4 w-4" />
                                 <span className="sr-only">Open actions</span>
                               </Button>
@@ -412,7 +412,7 @@ export default function NDAsPage() {
                       <span className="text-xs text-muted-foreground">
                         Signed {formatDate(nda.signedDate)}
                       </span>
-                      <Button
+                      <Button shape="pill"
                         variant="ghost"
                         size="sm"
                         className="h-8 px-3"
@@ -462,7 +462,7 @@ export default function NDAsPage() {
                           {statusCopy[nda.status].label} • {formatRelative(nda.lastUpdated)}
                         </span>
                       </div>
-                      <Button
+                      <Button shape="pill"
                         variant="ghost"
                         size="sm"
                         className="h-8 px-3"
@@ -525,7 +525,7 @@ export default function NDAsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => handleDownload(selectedAgreement)} size="sm" variant="outline">
+                  <Button shape="pill" onClick={() => handleDownload(selectedAgreement)} size="sm" variant="outline">
                     <Download className="mr-2 h-4 w-4" />
                     Download copy
                   </Button>

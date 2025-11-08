@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { mapListingToResponse } from '@/lib/listings/helpers';
-import type { Database, Tables } from '@/types/db';
+import type { Database, Tables, Views } from '@/types/db';
 
 const DEFAULT_LIMIT = 50;
+const FALLBACK_EMPTY_RESPONSE = {
+  offers: [],
+  count: 0,
+  hasMore: false,
+};
+
+const SUPABASE_IGNORABLE_ERROR_CODES = new Set(['42P01', '42501']);
+
+const isIgnorableSupabaseError = (error: unknown): error is { code?: string; message?: string } => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const code = 'code' in error ? (error as Record<string, unknown>).code : undefined;
+  return typeof code === 'string' && SUPABASE_IGNORABLE_ERROR_CODES.has(code);
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -95,6 +111,14 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query;
 
     if (error) {
+      if (isIgnorableSupabaseError(error)) {
+        console.warn(
+          'Offers table unavailable or restricted, returning empty dataset:',
+          error.message ?? error
+        );
+        return NextResponse.json(FALLBACK_EMPTY_RESPONSE);
+      }
+
       console.error('Failed to fetch offers:', error);
       return NextResponse.json(
         { error: 'Failed to fetch offers' },
@@ -107,28 +131,36 @@ export async function GET(request: NextRequest) {
       .map((offer) => offer.listing?.id)
       .filter((id): id is string => Boolean(id));
 
-    let financialMap = new Map<string, any>();
+    let financialMap = new Map<string, Views<'listing_latest_financials'> | null>();
 
     if (listingIds.length > 0) {
+      const uniqueListingIds = Array.from(new Set(listingIds));
       const { data: financialRows, error: financialError } = await supabase
         .from('listing_latest_financials')
         .select('*')
-        .in('listing_id', listingIds);
+        .in('listing_id', uniqueListingIds);
 
       if (financialError) {
-        console.error(
-          'Failed to fetch listing financials for offers:',
-          financialError
-        );
-        return NextResponse.json(
-          { error: 'Failed to fetch offers' },
-          { status: 500 }
+        if (isIgnorableSupabaseError(financialError)) {
+          console.warn(
+            'Listing financials view unavailable or restricted while loading offers, continuing without financial enrichment:',
+            financialError.message ?? financialError
+          );
+        } else {
+          console.error(
+            'Failed to fetch listing financials for offers:',
+            financialError
+          );
+          return NextResponse.json(
+            { error: 'Failed to fetch offers' },
+            { status: 500 }
+          );
+        }
+      } else if (financialRows) {
+        financialMap = new Map(
+          financialRows.map((row) => [row.listing_id ?? '', row])
         );
       }
-
-      financialMap = new Map(
-        (financialRows ?? []).map((row) => [row.listing_id ?? '', row])
-      );
     }
 
     const formatted = offers.map((offer) => {

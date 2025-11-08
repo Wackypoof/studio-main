@@ -119,7 +119,7 @@ export default function OffersPage() {
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
               {searchTerm && (
-                <Button
+                <Button shape="pill"
                   type="button"
                   size="icon"
                   variant="ghost"
@@ -131,11 +131,11 @@ export default function OffersPage() {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
+              <Button shape="pill" variant="outline" size="sm" disabled>
                 <Filter className="mr-2 h-4 w-4" />
                 Filters
               </Button>
-              <Button
+              <Button shape="pill"
                 variant="ghost"
                 size="icon"
                 onClick={() => refetch()}
@@ -248,7 +248,7 @@ export default function OffersPage() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button shape="pill" variant="ghost" size="icon">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

@@ -41,7 +41,7 @@ function FileUploadInput({
           onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
           disabled={disabled}
         />
-        <Button variant="outline" className="flex-shrink-0" onClick={onUpload} disabled={disabled}>
+        <Button shape="pill" variant="outline" className="flex-shrink-0" onClick={onUpload} disabled={disabled}>
           <Upload className="mr-2 h-4 w-4" />
           Upload File
         </Button>

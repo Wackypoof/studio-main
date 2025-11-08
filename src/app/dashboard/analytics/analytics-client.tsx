@@ -79,7 +79,7 @@ export function AnalyticsClient({ initialData, searchParams }: AnalyticsClientPr
             <option value="12m">Last 12 months</option>
           </select>
           
-          <Button variant="outline">
+          <Button shape="pill" variant="outline">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>

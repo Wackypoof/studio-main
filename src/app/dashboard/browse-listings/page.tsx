@@ -265,7 +265,7 @@ export default function BrowseListingsPage() {
             </Suspense>
             <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">Save search</Button>
+                <Button shape="pill" variant="outline" size="sm">Save search</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -291,7 +291,7 @@ export default function BrowseListingsPage() {
                     <Switch checked={newPushAlerts} onCheckedChange={setNewPushAlerts} />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
+                    <Button shape="pill" variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
                     <RoleAwareButton onClick={handleSaveCurrentSearch}>Save</RoleAwareButton>
                   </div>
                 </div>
@@ -358,7 +358,7 @@ export default function BrowseListingsPage() {
                 <p className="text-sm mt-2">Try adjusting your filters or search term.</p>
               </div>
               <div className="flex items-center justify-center gap-2 mt-6">
-                <Button variant="outline" onClick={() => {
+                <Button shape="pill" variant="outline" onClick={() => {
                   setSearchTerm('');
                   setPriceRange([0, 2000000]);
                   setRevenueRange([0, 1000000]);
@@ -368,7 +368,7 @@ export default function BrowseListingsPage() {
                   setSelectedStatus('all');
                   setSortBy('newest');
                 }}>Reset filters</Button>
-                <Button variant="secondary" onClick={() => setSaveDialogOpen(true)}>Save this search</Button>
+                <Button shape="pill" variant="secondary" onClick={() => setSaveDialogOpen(true)}>Save this search</Button>
               </div>
             </div>
           )}

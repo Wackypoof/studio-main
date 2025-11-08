@@ -238,7 +238,7 @@ export default function AdminNdasPage() {
                   <TabsTrigger value="expired">Expired</TabsTrigger>
                 </TabsList>
               </Tabs>
-              <Button variant="outline" size="sm">
+              <Button shape="pill" variant="outline" size="sm">
                 <Filter className="mr-2 h-4 w-4" />
                 Advanced filters
               </Button>
@@ -325,7 +325,7 @@ export default function AdminNdasPage() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button shape="pill" variant="ghost" size="icon" className="h-8 w-8">
                                 <FileSearch className="h-4 w-4" />
                                 <span className="sr-only">Open actions</span>
                               </Button>
@@ -484,7 +484,7 @@ export default function AdminNdasPage() {
                           )}
                           Approve & notify
                         </RoleAwareButton>
-                        <Button
+                        <Button shape="pill"
                           size="sm"
                           variant="outline"
                           disabled={isDeciding && decisionTarget === selectedRequest.id}
@@ -495,7 +495,7 @@ export default function AdminNdasPage() {
                         </Button>
                       </>
                     )}
-                    <Button
+                    <Button shape="pill"
                       size="sm"
                       variant="outline"
                       onClick={() =>

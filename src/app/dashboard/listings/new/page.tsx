@@ -773,7 +773,7 @@ export default function CreateListingPage() {
             </div>
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={() => setStep(1)}>
+            <Button shape="pill" variant="outline" onClick={() => setStep(1)}>
               Back
             </Button>
             <RoleAwareButton onClick={saveFinancials} disabled={saving}>
@@ -823,7 +823,7 @@ export default function CreateListingPage() {
             </div>
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={() => setStep(2)}>
+            <Button shape="pill" variant="outline" onClick={() => setStep(2)}>
               Back
             </Button>
             <RoleAwareButton onClick={saveOps} disabled={saving}>
@@ -914,7 +914,7 @@ export default function CreateListingPage() {
             </section>
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={() => setStep(3)}>
+            <Button shape="pill" variant="outline" onClick={() => setStep(3)}>
               Back
             </Button>
             <RoleAwareButton onClick={() => setStep(5)}>Review</RoleAwareButton>
@@ -954,7 +954,7 @@ export default function CreateListingPage() {
             </div>
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={() => setStep(4)}>
+            <Button shape="pill" variant="outline" onClick={() => setStep(4)}>
               Back
             </Button>
             <RoleAwareButton onClick={publish} disabled={publishing || !listingId}>

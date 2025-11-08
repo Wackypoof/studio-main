@@ -165,8 +165,8 @@ export default function AdminVerificationsPage() {
                     <TableCell className="space-x-2">
                       {status === 'pending' ? (
                         <>
-                          <Button size="sm" variant="default" onClick={() => act(r.id, "verified")} disabled={actingId === r.id}>Approve</Button>
-                          <Button size="sm" variant="destructive" onClick={() => act(r.id, "rejected")} disabled={actingId === r.id}>Reject</Button>
+                          <Button shape="pill" size="sm" variant="default" onClick={() => act(r.id, "verified")} disabled={actingId === r.id}>Approve</Button>
+                          <Button shape="pill" size="sm" variant="destructive" onClick={() => act(r.id, "rejected")} disabled={actingId === r.id}>Reject</Button>
                         </>
                       ) : (
                         <span className="text-xs text-muted-foreground">No actions</span>

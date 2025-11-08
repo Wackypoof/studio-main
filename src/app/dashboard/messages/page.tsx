@@ -213,7 +213,7 @@ export default function MessagesPage() {
             {/* Chat Header */}
             <div className="border-b p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
+                <Button shape="pill" variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
 

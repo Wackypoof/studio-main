@@ -103,7 +103,7 @@ export function ListingTable({
             </p>
           </div>
           <div className="mt-4 flex items-center space-x-2 sm:mt-0">
-            <Button
+            <Button shape="pill"
               variant="outline"
               size="sm"
               onClick={() => onViewListing(listing.id)}
@@ -111,7 +111,7 @@ export function ListingTable({
             >
               View Details
             </Button>
-            <Button variant="ghost" size="icon" asChild>
+            <Button shape="pill" variant="ghost" size="icon" asChild>
               <Link href={`/dashboard/listings/${listing.id}?from=dashboard`}>
                 <ArrowUpRight className="h-4 w-4" />
                 <span className="sr-only">Open in new tab</span>

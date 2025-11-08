@@ -29,7 +29,7 @@ export function RecentListings({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Recent Listings</h2>
         {showViewAll && listings.length > 0 && (
-          <Button variant="ghost" size="sm" asChild>
+          <Button shape="pill" variant="ghost" size="sm" asChild>
             <Link href="/dashboard/browse-listings">
               View all
               <ArrowUpRight className="ml-1 h-4 w-4" />

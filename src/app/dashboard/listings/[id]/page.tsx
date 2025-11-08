@@ -85,7 +85,7 @@ function ListingDetailsContent({ id }: { id: string }) {
             {error.message || 'Please try again.'}
           </p>
         </div>
-        <Button onClick={() => refetch()} variant="outline">
+        <Button shape="pill" onClick={() => refetch()} variant="outline">
           Retry
         </Button>
       </div>
@@ -254,7 +254,7 @@ function ListingDetailsContent({ id }: { id: string }) {
       <div className="w-full space-y-6 min-w-0">
         <div className="flex items-center justify-between min-w-0">
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" asChild>
+            <Button shape="pill" variant="outline" size="icon" asChild>
               <Link href={from === 'dashboard' ? '/dashboard' : from === 'my-listings' ? '/dashboard/listings' : '/dashboard/browse-listings'} prefetch={false}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
@@ -262,11 +262,11 @@ function ListingDetailsContent({ id }: { id: string }) {
             <h1 className="text-2xl font-bold">Business Details</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button shape="pill" variant="outline" size="sm">
               <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
-            <Button variant="outline" size="sm">
+            <Button shape="pill" variant="outline" size="sm">
               <MessageSquare className="h-4 w-4 mr-2" />
               Contact Seller
             </Button>
@@ -583,7 +583,7 @@ function ListingDetailsContent({ id }: { id: string }) {
               <p>Listing ID: {listing.id}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button shape="pill" variant="outline" size="sm">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Ask a Question
               </Button>

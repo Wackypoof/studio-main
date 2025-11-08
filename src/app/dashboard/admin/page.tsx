@@ -30,7 +30,7 @@ export default function AdminHubPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">Approve or reject NDA requests from buyers for confidential listing access.</p>
-            <Button variant="outline" asChild>
+            <Button shape="pill" variant="outline" asChild>
               <Link href="/dashboard/admin/ndas">View NDAs</Link>
             </Button>
           </CardContent>

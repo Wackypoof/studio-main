@@ -104,7 +104,7 @@ export function VerificationAlert({
       </div>
       <div className="pt-2">
         <p className={cn('mb-3 text-sm', config.messageClass)}>{message ?? config.message}</p>
-        <Button
+        <Button shape="pill"
           variant={buttonVariant}
           size="sm"
           className={cn('transition-colors', config.buttonClass)}

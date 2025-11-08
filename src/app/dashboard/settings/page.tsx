@@ -275,7 +275,7 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     <h5 className="font-medium">Delete account</h5>
                     <p className="text-sm text-muted-foreground">Once you delete your account, there is no going back. Please be certain.</p>
-                    <Button variant="destructive">Delete account</Button>
+                    <Button shape="pill" variant="destructive">Delete account</Button>
                   </div>
                 </div>
               </div>

@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 
 const DealStageButton = ({ icon: Icon, label, isActive, onClick, children }: { icon: React.ElementType, label: string, isActive: boolean, onClick: () => void, children?: React.ReactNode }) => (
-    <Button
+    <Button shape="pill"
         variant="ghost"
         onClick={onClick}
         className={cn(
@@ -66,7 +66,7 @@ export default function MyDealsPage() {
                         />
                         <div className="px-3 pt-4 pb-2 text-sm font-semibold text-foreground/80 flex justify-between items-center">
                             My Favorites
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-primary">
+                            <Button shape="pill" variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-primary">
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </div>
@@ -91,10 +91,10 @@ export default function MyDealsPage() {
                             <p className="text-muted-foreground mt-1">{currentStage.description}</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                            <Button shape="pill" variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                                 <Search className="h-5 w-5" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                            <Button shape="pill" variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                                 <List className="h-5 w-5" />
                             </Button>
                         </div>

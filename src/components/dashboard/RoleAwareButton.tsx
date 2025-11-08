@@ -30,7 +30,7 @@ export function RoleAwareButton({
     : undefined;
 
   return (
-    <Button
+    <Button shape="pill"
       variant={variant}
       className={cn(shouldApplyGradient && "hover:bg-transparent", gradientClasses, className)}
       {...props}
